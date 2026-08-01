@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FDF7F0">
+<title>המסלול · MVP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--canvas:#FDF7F0;--surface:#fff;--border:#EFE5DA;--chip:#E7DCCE;--skin:#F2E3D5;--skinLine:#E3CDB8;--skinHi:#EBD6C4;
+--ink:#2E2A26;--ink2:#8C837A;--ink3:#A79FB3;--soft:#FAF6F1;--track:#EDE2D5;--dot:#DCCFC0;--lock:#E7E0EA;--lockFg:#A79FB3;--brand:#14807A}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{font-family:'Assistant',system-ui,sans-serif;background:#E6DFD6;color:var(--ink);display:flex;justify-content:center;overflow:hidden}
+.app{width:100%;max-width:430px;background:var(--canvas);position:relative;height:100dvh;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+h1{font-size:24px;font-weight:700;margin:0;line-height:1.2;letter-spacing:-.2px}
+h2{font-size:19px;font-weight:700;margin:0}
+.sub{font-size:14.5px;color:var(--ink2);margin-top:7px;line-height:1.55}
+.pad{padding:0 20px}.top{padding:20px 20px 0;flex:none}
+button{font:inherit;cursor:pointer}
+.btn{width:100%;border:0;font-size:16px;font-weight:600;color:#fff;background:var(--c,#E8654F);border-radius:20px;padding:16px;transition:transform .12s}
+.btn:active{transform:scale(.985)}.btn[disabled]{background:#E3D8CB;cursor:default}
+.btn2{width:100%;border:1.5px solid var(--chip);background:#fff;border-radius:20px;padding:15px;font-size:15px;font-weight:600;color:var(--ink)}
+.ghost{width:100%;background:none;border:0;font-size:14px;color:var(--ink3);padding:14px 0 0}
+.bars{display:flex;gap:6px;margin-bottom:20px}.bar{flex:1;height:4px;border-radius:99px;background:var(--track)}.bar.on{background:#E8654F}
+.foot{padding:14px 20px calc(16px + env(safe-area-inset-bottom));flex:none;background:linear-gradient(to top,var(--canvas) 65%,rgba(253,247,240,0))}
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;text-align:center}
+.hero .ring{width:112px;height:112px;border-radius:50%;background:#E8654F;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 0 12px #FBE0DA;margin-bottom:26px}
+.hero h1{font-size:27px}.hero p{font-size:15.5px;color:var(--ink2);line-height:1.7;margin:14px 0 0}
+.firm{display:flex;align-items:center;gap:9px;justify-content:center;padding-top:26px}
+.logo{width:30px;height:30px;border-radius:10px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+/* body */
+.rot{display:flex;gap:4px;background:#fff;border:1px solid var(--border);border-radius:99px;padding:4px;margin:16px auto 0;width:fit-content}
+.rot button{font-size:14px;font-weight:600;color:var(--ink2);background:none;border:0;border-radius:99px;padding:9px 20px;display:flex;align-items:center;gap:7px;transition:.22s}
+.rot button.on{background:#E8654F;color:#fff}
+.stage{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 14px 0;perspective:1400px}
+.figWrap{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.fig{height:100%;max-height:100%;display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;will-change:transform}
+.fig.snap{transition:transform .38s cubic-bezier(.34,1.2,.64,1)}
+#bodySvg{height:100%;width:100%}
+.hint{flex:none;font-size:11.5px;color:var(--ink3);display:flex;align-items:center;gap:6px;padding:2px 0 4px}
+.zone{fill:var(--skin);stroke:var(--skinLine);stroke-width:1.4;cursor:pointer;transition:fill .2s,stroke .2s}
+.zone:active{fill:var(--skinHi)}
+.badge text{font-size:15px;font-weight:700;fill:#fff}.badge circle{stroke:var(--canvas);stroke-width:3}
+.ztag{font-size:12px;font-weight:600;fill:var(--ink2);pointer-events:none}
+.mind{margin:6px 20px 0;background:#fff;border:1px solid var(--border);border-radius:20px;padding:13px 15px;display:flex;align-items:center;gap:12px}
+.mind .ic{width:40px;height:40px;border-radius:50%;background:#EBE3F4;color:#7B5EA7;flex:none;display:flex;align-items:center;justify-content:center}
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.pill{border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600}
+/* journey */
+.jhead{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 6px;flex:none}
+.count{background:#fff;border:1.5px solid #CBE6E2;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--brand)}
+.path{position:relative;direction:ltr}
+.pline{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.nd{position:absolute;transform:translateX(-50%);width:172px;text-align:center;direction:rtl}
+.circ{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;position:relative;margin:0 auto;transition:transform .18s;cursor:pointer}
+.circ:active{transform:scale(.93)}
+.circ.cur{animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+.gloss{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.34),rgba(255,255,255,0) 58%)}
+.nlab{font-size:14px;font-weight:700;margin-top:11px;line-height:1.25}
+.nlab.lk{font-weight:600;color:var(--lockFg)}.nlab.cur{font-size:16.5px}
+.nsub{font-size:12px;color:var(--ink2);margin-top:2px}
+.tick{position:absolute;bottom:1px;left:1px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--canvas);display:flex;align-items:center;justify-content:center}
+.dpill{position:absolute;bottom:-4px;left:-8px;background:#fff;border:3px solid var(--canvas);border-radius:99px;padding:4px 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.nowtag{position:absolute;top:-6px;right:-4px;background:var(--ink);color:#fff;border:3px solid var(--canvas);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700}
+.tabs{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.92);padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex:none}
+.tab{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--ink3);padding:5px 0}
+.tab.on{color:var(--brand)}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(46,42,38,.34);opacity:0;pointer-events:none;transition:opacity .28s;z-index:8}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:9;margin:0 auto;max-width:430px;background:#fff;border-radius:30px 30px 0 0;
+ padding:12px 18px calc(16px + env(safe-area-inset-bottom));transform:translateY(103%);transition:transform .36s cubic-bezier(.32,.72,0,1);max-height:88dvh;display:flex;flex-direction:column}
+.sheet.on{transform:none}
+.grab{width:42px;height:4px;border-radius:99px;background:#E5DCD2;margin:0 auto 15px;flex:none}
+.shead{display:flex;align-items:center;gap:12px;margin-bottom:15px;flex:none}
+.shead .ic{width:50px;height:50px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff}
+.sbody{overflow-y:auto;flex:1;margin:0 -4px;padding:0 4px}.sfoot{flex:none;padding-top:12px}
+.acc{border:1.5px solid var(--border);border-radius:18px;margin-bottom:10px;overflow:hidden}
+.acc.open{border-color:var(--chip);background:var(--soft)}
+.accH{display:flex;align-items:center;gap:10px;padding:14px 15px;user-select:none;cursor:pointer}
+.accH .nm{flex:1;font-size:15.5px;font-weight:600}
+.ct{font-size:12px;font-weight:700;color:#fff;border-radius:99px;padding:3px 9px;min-width:26px;text-align:center}
+.chev{width:19px;height:19px;color:#B5ABA0;transition:transform .26s;flex:none}.acc.open .chev{transform:rotate(180deg)}
+.accB{max-height:0;overflow:hidden;transition:max-height .3s ease}.accIn{padding:0 12px 12px}
+.sy{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:12px 14px;margin-bottom:8px;font-size:14.5px;font-weight:500;cursor:pointer;transition:.18s}
+.sy .bx{width:21px;height:21px;border-radius:7px;border:1.8px solid #D6C9B8;flex:none;display:flex;align-items:center;justify-content:center;transition:.18s}
+.sy .bx svg{width:13px;height:13px;opacity:0;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.sy.on{color:#fff}.sy.on .bx{background:#fff!important;border-color:#fff!important}.sy.on .bx svg{opacity:1}
+.sy.other{border-style:dashed;background:var(--soft);color:var(--ink2)}.sy.other .bx{border-radius:50%}
+textarea,input{width:100%;font:inherit;font-size:14.5px;color:var(--ink);background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:12px 14px;outline:none;margin-bottom:8px}
+textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9BDAE}
+.prep{border-radius:18px;padding:14px;margin-bottom:14px}.prep h4{margin:0 0 9px;font-size:13px;font-weight:700}
+.bring{display:flex;gap:8px;flex-wrap:wrap}.bring span{background:#fff;border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:500}
+.hr{height:1px;margin:13px 0;opacity:.5}
+.tiles{display:flex;gap:9px;margin-bottom:14px}
+.tile{flex:1;border-radius:16px;padding:11px;text-align:center;background:var(--soft);border:1.5px dashed #DFD3C5;cursor:pointer}
+.tile.done{background:#F0F7F5;border:1.5px solid #D5EAE7}
+.tile .tl{font-size:11.5px;font-weight:600;margin-top:3px;color:var(--ink2)}.tile.done .tl{color:var(--brand)}
+.filerow{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.state{text-align:center;padding:12px 0 18px}
+.state .big{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 13px}
+.ret{background:#FDF0ED;border-radius:18px;padding:14px}
+.ret h4{margin:0 0 6px;font-size:13px;font-weight:700;color:#C24A34}
+.ret p{margin:0;font-size:12.5px;color:#8C4433;line-height:1.65}
+.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:12px}
+.scale{display:flex;gap:5px;margin-top:12px}
+.scale button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--chip);background:#fff;font-size:14px;font-weight:600;color:var(--ink2);transition:.16s}
+.scale button.on{color:#fff;border-color:transparent}
+.hist{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:6px}.hist i{flex:1;border-radius:5px 5px 0 0;background:#E8654F;opacity:.75;display:block}
+/* plan / lawyer */
+.dr{background:#fff;border:1.5px solid var(--chip);border-radius:18px;padding:12px 13px;margin-bottom:9px;display:flex;gap:11px;align-items:flex-start}
+.dr.new{border-color:#C7B8DE;background:#FBF9FD}
+.dr .av{width:40px;height:40px;border-radius:50%;color:#fff;flex:none;display:flex;align-items:center;justify-content:center}
+.why{font-size:11.5px;color:var(--ink2);line-height:1.5;margin-top:4px}
+.crow{background:#fff;border:1px solid var(--border);border-radius:18px;padding:13px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer}
+.ava{width:42px;height:42px;border-radius:50%;background:#EAF3F1;color:var(--brand);font-size:14px;font-weight:700;flex:none;display:flex;align-items:center;justify-content:center}
+.tagp{font-size:11px;font-weight:700;border-radius:99px;padding:4px 10px;white-space:nowrap}
+.qrbox{background:#fff;border:1px solid var(--border);border-radius:22px;padding:20px;text-align:center;margin-bottom:14px}
+.qrbox #qr{display:flex;justify-content:center;margin-bottom:12px}
+.linkbox{background:var(--soft);border-radius:12px;padding:11px;font-size:12px;color:var(--ink2);word-break:break-all;direction:ltr;text-align:left}
+.rolesw{position:fixed;top:8px;left:8px;z-index:60;display:flex;gap:3px;background:rgba(46,42,38,.85);border-radius:99px;padding:3px}
+.rolesw button{border:0;background:none;color:#fff;opacity:.55;font-size:11px;font-weight:700;border-radius:99px;padding:6px 12px}
+.rolesw button.on{background:#fff;color:var(--ink);opacity:1}
+.cel{position:fixed;inset:0;z-index:30;background:rgba(253,247,240,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;padding:30px;text-align:center}
+.cel.on{opacity:1;pointer-events:auto}
+.cel .pop{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;transform:scale(.5);transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+.cel.on .pop{transform:scale(1)}
+.cel h2{margin:26px 0 0;font-size:25px}.cel p{margin:12px 0 0;font-size:15.5px;color:var(--ink2);line-height:1.65;max-width:280px}
+.conf{position:absolute;width:9px;height:9px;border-radius:2px;opacity:0}
+.cel.on .conf{animation:fall 1.5s ease-out forwards}
+@keyframes fall{0%{opacity:1;transform:translateY(-40px) rotate(0)}100%{opacity:0;transform:translateY(190px) rotate(300deg)}}
+.toast{position:fixed;bottom:96px;left:50%;transform:translate(-50%,14px);background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:11px 18px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:40;max-width:88%;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- ═══ CLIENT ═══ -->
+<section class="screen on" id="s-welcome">
+  <div class="firm"><div class="logo">רל</div><span style="font-size:13.5px;font-weight:600">רון לוי ושות׳</span></div>
+  <div class="hero">
+    <div class="ring"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/><circle cx="12" cy="12" r="10"/></svg></div>
+    <h1 id="wName">ברוכה הבאה</h1>
+    <p>מכאן והלאה את לא צריכה לזכור כלום.<br>נגיד לך בדיוק מה השלב הבא, מתי, ומה חשוב לא לשכוח בו.</p>
+  </div>
+  <div class="foot"><button class="btn" onclick="go('picker')">בואי נתחיל</button></div>
+</section>
+
+<section class="screen" id="s-picker">
+  <div class="top">
+    <div class="bars"><div class="bar on"></div><div class="bar"></div><div class="bar"></div></div>
+    <h1>איפה כואב לך?</h1>
+    <p class="sub">געי בכל אזור שנפגע — גם אם זה נראה קטן, וגם אם התחיל רק אחרי כמה ימים.</p>
+    <div class="rot" id="rot">
+      <button class="on" data-v="front"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9a8 8 0 0 1 14-4l3 3"/><path d="M21 4v4h-4"/></svg>מלפנים</button>
+      <button data-v="back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 9A8 8 0 0 0 6 5L3 8"/><path d="M3 4v4h4"/></svg>מאחור</button>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="figWrap" id="figWrap"><div class="fig" id="fig"><svg viewBox="0 0 240 430" preserveAspectRatio="xMidYMid meet" id="bodySvg"></svg></div></div>
+    <div class="hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg>החליקי לסובב את הגוף</div>
+  </div>
+  <div class="mind" onclick="openPart(['mind'],'איך את מרגישה')">
+    <div class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-4.6-9.3-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.3 12C19 16.4 12 21 12 21z"/></svg></div>
+    <div style="flex:1"><div style="font-size:15px;font-weight:700">וגם — איך את מרגישה</div><div style="font-size:12.5px;color:var(--ink2);margin-top:2px">שינה, חרדה, ריכוז, תפקוד ביום־יום</div></div>
+    <span class="ct" id="mindCt" style="background:#7B5EA7;display:none"></span>
+  </div>
+  <div class="foot"><div class="pills" id="pickPills"></div>
+    <button class="btn" id="pickCta" disabled onclick="go('describe')">סימני לפחות אזור אחד</button></div>
+</section>
+
+<section class="screen" id="s-describe">
+  <div class="top"><div class="bars"><div class="bar on"></div><div class="bar on"></div><div class="bar on"></div></div>
+    <h1>ספרי במילים שלך מה קרה</h1><p class="sub">כמה משפטים מספיקים. זה נשמר בתיק שלך.</p></div>
+  <div class="scroll pad" style="padding-top:18px"><textarea id="desc" style="min-height:170px;border-radius:20px" placeholder="נסעתי, נעצרתי ברמזור, ורכב פגע בי מאחור…"></textarea></div>
+  <div class="foot"><button class="btn" onclick="submitSymptoms()">סיימתי</button></div>
+</section>
+
+<section class="screen" id="s-wait">
+  <div class="hero">
+    <div class="ring" style="background:#FBEBD1;color:#B07A1E;box-shadow:0 0 0 12px #FDF6E7"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+    <h1>יופי, סיימנו את החלק שלך</h1>
+    <p>עו״ד רון בונה איתך עכשיו את תוכנית הבדיקות.<br>ברגע שתאושר — המסלול ייפתח כאן.</p>
+  </div>
+  <div class="foot"><button class="btn2" onclick="setRole('lawyer');lawGo('plan')">מעבר לצד עורך הדין ←</button></div>
+</section>
+
+<section class="screen" id="s-journey">
+  <div class="jhead"><div style="display:flex;align-items:center;gap:9px"><div class="logo">רל</div><span style="font-size:13.5px;font-weight:600">רון לוי ושות׳</span></div>
+    <span class="count" id="jCount"></span></div>
+  <div class="scroll"><div class="path" id="path"></div></div>
+  <div class="tabs">
+    <button class="tab on" data-t="journey" onclick="tab('journey')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h4l10-10-4-4L4 15z"/><path d="M14 5l4 4"/></svg>המסלול</button>
+    <button class="tab" data-t="diary" onclick="tab('diary')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16v16H4z"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>יומן</button>
+    <button class="tab" data-t="docs" onclick="tab('docs')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>מסמכים</button>
+  </div>
+</section>
+
+<section class="screen" id="s-diary">
+  <div class="top"><h1>איך היה היום?</h1><p class="sub">חצי דקה ביום. זה מה שבונה את התיעוד שלך.</p></div>
+  <div class="scroll pad" style="padding-top:16px">
+    <div class="card"><div style="font-size:14.5px;font-weight:600">רמת הכאב היום</div><div class="scale" id="scale"></div></div>
+    <div class="card"><div style="font-size:14.5px;font-weight:600;margin-bottom:11px">מה הפריע לך היום?</div><div id="dChips" style="display:flex;gap:8px;flex-wrap:wrap"></div></div>
+    <div class="card"><div style="font-size:14.5px;font-weight:600">שבוע אחרון</div><div class="hist" id="hist"></div></div>
+  </div>
+  <div class="foot"><button class="btn" onclick="saveDiary()">שמירה</button><button class="ghost" onclick="tab('journey')">חזרה למסלול</button></div>
+</section>
+
+<section class="screen" id="s-docs">
+  <div class="top"><h1>המסמכים שלי</h1><p class="sub">כל מה שהעלית נשמר כאן ונשלח אוטומטית לעורך הדין.</p></div>
+  <div class="scroll pad" style="padding-top:16px" id="docsList"></div>
+  <div class="foot"><button class="ghost" onclick="tab('journey')">חזרה למסלול</button></div>
+</section>
+
+<section class="screen" id="s-signup">
+  <div class="top">
+    <div class="firm" style="justify-content:flex-start;padding-top:0"><div class="logo">רל</div>
+      <span style="font-size:13.5px;font-weight:600">רון לוי ושות׳</span></div>
+    <h1 style="margin-top:20px">נעים להכיר</h1>
+    <p class="sub">כמה פרטים ומתחילים. זה ייקח פחות מדקה.</p>
+  </div>
+  <div class="scroll pad" style="padding-top:18px">
+    <input id="sName" placeholder="שם מלא">
+    <input id="sPhone" placeholder="טלפון" inputmode="tel">
+    <select id="sType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
+      <option>תאונת דרכים</option><option>תאונת עבודה</option><option>נזקי גוף אחר</option></select>
+    <label style="display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-radius:16px;padding:13px;margin-top:6px;cursor:pointer">
+      <input type="checkbox" id="sOk" style="width:19px;height:19px;margin:2px 0 0;flex:none;accent-color:#14807A">
+      <span style="font-size:12.5px;color:var(--ink2);line-height:1.6">אני מאשר/ת שהמידע הרפואי שאמלא כאן יועבר לעורך הדין שלי לצורך ניהול התיק.</span></label>
+  </div>
+  <div class="foot"><button class="btn" onclick="doSignup()">התחלה</button></div>
+</section>
+
+<!-- ═══ LAWYER ═══ -->
+<section class="screen" id="s-lawList">
+  <div class="top"><h1>הלקוחות שלי</h1><p class="sub">מי ממתין לך, ומי תקוע.</p></div>
+  <div class="scroll pad" style="padding-top:16px" id="lawList"></div>
+  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawGo('invite')">הזמנת לקוח חדש</button></div>
+</section>
+
+<section class="screen" id="s-lawInvite">
+  <div class="top"><h1>הזמנת לקוח</h1><p class="sub">אותו קוד לכל הלקוחות. הוא נרשם בעצמו — לך אין מה למלא.</p></div>
+  <div class="scroll pad" style="padding-top:16px">
+    <div class="qrbox"><div id="qr"></div>
+      <div style="font-size:14.5px;font-weight:700;margin-bottom:8px">שיסרוק מהטלפון שלו</div>
+      <div class="linkbox" id="linkTxt"></div></div>
+    <button class="btn" style="--c:#25D366;margin-bottom:10px" onclick="shareWA()">שליחה בוואטסאפ</button>
+    <button class="btn2" onclick="copyLink()">העתקת הקישור</button>
+    <div style="background:var(--soft);border-radius:16px;padding:13px;margin-top:14px;font-size:12.5px;color:var(--ink2);line-height:1.65">
+      אחרי שהוא נרשם וממלא את הסימפטומים, הוא יופיע ברשימה שלך עם התוכנית מוכנה לאישור.</div>
+  </div>
+  <div class="foot"><button class="ghost" onclick="lawGo('list')">חזרה לרשימה</button></div>
+</section>
+
+<section class="screen" id="s-lawPlan">
+  <div class="top">
+    <div style="background:#EEF4F3;border-radius:99px;padding:6px 13px;font-size:11.5px;font-weight:600;color:#0D5F5A;width:fit-content;margin-bottom:12px">ממלאים יחד עם הלקוח</div>
+    <h1 id="planTitle">מומלץ לקבוע 4 תורים</h1><p class="sub" id="planSub"></p></div>
+  <div class="scroll pad" style="padding-top:14px" id="planList"></div>
+  <div class="foot"><button class="btn" style="--c:#14807A" onclick="approvePlan()">אישור התוכנית ופתיחת המסלול</button>
+    <button class="ghost" onclick="addSpecPrompt()">+ הוספת רופא נוסף</button></div>
+</section>
+
+<section class="screen" id="s-lawClient">
+  <div class="top"><h1 id="lcName"></h1><p class="sub" id="lcSub"></p></div>
+  <div class="scroll pad" style="padding-top:14px" id="lcBody"></div>
+  <div class="foot"><button class="ghost" onclick="lawGo('list')">חזרה לרשימה</button></div>
+</section>
+
+</div>
+
+<div class="rolesw" id="rolesw">
+  <button class="on" data-r="client" onclick="setRole('client')">לקוח</button>
+  <button data-r="lawyer" onclick="setRole('lawyer')">עו״ד</button>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="grab"></div>
+  <div class="shead"><div class="ic" id="shIc"></div><div style="flex:1"><h2 id="shTitle"></h2><p id="shSub" style="margin:3px 0 0;font-size:13px;color:var(--ink2)"></p></div></div>
+  <div class="sbody" id="shBody"></div><div class="sfoot" id="shFoot"></div></div>
+
+<div class="cel" id="cel"><div class="pop" id="celPop"></div><h2 id="celTitle"></h2><p id="celText"></p>
+  <button class="btn" style="max-width:250px;margin-top:28px" onclick="closeCel()">יופי, ממשיכים</button></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ═══ palette ═══ */
+const TINT={'#E8654F':'#FBE0DA','#7B5EA7':'#EBE3F4','#2F6FD0':'#DCE8F9','#E9A320':'#FBEBD1','#14807A':'#D5EAE7','#3E9B57':'#DDEFE2','#C75C8A':'#F7E1EB','#4A8FA8':'#DDECF1','#8A8F98':'#E6E8EA','#D98324':'#FAE9D4'};
+const DEEP={'#E8654F':'#C24A34','#7B5EA7':'#573F7A','#2F6FD0':'#1E4C93','#E9A320':'#9E6B0C','#14807A':'#0D5F5A','#3E9B57':'#256B3A','#C75C8A':'#93365F','#4A8FA8':'#2C6579','#8A8F98':'#5D6269','#D98324':'#96590F'};
+const PAL=['#E8654F','#7B5EA7','#2F6FD0','#E9A320','#14807A','#3E9B57'];
+const OTHER='משהו אחר — כתבי במילים שלך';
+
+/* ═══ icons ═══ */
+const IC={steth:'<path d="M6 3v5a4 4 0 0 0 8 0V3"/><path d="M6 3H4M14 3h2"/><path d="M10 12v3a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/>',
+ear:'<path d="M6 9a6 6 0 1 1 12 0c0 3-2 4-3 5s-1 3-3 3a3 3 0 0 1-3-3"/><path d="M9 9a3 3 0 0 1 6 0"/>',
+bone:'<path d="M7 3a3 3 0 0 1 3 4l7 7a3 3 0 1 1-3 3l-7-7a3 3 0 1 1 0-7z"/>',
+brain:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-1 5 3 3 0 0 0 2 5 3 3 0 0 0 5 1V4z"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 1 5 3 3 0 0 1-2 5 3 3 0 0 1-5 1"/>',
+eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+tooth:'<path d="M12 3c-3 0-4 1-6 1S3 6 3 9c0 5 2 12 4 12s2-6 5-6 3 6 5 6 4-7 4-12c0-3-1-5-3-5s-3-1-6-1z"/>',
+heart:'<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/>',
+lungs:'<path d="M12 4v10"/><path d="M8 8c0 4-3 5-4 9 0 2 4 3 5 1 1-3 1-7 1-10"/><path d="M16 8c0 4 3 5 4 9 0 2-4 3-5 1-1-3-1-7-1-10"/>',
+scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/>',
+skin:'<circle cx="12" cy="12" r="9"/><path d="M8 14c2-3 6-3 8 0"/>',
+file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+gavel:'<path d="M14 3l7 7-3 3-7-7z"/><path d="M11 6L4 13l3 3 7-7"/><path d="M3 21h10"/>',
+lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+cam:'<path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="4"/>',
+clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+check:'<path d="M20 6L9 17l-5-5"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',star:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/>',
+alert:'<path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16.5v.1"/>'};
+const ic=(k,s,st)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${st||'currentColor'}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${IC[k]||IC.file}</svg>`;
+
+/* ═══ symptoms ═══ */
+const PARTS={
+head:{l:'ראש',s:['כאבי ראש','סחרחורת','איבדתי הכרה','בחילות','קושי להירדם או שינה קטועה','קשיי ריכוז','שכחה או בלבול','רגישות לאור או לרעש']},
+face:{l:'אף ופנים',s:['קושי לנשום דרך האף','האף נראה עקום או שונה','דימומים מהאף','ירידה בחוש הריח','ירידה בחוש הטעם','כאב בלחיצה על הפנים','צלקת או שינוי בעור']},
+eyes:{l:'עיניים',s:['ראייה מטושטשת','ראייה כפולה','רגישות לאור','יובש או דמעות','כאב בעין','משהו חוסם לי בשדה הראייה']},
+ears:{l:'אוזניים ושמיעה',s:['שומעת פחות טוב','צפצופים או רעש באוזן','סחרחורת או חוסר שיווי משקל','כאב באוזן','הפרשה מהאוזן']},
+teeth:{l:'שיניים ולסת',s:['שן שנשברה או נסדקה','שן שנפלה','כאב בלעיסה','קושי לפתוח את הפה','נקישות בלסת','חוסר תחושה בשפה או בסנטר']},
+neck:{l:'צוואר',s:['קושי לסובב את הראש','כאב שמקרין ליד','נימול או חוסר תחושה ביד','חולשה ביד','כאבי ראש שמתחילים מהצוואר','נוקשות בבוקר']},
+nape:{l:'עורף',s:['כאב בבסיס הגולגולת','נוקשות','כאבי ראש שמתחילים מלמטה','קושי להישען אחורה']},
+shoulder:{l:'כתף',s:['קושי להרים את היד','כאב בלילה','חולשה','נקישות או חריקות','תחושה שהכתף יוצאת מהמקום']},
+elbow:{l:'מרפק וזרוע',s:['כאב','קושי לכופף או ליישר','חולשה','נימול שמקרין לאצבעות','נפיחות']},
+hand:{l:'יד ופרק כף היד',s:['כאב','חולשה באחיזה','נימול באצבעות','נפיחות','קושי לכופף את פרק כף היד','זו היד שאני כותבת איתה']},
+chest:{l:'חזה וצלעות',s:['כאב בנשימה עמוקה','קוצר נשימה','כאב בשיעול או בהתעטשות','כאב בתנועה או בהתכופפות','חבלה או שטף דם','סימן של חגורת הבטיחות']},
+abdomen:{l:'בטן',s:['כאב בבטן','רגישות למגע','חבלה או סימן מחגורת הבטיחות','בחילות או הקאות','שינוי בתיאבון','כאב בהתכופפות']},
+upperBack:{l:'גב עליון',s:['כאב בין השכמות','כאב בנשימה עמוקה','נוקשות בבוקר','קושי לשבת זקוף','כאב שמקרין לכתף']},
+lowerBack:{l:'גב תחתון',s:['קושי להתכופף או להסתובב','כאב שמקרין לרגל','נימול או חוסר תחושה ברגל','חולשה ברגל','קושי לשבת הרבה זמן','קושי להרים דברים','כאב שמעיר אותי בלילה']},
+hip:{l:'אגן וירך',s:['כאב בהליכה','כאב בישיבה ממושכת','קושי לעלות מדרגות','צליעה','קושי לפסק רגליים','כאב בשכיבה על הצד']},
+tailbone:{l:'עצם הזנב',s:['כאב בישיבה','כאב בקימה מכיסא','כאב בשכיבה על הגב']},
+buttock:{l:'ישבן',s:['כאב בישיבה','כאב שמקרין לרגל','חבלה או שטף דם','נימול']},
+knee:{l:'ברך',s:['נפיחות','הברך ננעלת','הברך קורסת או לא יציבה','כאב בירידה במדרגות','קושי לכרוע או לכופף']},
+shin:{l:'שוק וקרסול',s:['כאב בדריכה','נפיחות','חוסר יציבות','צליעה','קושי להזיז את הקרסול']},
+foot:{l:'כף רגל',s:['כאב בהליכה','נפיחות','חוסר תחושה','קושי לנעול נעליים']},
+mind:{l:'נפש ותפקוד',s:['חרדה או לחץ','קושי להירדם','סיוטים או מחשבות חוזרות','פחד לנסוע או לנהוג','נמנעת ממקומות או ממצבים','עצבנות או חוסר סבלנות','קושי לתפקד בעבודה','קושי לתפקד בבית או עם הילדים']}};
+
+/* ═══ rules engine ═══ */
+const SPECS={
+ent:{l:'אף אוזן גרון',c:'#E8654F',i:'steth',bring:['סיכום המיון','צילום רנטגן','תעודת זהות'],rem:'על כל אזור שכואב באף ובאוזן — גם אם לא הזכרת קודם. ולבקש סיכום מודפס לפני שאת יוצאת.'},
+audio:{l:'בדיקת שמיעה',c:'#E9A320',i:'ear',bring:['ההפניה','תעודת זהות'],rem:'לבקש את גיליון האודיוגרם עצמו, לא רק את המסקנה.'},
+ortho:{l:'אורתופד',c:'#2F6FD0',i:'bone',bring:['סיכום המיון','הדמיות אם יש','תעודת זהות'],rem:'לבקש שיירשמו טווחי התנועה במעלות, ולא רק "הגבלה קלה".'},
+neuro:{l:'נוירולוג',c:'#7B5EA7',i:'brain',bring:['סיכום המיון','כל ההדמיות','יומן הכאב'],rem:'לתאר בדיוק לאן הכאב מקרין, ומתי יש נימול או חולשה.'},
+eye:{l:'רופא עיניים',c:'#14807A',i:'eye',bring:['משקפיים אם יש','תעודת זהות'],rem:'לבקש בדיקת חדות ראייה ושדה ראייה מתועדות.'},
+dental:{l:'רופא שיניים / פה ולסת',c:'#3E9B57',i:'tooth',bring:['צילום פנורמי אם יש','תעודת זהות'],rem:'לבקש שיירשם מספר השיניים שנפגעו ומצבן לפני התאונה.'},
+psych:{l:'פסיכיאטר',c:'#C75C8A',i:'heart',bring:['יומן הכאב והשינה'],rem:'לתאר איך זה משפיע על העבודה, השינה והמשפחה.'},
+plastic:{l:'כירורג פלסטי',c:'#D98324',i:'skin',bring:['תמונות של הצלקת מקרוב'],rem:'לבקש שיתועדו מיקום, אורך ונראות הצלקת.'},
+internal:{l:'רופא פנימי',c:'#4A8FA8',i:'lungs',bring:['סיכום המיון'],rem:'לתאר מתי מופיע קוצר הנשימה ובאיזה מאמץ.'},
+xray:{l:'צילום רנטגן',c:'#8A8F98',i:'scan',bring:['ההפניה','תעודת זהות'],rem:'לוודא שקיבלת את הפענוח ולא רק את הזימון.'},
+ct:{l:'CT ראש',c:'#8A8F98',i:'scan',bring:['ההפניה','סיכום המיון'],rem:'לוודא שקיבלת את הפענוח הכתוב.'}};
+
+const BASE={head:['neuro'],face:['ent'],eyes:['eye'],ears:['ent','audio'],teeth:['dental'],neck:['ortho'],nape:['ortho'],
+shoulder:['ortho'],elbow:['ortho'],hand:['ortho'],chest:['ortho'],abdomen:['internal'],upperBack:['ortho'],lowerBack:['ortho'],
+hip:['ortho'],tailbone:['ortho'],buttock:['ortho'],knee:['ortho'],shin:['ortho'],foot:['ortho'],mind:['psych']};
+
+const TRIG=[
+{s:['כאב שמקרין ליד','נימול או חוסר תחושה ביד','חולשה ביד'],a:'neuro',w:'הקרנה ונימול ביד הם ממצא נוירולוגי ולא אורתופדי'},
+{s:['כאב שמקרין לרגל','נימול או חוסר תחושה ברגל','חולשה ברגל'],a:'neuro',w:'הקרנה לרגל מעידה על מעורבות עצבית'},
+{s:['כאבי ראש שמתחילים מהצוואר','כאבי ראש שמתחילים מלמטה'],a:'neuro',w:'קשר בין הצוואר לתסמין'},
+{s:['סחרחורת או חוסר שיווי משקל','סחרחורת'],a:'neuro',w:'סחרחורת נבדקת גם נוירולוגית'},
+{s:['איבדתי הכרה'],a:'ct',w:'איבוד הכרה מחייב הדמיית ראש מוקדמת'},
+{s:['שומעת פחות טוב','צפצופים או רעש באוזן'],a:'audio',w:'ירידת שמיעה נמדדת בדציבלים לפי תדרים'},
+{s:['נימול באצבעות','נימול שמקרין לאצבעות'],a:'neuro',w:'נדרשת בדיקת הולכה עצבית'},
+{s:['קוצר נשימה'],a:'internal',w:'קוצר נשימה חורג מכאב שלדי'},
+{s:['צלקת או שינוי בעור'],a:'plastic',w:'צלקת נמדדת בסעיף ליקוי נפרד'},
+{s:['נפיחות'],a:'xray',w:'נפיחות מצריכה הדמיה בסיסית'}];
+
+function buildPlan(sel){
+  const need={};
+  const add=(k,why)=>{ if(!SPECS[k])return; (need[k]=need[k]||[]).push(why); };
+  Object.keys(sel).forEach(pk=>{
+    if(!sel[pk].length)return;
+    if(pk==='mind'&&sel[pk].length<2)return;
+    (BASE[pk]||[]).forEach(k=>add(k,PARTS[pk].l));
+    sel[pk].forEach(sym=>TRIG.forEach(t=>{ if(t.s.includes(sym)) add(t.a,t.w+' · '+sym) }));
+  });
+  return Object.keys(need).map((k,i)=>({
+    id:'a'+i+Date.now()%1e5, spec:k, l:SPECS[k].l, c:SPECS[k].c, i:SPECS[k].i,
+    reason:[...new Set(need[k])], status:'proposed',
+    date:null, time:'', place:'', doctor:'',
+    bring:SPECS[k].bring, rem:SPECS[k].rem, tasks:[{l:'הגעתי',done:false}]
+  }));
+}
+
+/* ═══ body geometry ═══ */
+const D={head:'M120 11 C137 11 150 27 150 47 C150 67 137 82 120 82 C103 82 90 67 90 47 C90 27 103 11 120 11 Z',
+neck:'M107 76 L133 76 L133 96 C133 101 128 103 120 103 C112 103 107 101 107 96 Z',
+torso:'M120 99 C104 99 88 104 82 116 C78 126 79 150 81 172 C83 194 84 216 85 236 L155 236 C156 216 157 194 159 172 C161 150 162 126 158 116 C152 104 136 99 120 99 Z',
+upper:'M120 99 C104 99 88 104 82 116 C78 126 79 148 80 168 L160 168 C161 148 162 126 158 116 C152 104 136 99 120 99 Z',
+lower:'M80 168 L160 168 C160 192 157 214 155 236 L85 236 C83 214 80 192 80 168 Z',
+arms:'M82 106 C71 112 66 128 64 145 L57 197 C55 211 53 223 53 233 C53 242 67 242 68 233 L73 199 L85 152 Z M158 106 C169 112 174 128 176 145 L183 197 C185 211 187 223 187 233 C187 242 173 242 172 233 L167 199 L155 152 Z',
+hips:'M85 236 L155 236 C156 253 153 269 149 279 L91 279 C87 269 84 253 85 236 Z',
+legs:'M91 279 L117 279 L114 346 L111 408 C110 415 96 415 95 408 L93 346 Z M123 279 L149 279 L147 346 L145 408 C144 415 130 415 129 408 L127 346 Z'};
+const VIEWS={front:[{id:'a',d:D.head,cx:120,cy:47,tag:'ראש ופנים',parts:['head','face','eyes','ears','teeth']},
+{id:'b',d:D.neck,cx:120,cy:93,tag:'',parts:['neck']},{id:'c',d:D.arms,cx:64,cy:188,tag:'ידיים',parts:['shoulder','elbow','hand']},
+{id:'d',d:D.torso,cx:120,cy:165,tag:'חזה ובטן',parts:['chest','abdomen']},{id:'e',d:D.hips,cx:120,cy:258,tag:'אגן',parts:['hip']},
+{id:'f',d:D.legs,cx:120,cy:352,tag:'רגליים',parts:['knee','shin','foot']}],
+back:[{id:'a',d:D.head,cx:120,cy:47,tag:'ראש',parts:['head']},{id:'b',d:D.neck,cx:120,cy:93,tag:'עורף',parts:['nape']},
+{id:'c',d:D.arms,cx:64,cy:188,tag:'ידיים',parts:['shoulder','elbow','hand']},{id:'g',d:D.upper,cx:120,cy:134,tag:'גב עליון',parts:['upperBack']},
+{id:'h',d:D.lower,cx:120,cy:203,tag:'גב תחתון',parts:['lowerBack']},{id:'i',d:D.hips,cx:120,cy:258,tag:'ישבן',parts:['buttock','tailbone']},
+{id:'f',d:D.legs,cx:120,cy:352,tag:'רגליים',parts:['knee','shin','foot']}]};
+
+/* ═══ state ═══ */
+const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mile:true},
+            {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
+const DB={role:'client',clients:[],active:null};
+function newClient(name,phone,type){
+  const c={id:'c'+Date.now().toString(36),name,phone,type,stage:'invited',sel:{},notes:{},desc:'',
+    plan:[],docs:[],hist:[4,6,5,7,5,4,6],pain:null,dchips:[],alerts:[]};
+  DB.clients.push(c);return c;
+}
+const S={view:'front',openPart:null,openStep:null};
+const colorMap={};let ci=0;
+const $=s=>document.querySelector(s);
+const C=()=>DB.clients.find(c=>c.id===DB.active);
+const colorOf=k=>colorMap[k]||(colorMap[k]=PAL[ci++%PAL.length]);
+
+/* seed demo */
+(function(){ const d=newClient('דנה כהן','050-1234567','תאונת דרכים'); DB.active=d.id;
+  const y=newClient('יוסי מזרחי','052-7654321','תאונת עבודה'); y.stage='active';
+  y.plan=[{id:'y1',spec:'ortho',l:'אורתופד',c:'#2F6FD0',i:'bone',reason:['גב תחתון'],status:'pending',
+    date:daysFrom(-3),time:'11:00',doctor:'ד״ר שרון',place:'מכבי',bring:SPECS.ortho.bring,rem:SPECS.ortho.rem,tasks:[{l:'הגעתי',done:true}]}];
+  y.docs=[{n:'סיכום אורתופד',d:'לפני 3 ימים',c:'#2F6FD0'}];
+})();
+function daysFrom(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+function fmtDate(s){if(!s)return'';const d=new Date(s),m=['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
+  return d.getDate()+' ב'+m[d.getMonth()]}
+function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/864e5)}
+
+/* ═══ router ═══ */
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on')}
+function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  if(t==='journey')drawPath();if(t==='docs')drawDocs();if(t==='diary')drawDiary()}
+function setRole(r){DB.role=r;$('#rolesw').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
+  if(r==='lawyer')lawGo('list');else clientHome()}
+function clientHome(){const c=C();if(!c)return go('signup');
+  $('#wName').textContent='ברוכה הבאה, '+c.name.split(' ')[0];
+  if(c.stage==='invited')go('welcome');
+  else if(c.stage==='waiting')go('wait');
+  else{drawPath();tab('journey')}}
+function lawGo(v){ if(v==='list'){drawLawList();go('lawList')}
+  else if(v==='invite'){go('lawInvite');drawInvite()}
+  else if(v==='plan'){drawPlan();go('lawPlan')}
+  else if(v==='client'){drawLawClient();go('lawClient')} }
+
+/* ═══ body map ═══ */
+function zCount(z){const c=C();return z.parts.filter(p=>(c.sel[p]||[]).length).length}
+function zColor(z){const c=C();const p=z.parts.find(p=>(c.sel[p]||[]).length);return p?colorOf(p):null}
+function drawBody(){
+  const zs=VIEWS[S.view];let h='';
+  const mir=cx=>S.view==='back'?` transform="translate(${2*cx},0) scale(-1,1)"`:'';
+  zs.forEach(z=>{const c=zColor(z);h+=`<path class="zone" d="${z.d}" data-z="${z.id}" ${c?`style="fill:${TINT[c]};stroke:${c};stroke-width:2"`:''}></path>`});
+  zs.forEach(z=>{if(z.tag&&!zCount(z))h+=`<text class="ztag" x="${z.cx}" y="${z.cy}" text-anchor="middle"${mir(z.cx)}>${z.tag}</text>`});
+  zs.forEach(z=>{const n=zCount(z);if(n){const c=zColor(z);
+    h+=`<g class="badge"${mir(z.cx)} style="pointer-events:none"><circle cx="${z.cx}" cy="${z.cy}" r="16" fill="${c}"/><text x="${z.cx}" y="${z.cy+5}" text-anchor="middle">${n}</text></g>`}});
+  const el=$('#bodySvg');el.innerHTML=h;
+  el.querySelectorAll('.zone').forEach(p=>p.onclick=()=>{if(suppressTap)return;
+    const z=VIEWS[S.view].find(x=>x.id===p.dataset.z);openPart(z.parts,z.tag||PARTS[z.parts[0]].l)});
+}
+function setView(v){const f=$('#fig');S.view=v;
+  $('#rot').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));
+  f.classList.add('snap');f.style.transform=`rotateY(${v==='back'?180:0}deg)`;setTimeout(drawBody,140)}
+function rotNow(){const m=/rotateY\((-?[\d.]+)deg\)/.exec($('#fig').style.transform||'');return m?+m[1]:0}
+$('#rot').onclick=e=>{const b=e.target.closest('button');if(!b||b.classList.contains('on'))return;setView(b.dataset.v)};
+let suppressTap=false;
+(function(){const wrap=$('#figWrap'),f=$('#fig');let down=false,cap=false,sx=0,base=0,last=0,pid=null;
+ wrap.addEventListener('pointerdown',e=>{down=true;cap=false;sx=e.clientX;base=rotNow();last=base;pid=e.pointerId});
+ wrap.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-sx;
+   if(!cap){if(Math.abs(dx)<8)return;cap=true;f.classList.remove('snap');try{wrap.setPointerCapture(pid)}catch(_){}}
+   const r=Math.max(-30,Math.min(210,base+dx*.75));last=r;f.style.transform=`rotateY(${r}deg)`;
+   const bk=r>90;if(bk!==(S.view==='back')){S.view=bk?'back':'front';drawBody();
+     $('#rot').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===S.view))}});
+ const end=()=>{if(!down)return;down=false;if(!cap)return;try{wrap.releasePointerCapture(pid)}catch(_){}
+   cap=false;f.classList.add('snap');setView(last>90?'back':'front');suppressTap=true;setTimeout(()=>suppressTap=false,150)};
+ wrap.addEventListener('pointerup',end);wrap.addEventListener('pointercancel',end)})();
+
+/* ═══ symptom sheet ═══ */
+function openPart(parts,title){
+  const c=C();S.openPart=parts;S.openStep=null;const col=colorOf(parts[0]);
+  $('#shTitle').textContent=title;$('#shSub').textContent='מה מרגישים שם? אפשר לסמן כמה שצריך';
+  $('#shIc').style.background=col;$('#shIc').innerHTML=ic('star',23,'#fff');
+  const b=$('#shBody');b.innerHTML='';
+  parts.forEach(pk=>{const p=PARTS[pk],cc=colorOf(pk),cur=c.sel[pk]||[];
+    const a=document.createElement('div');a.className='acc'+(parts.length===1?' open':'');
+    a.innerHTML=`<div class="accH"><span class="nm">${p.l}</span>${cur.length?`<span class="ct" style="background:${cc}">${cur.length}</span>`:''}
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+      <div class="accB"><div class="accIn">
+      ${p.s.map(s=>{const on=cur.includes(s);return `<div class="sy${on?' on':''}" data-p="${pk}" data-s="${s}" ${on?`style="background:${cc};border-color:${cc}"`:''}>
+        <span class="bx"><svg viewBox="0 0 24 24" style="stroke:${cc}"><path d="M20 6L9 17l-5-5"/></svg></span>${s}</div>`}).join('')}
+      <div class="sy other" data-o="${pk}"><span class="bx"><svg viewBox="0 0 24 24" style="stroke:${cc}"><path d="M20 6L9 17l-5-5"/></svg></span>${OTHER}</div>
+      <textarea data-ta="${pk}" placeholder="כתבי כאן…" style="display:${c.notes[pk]?'block':'none'}">${c.notes[pk]||''}</textarea>
+      </div></div>`;b.appendChild(a)});
+  b.querySelectorAll('.accH').forEach(h=>h.onclick=()=>{h.parentElement.classList.toggle('open');sizeA(h.parentElement)});
+  b.querySelectorAll('.sy[data-s]').forEach(e=>e.onclick=()=>togSym(e));
+  b.querySelectorAll('.sy[data-o]').forEach(e=>e.onclick=()=>{const ta=b.querySelector(`textarea[data-ta="${e.dataset.o}"]`);
+    ta.style.display=ta.style.display==='none'?'block':'none';if(ta.style.display==='block')ta.focus();sizeA(e.closest('.acc'))});
+  b.querySelectorAll('textarea').forEach(t=>t.oninput=()=>C().notes[t.dataset.ta]=t.value.trim());
+  $('#shFoot').innerHTML=`<button class="btn" style="--c:${col};border-radius:19px;padding:15px;font-size:15.5px" id="svBtn"></button>`;
+  $('#svBtn').onclick=closeSheet;updSave();b.querySelectorAll('.acc.open').forEach(sizeA);openSheet();
+}
+function sizeA(a){const b=a.querySelector('.accB');b.style.maxHeight=a.classList.contains('open')?b.scrollHeight+40+'px':'0px'}
+function togSym(el){const c=C(),pk=el.dataset.p,s=el.dataset.s,cc=colorOf(pk);c.sel[pk]=c.sel[pk]||[];
+  const i=c.sel[pk].indexOf(s);
+  if(i>-1){c.sel[pk].splice(i,1);el.classList.remove('on');el.style.background='';el.style.borderColor=''}
+  else{c.sel[pk].push(s);el.classList.add('on');el.style.background=cc;el.style.borderColor=cc}
+  const hd=el.closest('.acc').querySelector('.accH');let ct=hd.querySelector('.ct');
+  if(c.sel[pk].length){if(!ct){ct=document.createElement('span');ct.className='ct';hd.insertBefore(ct,hd.querySelector('.chev'))}
+    ct.style.background=cc;ct.textContent=c.sel[pk].length}else if(ct)ct.remove();
+  sizeA(el.closest('.acc'));updSave()}
+function updSave(){const c=C(),n=S.openPart.reduce((a,p)=>a+(c.sel[p]||[]).length,0);
+  const b=$('#svBtn');if(b)b.textContent=n?`שמירה · נבחרו ${n}`:'שמירה'}
+function openSheet(){$('#sheet').classList.add('on');$('#scrim').classList.add('on')}
+function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');drawBody();drawPickFoot();
+  if($('#s-journey').classList.contains('on'))drawPath()}
+
+function drawPickFoot(){const c=C();
+  const m=Object.keys(c.sel).filter(k=>c.sel[k].length&&k!=='mind');
+  $('#pickPills').innerHTML=m.map(k=>{const col=colorOf(k);
+    return `<span class="pill" style="background:${TINT[col]};color:${DEEP[col]}">${PARTS[k].l} · ${c.sel[k].length}</span>`}).join('');
+  const mc=(c.sel['mind']||[]).length;$('#mindCt').style.display=mc?'inline-block':'none';$('#mindCt').textContent=mc;
+  const all=Object.keys(c.sel).filter(k=>c.sel[k].length),b=$('#pickCta');
+  if(all.length){b.disabled=false;b.textContent=`המשך · ${all.length} אזורים`}else{b.disabled=true;b.textContent='סימני לפחות אזור אחד'}}
+
+function submitSymptoms(){const c=C();c.desc=$('#desc').value;c.plan=buildPlan(c.sel);c.stage='waiting';
+  go('wait');toast('נשלח לעורך הדין')}
+
+/* ═══ lawyer: plan ═══ */
+function drawPlan(){const c=C();if(!c)return;
+  if(!c.plan.length)c.plan=buildPlan(c.sel);
+  const areas=Object.keys(c.sel).filter(k=>c.sel[k].length).map(k=>PARTS[k].l).join(', ');
+  $('#planTitle').textContent=`מומלץ לקבוע ${c.plan.length} תורים`;
+  $('#planSub').textContent=`${c.name} · לפי מה שסומן: ${areas||'—'}`;
+  $('#planList').innerHTML=c.plan.map((a,i)=>`
+    <div class="dr${a.reason.some(r=>r.includes('·'))?' new':''}">
+      <div class="av" style="background:${a.c}">${ic(a.i,20)}</div>
+      <div style="flex:1"><div style="font-size:15px;font-weight:700">${a.l}</div>
+        <div class="why">${a.reason.join(' · ')}</div></div>
+      <button style="border:0;background:none;padding:2px" onclick="dropSpec(${i})">${ic('plus',17,'#C9BFB2')}</button>
+    </div>`).join('')||'<div style="text-align:center;color:var(--ink3);padding:40px 0">אין המלצות — סמני סימפטומים קודם</div>';
+  $('#planList').querySelectorAll('button').forEach(b=>b.style.transform='rotate(45deg)');
+}
+function dropSpec(i){const c=C();c.plan.splice(i,1);drawPlan()}
+function addSpecPrompt(){const c=C();
+  const miss=Object.keys(SPECS).filter(k=>!c.plan.some(a=>a.spec===k));
+  if(!miss.length)return toast('כל התחומים כבר בתוכנית');
+  const k=miss[0];c.plan.push({id:'x'+Date.now().toString(36),spec:k,l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,
+    reason:['נוסף ידנית על ידי עו״ד'],status:'proposed',date:null,time:'',place:'',doctor:'',
+    bring:SPECS[k].bring,rem:SPECS[k].rem,tasks:[{l:'הגעתי',done:false}]});drawPlan()}
+function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
+  c.plan.forEach(a=>a.status='approved');c.stage='active';
+  toast('התוכנית אושרה · המסלול נפתח ללקוח');setRole('client')}
+
+/* ═══ lawyer: list + client ═══ */
+function statusOf(c){
+  if(c.stage==='invited')return{t:'טרם התחיל',b:'#F0EDE8',f:'#8C837A'};
+  if(c.stage==='waiting')return{t:'ממתין לאישור תוכנית',b:'#FDF3E2',f:'#8A5B12'};
+  if(c.plan.some(a=>a.status==='pending'))return{t:'ממתין לאישור מסמך',b:'#FDF0ED',f:'#C24A34'};
+  const un=c.plan.filter(a=>!a.date).length;
+  if(un)return{t:`${un} תורים לא נקבעו`,b:'#EAF3F1',f:'#0D5F5A'};
+  return{t:'הכל בסדר',b:'#DDEFE2',f:'#256B3A'}}
+function drawLawList(){
+  $('#lawList').innerHTML=DB.clients.map(c=>{const s=statusOf(c);
+    return `<div class="crow" onclick="openLawClient('${c.id}')">
+      <div class="ava">${c.name.split(' ').map(x=>x[0]).join('')}</div>
+      <div style="flex:1"><div style="font-size:15px;font-weight:700">${c.name}</div>
+        <div style="font-size:12px;color:var(--ink2);margin-top:2px">${c.type} · ${c.plan.length} תורים</div></div>
+      <span class="tagp" style="background:${s.b};color:${s.f}">${s.t}</span></div>`}).join('')}
+function openLawClient(id){DB.active=id;const c=C();
+  if(c.stage==='waiting')return lawGo('plan');
+  lawGo('client')}
+function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
+  $('#lcSub').textContent=`${c.type} · ${c.phone}`;
+  const pend=c.plan.filter(a=>a.status==='pending');
+  let h='';
+  if(pend.length)h+=`<div style="font-size:12px;font-weight:700;color:#C24A34;margin-bottom:8px">ממתין לאישורך</div>`+
+    pend.map(a=>`<div class="card" style="border-color:#F0CFC8">
+      <div style="display:flex;gap:11px;align-items:center;margin-bottom:12px">
+        <div class="av" style="background:${a.c};width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff">${ic(a.i,19)}</div>
+        <div><div style="font-size:15px;font-weight:700">${a.l}</div>
+        <div style="font-size:12px;color:var(--ink2)">${a.doctor||''} · ${fmtDate(a.date)}</div></div></div>
+      <div class="filerow" style="margin:0 0 11px">${ic('file',19,'#8C837A')}<div style="flex:1;font-size:13.5px">סיכום ${a.l}</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
+        <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="lawReturn('${a.id}')">החזרה</button></div></div>`).join('');
+  h+=`<div style="font-size:12px;font-weight:700;color:var(--ink2);margin:16px 0 8px">התוכנית</div>`;
+  h+=c.plan.map(a=>{const d=daysTo(a.date);
+    return `<div class="crow" style="cursor:default">
+      <div class="av" style="background:${TINT[a.c]};color:${DEEP[a.c]}">${ic(a.i,18)}</div>
+      <div style="flex:1"><div style="font-size:14.5px;font-weight:700">${a.l}</div>
+        <div style="font-size:12px;color:var(--ink2);margin-top:2px">${a.date?fmtDate(a.date)+(d>=0?` · בעוד ${d} ימים`:' · עבר'):'עוד לא נקבע'}</div></div>
+      <span class="tagp" style="background:${a.status==='done'?'#DDEFE2':a.status==='pending'?'#FDF3E2':'#F0EDE8'};color:${a.status==='done'?'#256B3A':a.status==='pending'?'#8A5B12':'#8C837A'}">
+        ${a.status==='done'?'הושלם':a.status==='pending'?'ממתין':a.date?'נקבע':'לא נקבע'}</span></div>`}).join('');
+  $('#lcBody').innerHTML=h}
+function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';drawLawClient();toast('אושר · הלקוח עודכן')}
+function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='returned';
+  a.note='בסיכום חסר תאריך הפגיעה. קבעי תור חוזר קצר ובקשי להוסיף אותו.';drawLawClient();toast('הוחזר להשלמה')}
+
+/* ═══ invite link + QR ═══ */
+function inviteURL(){return location.origin+location.pathname+'#join'}
+function drawInvite(){
+  const url=inviteURL();$('#linkTxt').textContent=url;
+  const box=$('#qr');box.innerHTML='';
+  try{new QRCode(box,{text:url,width:180,height:180,colorDark:'#2E2A26',colorLight:'#ffffff'})}
+  catch(e){box.innerHTML='<div style="font-size:12px;color:#A79FB3;padding:26px">הקוד ייווצר כשהעמוד מקוון</div>'}}
+function shareWA(){
+  const t=encodeURIComponent('היי, זה המשרד של עו״ד רון לוי. כדי שנוכל לנהל את התיק שלך יחד ולא לפספס כלום — הירשמי כאן:\n'+inviteURL());
+  window.open('https://wa.me/?text='+t,'_blank')}
+function copyLink(){navigator.clipboard?.writeText(inviteURL());toast('הקישור הועתק')}
+
+/* ═══ client self-signup ═══ */
+function doSignup(){
+  const n=$('#sName').value.trim(),p=$('#sPhone').value.trim(),t=$('#sType').value;
+  if(!n)return toast('צריך שם');
+  if(!$('#sOk').checked)return toast('צריך לאשר את העברת המידע');
+  const c=newClient(n,p,t);DB.active=c.id;
+  $('#wName').textContent='ברוכה הבאה, '+n.split(' ')[0];
+  go('welcome')}
+
+/* ═══ journey ═══ */
+function orderedSteps(){const c=C();
+  const withD=c.plan.filter(a=>a.date).sort((x,y)=>new Date(x.date)-new Date(y.date));
+  const noD=c.plan.filter(a=>!a.date);
+  return [...withD,...noD,...MILE]}
+function stepState(a){
+  if(a.mile)return'locked';
+  if(a.status==='done')return'done';
+  if(!a.date)return'unset';
+  const all=C().plan.filter(x=>x.date&&x.status!=='done').sort((x,y)=>new Date(x.date)-new Date(y.date));
+  return all[0]&&all[0].id===a.id?'current':'next'}
+function drawPath(){const c=C();if(!c)return;
+  const steps=orderedSteps();
+  const done=c.plan.filter(a=>a.status==='done').length;
+  $('#jCount').textContent=`${done} מתוך ${c.plan.length}`;
+  const XS=[.70,.33,.68,.30,.66,.34,.69,.31],GAP=168,TOP=78,W=$('#path').clientWidth||360;
+  const pts=steps.map((s,i)=>({x:XS[i%XS.length]*W,y:TOP+i*GAP}));
+  const H=TOP+(steps.length-1)*GAP+120;
+  let d='';pts.forEach((p,i)=>{if(!i){d=`M ${p.x} ${p.y}`;return}const q=pts[i-1];
+    d+=` C ${q.x} ${q.y+GAP*.5}, ${p.x} ${p.y-GAP*.5}, ${p.x} ${p.y}`});
+  let h=`<svg class="pline" viewBox="0 0 ${W} ${H}" style="height:${H}px;width:100%">
+    <path d="${d}" fill="none" stroke="var(--dot)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 15"/></svg>`;
+  steps.forEach((s,i)=>{const st=stepState(s);
+    const cur=st==='current',lk=st==='locked',dn=st==='done',un=st==='unset';
+    const size=cur?120:(lk||un?80:88),ico=cur?52:(lk||un?32:38);
+    const bg=lk?'var(--lock)':(un?TINT[s.c]:s.c),fg=lk?'var(--lockFg)':(un?DEEP[s.c]:'#fff');
+    const halo=cur?`box-shadow:0 0 0 9px ${TINT[s.c]},0 10px 26px -8px ${s.c}66;`:(dn?`box-shadow:0 8px 18px -8px ${s.c}55;`:'');
+    const dd=daysTo(s.date);
+    h+=`<div class="nd" style="left:${pts[i].x}px;top:${pts[i].y-size/2}px">
+      <div class="circ${cur?' cur':''}" style="width:${size}px;height:${size}px;background:${bg};color:${fg};${halo}" onclick="openStep('${s.id}')">
+        ${ic(lk?'lock':(un?'cal':s.i),ico)}${lk?'':'<span class="gloss"></span>'}
+        ${dn?`<span class="tick">${ic('check',16,s.c)}</span>`:''}
+        ${cur?'<span class="nowtag">עכשיו</span>':''}
+        ${cur&&dd!=null?`<span class="dpill" style="color:${s.c}">${dd>0?'בעוד '+dd+' ימים':'היום'}</span>`:''}</div>
+      <div class="nlab${lk?' lk':''}${cur?' cur':''}">${s.l}</div>
+      ${s.date?`<div class="nsub">${fmtDate(s.date)}${s.time?' · '+s.time:''}</div>`:(s.mile?'':'<div class="nsub">עוד לא נקבע</div>')}
+    </div>`});
+  const el=$('#path');el.style.height=H+'px';el.innerHTML=h}
+
+/* ═══ step sheet ═══ */
+function openStep(id){const c=C();
+  if(id.startsWith('m'))return toast('ייפתח כשכל התורים יושלמו');
+  const a=c.plan.find(x=>x.id===id);if(!a)return;
+  S.openStep=a;S.openPart=null;
+  $('#shTitle').textContent=a.l;$('#shSub').textContent=a.doctor?`${a.doctor} · ${a.place||''}`:'עוד לא נקבע תור';
+  $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
+  renderStep();openSheet()}
+function renderStep(){const a=S.openStep,b=$('#shBody');
+  if(!a.date){ b.innerHTML=`
+    <div style="background:${TINT[a.c]};border-radius:18px;padding:14px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:${DEEP[a.c]};margin-bottom:6px">למה התור הזה</div>
+      <div style="font-size:12.5px;color:${DEEP[a.c]};line-height:1.7">${a.reason.join(' · ')}</div></div>
+    <div style="border:1.5px dashed #D6C9B8;border-radius:20px;padding:20px;text-align:center;margin-bottom:12px" onclick="fakePhoto()">
+      ${ic('cam',28,a.c)}<div style="font-size:14.5px;font-weight:600;margin-top:8px">צילום הזימון</div>
+      <div style="font-size:11.5px;color:var(--ink3);margin-top:3px">SMS או אפליקציית הקופה — נמלא לבד</div></div>
+    <div style="text-align:center;font-size:12px;color:var(--ink3);margin-bottom:12px">או להקליד</div>
+    <input id="fDoc" placeholder="שם הרופא"><input id="fDate" type="date" placeholder="תאריך">
+    <div style="display:flex;gap:8px"><input id="fTime" placeholder="שעה" style="flex:1"><input id="fPlace" placeholder="מקום" style="flex:1"></div>`;
+    $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px" onclick="saveAppt()">שמירת התור</button>`;return}
+  if(a.status==='returned'){b.innerHTML=`<div class="ret"><h4>עו״ד רון ביקש להשלים</h4><p>${a.note}</p>
+    <button class="btn2" style="margin-top:11px;border-radius:12px;padding:11px;font-size:13.5px;color:#C24A34;border-color:#F0CFC8" onclick="reopen()">קביעת תור חוזר</button></div>`;
+    $('#shFoot').innerHTML='';return}
+  if(a.status==='pending'){b.innerHTML=`<div class="state"><div class="big" style="background:#FBEBD1;color:#B07A1E">${ic('clock',28)}</div>
+    <div style="font-size:17px;font-weight:700">קיבלנו, תודה</div>
+    <div style="font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.6">עו״ד רון עובר על הסיכום.<br>נעדכן אותך היום.</div></div>
+    <div class="filerow">${ic('file',20,'#8C837A')}<div style="flex:1"><div style="font-size:13.5px">סיכום ${a.l}</div>
+    <div style="font-size:11.5px;color:var(--ink3)">הועלה היום</div></div>${ic('check',18,a.c)}</div>`;
+    $('#shFoot').innerHTML='';return}
+  if(a.status==='done'){b.innerHTML=`<div class="state"><div class="big" style="background:${TINT[a.c]};color:${a.c}">${ic('check',30)}</div>
+    <div style="font-size:17px;font-weight:700">הושלם ואושר</div></div>`;$('#shFoot').innerHTML='';return}
+  const dd=daysTo(a.date);
+  b.innerHTML=`
+    <div class="filerow" style="background:var(--soft)">${ic('cal',20,a.c)}<div style="flex:1">
+      <div style="font-size:14px;font-weight:700">${fmtDate(a.date)}${a.time?' · '+a.time:''}</div>
+      <div style="font-size:12px;color:var(--ink2)">${dd>0?'בעוד '+dd+' ימים':'היום'}${a.place?' · '+a.place:''}</div></div></div>
+    <div class="prep" style="background:${TINT[a.c]}">
+      <h4 style="color:${DEEP[a.c]}">קחי איתך</h4>
+      <div class="bring">${a.bring.map(x=>`<span style="color:${DEEP[a.c]}">${x}</span>`).join('')}</div>
+      <div class="hr" style="background:${a.c}"></div>
+      <h4 style="color:${DEEP[a.c]}">אל תשכחי לספר</h4>
+      <p style="margin:0;font-size:12.5px;line-height:1.8;color:${DEEP[a.c]}">${a.rem}</p></div>
+    <div class="tiles">${a.tasks.map((t,i)=>`<div class="tile${t.done?' done':''}" data-t="${i}">
+      ${ic(t.done?'check':'clock',21,t.done?'#14807A':'#B5ABA0')}<div class="tl">${t.l}</div></div>`).join('')}</div>`;
+  b.querySelectorAll('.tile').forEach(e=>e.onclick=()=>{a.tasks[+e.dataset.t].done=!a.tasks[+e.dataset.t].done;renderStep()});
+  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px;display:flex;align-items:center;justify-content:center;gap:7px" onclick="upload()">${ic('cam',17,'#fff')}צלמי את הסיכום</button>`}
+function fakePhoto(){const a=S.openStep;
+  $('#fDoc').value='ד״ר א. שרון';$('#fDate').value=daysFrom(7);$('#fTime').value='09:15';$('#fPlace').value='מכבי · רמת אביב';
+  toast('נקרא מהצילום — אשרי שזה נכון')}
+function saveAppt(){const a=S.openStep;
+  const dt=$('#fDate').value;if(!dt)return toast('צריך תאריך');
+  a.doctor=$('#fDoc').value.trim();a.date=dt;a.time=$('#fTime').value.trim();a.place=$('#fPlace').value.trim();
+  a.status='scheduled';closeSheet();drawPath();toast('נשמר · נזכיר לך 3 ימים לפני')}
+function reopen(){const a=S.openStep;a.status='approved';a.date=null;a.tasks.forEach(t=>t.done=false);renderStep();drawPath()}
+function upload(){const a=S.openStep,c=C();a.status='pending';
+  c.docs.unshift({n:'סיכום '+a.l,d:'היום',c:a.c});renderStep();drawPath();toast('נשלח לעורך הדין')}
+function celebrate(a){$('#celPop').style.background=a.c;$('#celPop').innerHTML=ic('check',56,'#fff');
+  $('#celTitle').textContent='כל הכבוד!';$('#celText').textContent=`${a.l} הושלם ואושר.`;
+  const c=$('#cel');c.querySelectorAll('.conf').forEach(e=>e.remove());
+  for(let i=0;i<16;i++){const d=document.createElement('i');d.className='conf';
+    d.style.cssText=`background:${PAL[i%PAL.length]};left:${8+Math.random()*84}%;top:${26+Math.random()*22}%;animation-delay:${Math.random()*.35}s`;c.appendChild(d)}
+  c.classList.add('on')}
+function closeCel(){$('#cel').classList.remove('on');drawPath()}
+
+/* ═══ diary + docs ═══ */
+function drawDiary(){const c=C();
+  $('#scale').innerHTML=[0,2,4,6,8,10].map(n=>`<button data-n="${n}" class="${c.pain===n?'on':''}" style="${c.pain===n?`background:${n<4?'#3E9B57':n<8?'#E9A320':'#E8654F'}`:''}">${n}</button>`).join('');
+  $('#scale').querySelectorAll('button').forEach(b=>b.onclick=()=>{c.pain=+b.dataset.n;drawDiary()});
+  const chips=['כאב בלילה','קושי לישון','קושי בעבודה','נזקקתי לעזרה','לא יצאתי מהבית','נטלתי משככי כאבים'];
+  $('#dChips').innerHTML=chips.map(x=>{const on=c.dchips.includes(x);
+    return `<span data-c="${x}" style="border-radius:99px;padding:9px 14px;font-size:13.5px;font-weight:600;cursor:pointer;background:${on?'#E8654F':'#fff'};color:${on?'#fff':'#5E564E'};border:1.5px solid ${on?'#E8654F':'var(--chip)'}">${x}</span>`}).join('');
+  $('#dChips').querySelectorAll('span').forEach(e=>e.onclick=()=>{const x=e.dataset.c,i=c.dchips.indexOf(x);
+    i>-1?c.dchips.splice(i,1):c.dchips.push(x);drawDiary()});
+  $('#hist').innerHTML=c.hist.map(v=>`<i style="height:${8+v*4.6}px"></i>`).join('')}
+function saveDiary(){const c=C();if(c.pain===null)return toast('סמני קודם את רמת הכאב');
+  c.hist.shift();c.hist.push(c.pain);c.pain=null;c.dchips=[];drawDiary();toast('נשמר. נתראה מחר');setTimeout(()=>tab('journey'),900)}
+function drawDocs(){const c=C(),l=$('#docsList');
+  if(!c.docs.length){l.innerHTML=`<div style="text-align:center;padding:50px 20px;color:var(--ink3)">
+    <div style="margin-bottom:12px">${ic('file',34,'#C9BFB2')}</div><div style="font-size:14.5px">עדיין לא העלית מסמכים</div></div>`;return}
+  l.innerHTML=c.docs.map(d=>`<div class="filerow">
+    <div style="width:38px;height:38px;border-radius:12px;background:${TINT[d.c]};color:${DEEP[d.c]};display:flex;align-items:center;justify-content:center">${ic('file',19)}</div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600">${d.n}</div>
+    <div style="font-size:11.5px;color:var(--ink3)">${d.d}</div></div>${ic('check',18,'#14807A')}</div>`).join('')}
+
+let tt;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2500)}
+window.addEventListener('resize',()=>{if($('#s-journey').classList.contains('on'))drawPath()});
+(function init(){
+  drawBody();
+  if(location.hash.indexOf('join')>-1){DB.active=null;go('signup');return}
+  drawPickFoot();clientHome()})();
+</script>
+</body>
+</html>
