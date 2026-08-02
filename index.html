@@ -242,16 +242,21 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
   <div class="hero">
     <div class="ring" style="background:#14807A;box-shadow:0 0 0 12px #D5EAE7">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7z"/><path d="M11 6L4 13l3 3 7-7"/><path d="M3 21h10"/></svg></div>
-    <h1>כניסת עורך דין</h1>
-    <p>נשלח לך קישור למייל. בלי סיסמה.</p>
+    <h1 id="lTitle">כניסת עורך דין</h1>
+    <p id="lSubt">מייל וסיסמה. זהו.</p>
   </div>
   <div class="pad">
     <input id="lEmail" type="email" placeholder="מייל" inputmode="email" autocomplete="username">
     <input id="lPass" type="password" placeholder="סיסמה" autocomplete="current-password">
+    <div id="lExtra" style="display:none">
+      <input id="lName" placeholder="השם שלך">
+      <input id="lFirm" placeholder="שם המשרד">
+    </div>
     <div id="lMsg" style="display:none;background:#FDF0ED;border-radius:14px;padding:12px;font-size:13px;color:#C24A34;line-height:1.6"></div>
   </div>
-  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawLogin()">כניסה</button>
-    <button class="ghost" onclick="lawSignup()">אין לי חשבון — הרשמה</button></div>
+  <div class="foot">
+    <button class="btn" style="--c:#14807A" id="lMain" onclick="lawLogin()">כניסה</button>
+    <button class="ghost" id="lSwitch" onclick="lawToggle()">אין לי חשבון — הרשמה</button></div>
 </section>
 
 <!-- ═══ LAWYER ═══ -->
@@ -620,7 +625,7 @@ async function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='r
   drawLawClient();await saveApptRow(a);toast('הוחזר להשלמה')}
 
 /* ═══ invite link + QR ═══ */
-function inviteURL(){return location.origin+location.pathname+'#join'}
+function inviteURL(){return location.origin+location.pathname+'#join='+(DB.firmRow?DB.firmRow.slug:'')}
 function drawInvite(){
   const url=inviteURL();$('#linkTxt').textContent=url;
   const box=$('#qr');box.innerHTML='';
@@ -641,8 +646,11 @@ async function doSignup(){
   let {data:{session}}=await sb.auth.getSession();
   if(!session){const r=await sb.auth.signInAnonymously();
     if(r.error)return toast('שגיאת כניסה: '+r.error.message);session=r.data.session}
-  const {data:firm}=await sb.from('firms').select('*').eq('slug','ronlevi').maybeSingle();
-  if(!firm)return toast('לא נמצא משרד — הרץ את ה-SQL');
+  const m=location.hash.match(/join=([\w-]+)/);
+  let firm=null;
+  if(m&&m[1]){const r=await sb.from('firms').select('*').eq('slug',m[1]).maybeSingle();firm=r.data}
+  if(!firm){const r=await sb.from('firms').select('*').limit(1);firm=r.data&&r.data[0]}
+  if(!firm)return toast('לא נמצא משרד — בקש קישור חדש מעורך הדין');
   DB.firmRow=firm;applyBrand();
   const {data,error}=await sb.from('clients').insert({firm_id:firm.id,auth_uid:session.user.id,
     name:n,phone:p,case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
@@ -650,22 +658,52 @@ async function doSignup(){
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
   drawBody();drawPickFoot();$('#wName').textContent='היי, '+n.split(' ')[0];go('welcome')}
 
-function lawErr(m){const e=$('#lMsg');e.textContent=m;e.style.display=m?'block':'none'}
+function lawErr(m){const e=$('#lMsg');e.textContent=m||'';e.style.display=m?'block':'none'}
+let signupMode=false;
+function lawToggle(){
+  signupMode=!signupMode;lawErr('');
+  $('#lExtra').style.display=signupMode?'block':'none';
+  $('#lTitle').textContent=signupMode?'פתיחת חשבון':'כניסת עורך דין';
+  $('#lSubt').textContent=signupMode?'ארבעה שדות ומתחילים.':'מייל וסיסמה. זהו.';
+  $('#lMain').textContent=signupMode?'יצירת חשבון':'כניסה';
+  $('#lMain').setAttribute('onclick',signupMode?'lawSignup()':'lawLogin()');
+  $('#lSwitch').textContent=signupMode?'יש לי כבר חשבון — כניסה':'אין לי חשבון — הרשמה';
+}
 async function lawLogin(){
   const e=$('#lEmail').value.trim(),p=$('#lPass').value;
   if(!e||!p)return lawErr('צריך מייל וסיסמה');
   lawErr('');toast('רגע…');
   const {error}=await sb.auth.signInWithPassword({email:e,password:p});
-  if(error)return lawErr(error.message);
-  boot()}
+  if(error)return lawErr(error.message==='Invalid login credentials'?'מייל או סיסמה שגויים':error.message);
+  DB.role=null;boot()}
+function initialsOf(t){const w=(t||'').trim().split(/\s+/).filter(Boolean);
+  return ((w[0]||'')[0]||'')+((w[1]||'')[0]||'')||'עד'}
 async function lawSignup(){
-  const e=$('#lEmail').value.trim(),p=$('#lPass').value;
+  const e=$('#lEmail').value.trim(),p=$('#lPass').value,
+        nm=$('#lName').value.trim(),fm=$('#lFirm').value.trim();
   if(!e||p.length<6)return lawErr('צריך מייל וסיסמה של 6 תווים לפחות');
-  lawErr('');toast('נרשם…');
-  const {data,error}=await sb.auth.signUp({email:e,password:p});
-  if(error)return lawErr(error.message);
-  if(!data.session)return lawErr('נדרש אישור מייל — כבה את Confirm email בסופאבייס');
-  toast('נרשמת. עכשיו צריך לחבר אותך למשרד ב-SQL');boot()}
+  if(!nm||!fm)return lawErr('צריך שם ושם משרד');
+  lawErr('');toast('פותח חשבון…');
+  let {data:{session}}=await sb.auth.getSession();
+  if(!session){
+    const r=await sb.auth.signUp({email:e,password:p});
+    if(r.error)return lawErr(r.error.message);
+    if(!r.data.session){
+      const si=await sb.auth.signInWithPassword({email:e,password:p});
+      if(si.error)return lawErr('נדרש אישור מייל — כבה Confirm email בסופאבייס');
+      session=si.data.session;
+    } else session=r.data.session;
+  }
+  let {data:firm}=await sb.from('firms').select('*').eq('name',fm).maybeSingle();
+  if(!firm){
+    const slug='f'+Date.now().toString(36);
+    const r=await sb.from('firms').insert({name:fm,slug,initials:initialsOf(fm),brand:'#14807A'}).select().single();
+    if(r.error)return lawErr('לא ניתן ליצור משרד: '+r.error.message);
+    firm=r.data;
+  }
+  const li=await sb.from('lawyers').insert({id:session.user.id,firm_id:firm.id,name:nm,email:e});
+  if(li.error&&li.error.code!=='23505')return lawErr('לא ניתן לחבר למשרד: '+li.error.message);
+  DB.role=null;toast('נפתח חשבון');boot()}
 
 /* ═══ journey ═══ */
 function orderedSteps(){const c=C();
@@ -873,6 +911,9 @@ async function boot(){
   let {data:{session}}=await sb.auth.getSession();
 
   if(joining){
+    const m=location.hash.match(/join=([\w-]+)/);
+    if(m&&m[1]){const r=await sb.from('firms').select('*').eq('slug',m[1]).maybeSingle();
+      if(r.data){DB.firmRow=r.data;applyBrand()}}
     if(!session){const r=await sb.auth.signInAnonymously();
       if(r.error){toast('שגיאת כניסה: '+r.error.message);return}
       session=r.data.session}
