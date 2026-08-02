@@ -144,20 +144,20 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 
 <!-- ═══ CLIENT ═══ -->
 <section class="screen on" id="s-welcome">
-  <div class="firm"><div class="logo">רל</div><span style="font-size:13.5px;font-weight:600">רון לוי ושות׳</span></div>
+  <div class="firm"><div class="logo"></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
   <div class="hero">
     <div class="ring"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/><circle cx="12" cy="12" r="10"/></svg></div>
-    <h1 id="wName">ברוכה הבאה</h1>
-    <p>מכאן והלאה את לא צריכה לזכור כלום.<br>נגיד לך בדיוק מה השלב הבא, מתי, ומה חשוב לא לשכוח בו.</p>
+    <h1 id="wName">היי</h1>
+    <p>מכאן והלאה אין מה לזכור.<br>נגיד לך בדיוק מה השלב הבא, מתי, ומה חשוב לא לשכוח בו.</p>
   </div>
-  <div class="foot"><button class="btn" onclick="go('picker')">בואי נתחיל</button></div>
+  <div class="foot"><button class="btn" onclick="startPicker()">מתחילים</button></div>
 </section>
 
 <section class="screen" id="s-picker">
   <div class="top">
     <div class="bars"><div class="bar on"></div><div class="bar"></div><div class="bar"></div></div>
     <h1>איפה כואב לך?</h1>
-    <p class="sub">געי בכל אזור שנפגע — גם אם זה נראה קטן, וגם אם התחיל רק אחרי כמה ימים.</p>
+    <p class="sub">כדאי לסמן כל אזור שנפגע — גם אם זה נראה קטן, וגם אם התחיל רק אחרי כמה ימים.</p>
     <div class="rot" id="rot">
       <button class="on" data-v="front"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9a8 8 0 0 1 14-4l3 3"/><path d="M21 4v4h-4"/></svg>מלפנים</button>
       <button data-v="back"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 9A8 8 0 0 0 6 5L3 8"/><path d="M3 4v4h4"/></svg>מאחור</button>
@@ -165,20 +165,20 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
   </div>
   <div class="stage">
     <div class="figWrap" id="figWrap"><div class="fig" id="fig"><svg viewBox="0 0 240 430" preserveAspectRatio="xMidYMid meet" id="bodySvg"></svg></div></div>
-    <div class="hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg>החליקי לסובב את הגוף</div>
+    <div class="hint"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg>להחליק כדי לסובב את הגוף</div>
   </div>
-  <div class="mind" onclick="openPart(['mind'],'איך את מרגישה')">
+  <div class="mind" onclick="openPart(['mind'],'איך ההרגשה')">
     <div class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-4.6-9.3-9A5.2 5.2 0 0 1 12 6.6 5.2 5.2 0 0 1 21.3 12C19 16.4 12 21 12 21z"/></svg></div>
-    <div style="flex:1"><div style="font-size:15px;font-weight:700">וגם — איך את מרגישה</div><div style="font-size:12.5px;color:var(--ink2);margin-top:2px">שינה, חרדה, ריכוז, תפקוד ביום־יום</div></div>
+    <div style="flex:1"><div style="font-size:15px;font-weight:700">וגם — איך ההרגשה</div><div style="font-size:12.5px;color:var(--ink2);margin-top:2px">שינה, חרדה, ריכוז, תפקוד ביום־יום</div></div>
     <span class="ct" id="mindCt" style="background:#7B5EA7;display:none"></span>
   </div>
   <div class="foot"><div class="pills" id="pickPills"></div>
-    <button class="btn" id="pickCta" disabled onclick="go('describe')">סימני לפחות אזור אחד</button></div>
+    <button class="btn" id="pickCta" disabled onclick="go('describe')">לסמן לפחות אזור אחד</button></div>
 </section>
 
 <section class="screen" id="s-describe">
   <div class="top"><div class="bars"><div class="bar on"></div><div class="bar on"></div><div class="bar on"></div></div>
-    <h1>ספרי במילים שלך מה קרה</h1><p class="sub">כמה משפטים מספיקים. זה נשמר בתיק שלך.</p></div>
+    <h1>מה קרה, במילים שלך</h1><p class="sub">כמה משפטים מספיקים. זה נשמר בתיק.</p></div>
   <div class="scroll pad" style="padding-top:18px"><textarea id="desc" style="min-height:170px;border-radius:20px" placeholder="נסעתי, נעצרתי ברמזור, ורכב פגע בי מאחור…"></textarea></div>
   <div class="foot"><button class="btn" onclick="submitSymptoms()">סיימתי</button></div>
 </section>
@@ -186,14 +186,14 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 <section class="screen" id="s-wait">
   <div class="hero">
     <div class="ring" style="background:#FBEBD1;color:#B07A1E;box-shadow:0 0 0 12px #FDF6E7"><svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-    <h1>יופי, סיימנו את החלק שלך</h1>
-    <p>עו״ד רון בונה איתך עכשיו את תוכנית הבדיקות.<br>ברגע שתאושר — המסלול ייפתח כאן.</p>
+    <h1>יופי, החלק שלך הסתיים</h1>
+    <p>עורך הדין בונה עכשיו את תוכנית הבדיקות.<br>ברגע שתאושר — המסלול ייפתח כאן.</p>
   </div>
   <div class="foot"><button class="btn2" onclick="refreshMe()">בדיקה אם התוכנית אושרה</button></div>
 </section>
 
 <section class="screen" id="s-journey">
-  <div class="jhead"><div style="display:flex;align-items:center;gap:9px"><div class="logo">רל</div><span style="font-size:13.5px;font-weight:600">רון לוי ושות׳</span></div>
+  <div class="jhead"><div style="display:flex;align-items:center;gap:9px"><div class="logo"></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
     <span class="count" id="jCount"></span></div>
   <div class="scroll"><div class="path" id="path"></div></div>
   <div class="tabs">
@@ -214,15 +214,15 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 </section>
 
 <section class="screen" id="s-docs">
-  <div class="top"><h1>המסמכים שלי</h1><p class="sub">כל מה שהעלית נשמר כאן ונשלח אוטומטית לעורך הדין.</p></div>
+  <div class="top"><h1>המסמכים שלי</h1><p class="sub">כל מה שהועלה נשמר כאן ונשלח אוטומטית לעורך הדין.</p></div>
   <div class="scroll pad" style="padding-top:16px" id="docsList"></div>
   <div class="foot"><button class="ghost" onclick="tab('journey')">חזרה למסלול</button></div>
 </section>
 
 <section class="screen" id="s-signup">
   <div class="top">
-    <div class="firm" style="justify-content:flex-start;padding-top:0"><div class="logo">רל</div>
-      <span style="font-size:13.5px;font-weight:600">רון לוי ושות׳</span></div>
+    <div class="firm" style="justify-content:flex-start;padding-top:0"><div class="logo"></div>
+      <span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
     <h1 style="margin-top:20px">נעים להכיר</h1>
     <p class="sub">כמה פרטים ומתחילים. זה ייקח פחות מדקה.</p>
   </div>
@@ -259,15 +259,15 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 </section>
 
 <section class="screen" id="s-lawInvite">
-  <div class="top"><h1>הזמנת לקוח</h1><p class="sub">אותו קוד לכל הלקוחות. הוא נרשם בעצמו — לך אין מה למלא.</p></div>
+  <div class="top"><h1>הזמנת לקוח</h1><p class="sub">אותו קוד לכל הלקוחות. הלקוח נרשם בעצמו — לך אין מה למלא.</p></div>
   <div class="scroll pad" style="padding-top:16px">
     <div class="qrbox"><div id="qr"></div>
-      <div style="font-size:14.5px;font-weight:700;margin-bottom:8px">שיסרוק מהטלפון שלו</div>
+      <div style="font-size:14.5px;font-weight:700;margin-bottom:8px">לסריקה מהטלפון של הלקוח</div>
       <div class="linkbox" id="linkTxt"></div></div>
     <button class="btn" style="--c:#25D366;margin-bottom:10px" onclick="shareWA()">שליחה בוואטסאפ</button>
     <button class="btn2" onclick="copyLink()">העתקת הקישור</button>
     <div style="background:var(--soft);border-radius:16px;padding:13px;margin-top:14px;font-size:12.5px;color:var(--ink2);line-height:1.65">
-      אחרי שהוא נרשם וממלא את הסימפטומים, הוא יופיע ברשימה שלך עם התוכנית מוכנה לאישור.</div>
+      אחרי ההרשמה ומילוי הסימפטומים, הלקוח יופיע ברשימה שלך עם התוכנית מוכנה לאישור.</div>
   </div>
   <div class="foot"><button class="ghost" onclick="lawGo('list')">חזרה לרשימה</button></div>
 </section>
@@ -307,7 +307,7 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 const TINT={'#E8654F':'#FBE0DA','#7B5EA7':'#EBE3F4','#2F6FD0':'#DCE8F9','#E9A320':'#FBEBD1','#14807A':'#D5EAE7','#3E9B57':'#DDEFE2','#C75C8A':'#F7E1EB','#4A8FA8':'#DDECF1','#8A8F98':'#E6E8EA','#D98324':'#FAE9D4'};
 const DEEP={'#E8654F':'#C24A34','#7B5EA7':'#573F7A','#2F6FD0':'#1E4C93','#E9A320':'#9E6B0C','#14807A':'#0D5F5A','#3E9B57':'#256B3A','#C75C8A':'#93365F','#4A8FA8':'#2C6579','#8A8F98':'#5D6269','#D98324':'#96590F'};
 const PAL=['#E8654F','#7B5EA7','#2F6FD0','#E9A320','#14807A','#3E9B57'];
-const OTHER='משהו אחר — כתבי במילים שלך';
+const OTHER='משהו אחר — לכתוב במילים שלך';
 
 /* ═══ icons ═══ */
 const IC={steth:'<path d="M6 3v5a4 4 0 0 0 8 0V3"/><path d="M6 3H4M14 3h2"/><path d="M10 12v3a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/>',
@@ -356,7 +356,7 @@ mind:{l:'נפש ותפקוד',s:['חרדה או לחץ','קושי להירדם',
 
 /* ═══ rules engine ═══ */
 const SPECS={
-ent:{l:'אף אוזן גרון',c:'#E8654F',i:'steth',bring:['סיכום המיון','צילום רנטגן','תעודת זהות'],rem:'על כל אזור שכואב באף ובאוזן — גם אם לא הזכרת קודם. ולבקש סיכום מודפס לפני שאת יוצאת.'},
+ent:{l:'אף אוזן גרון',c:'#E8654F',i:'steth',bring:['סיכום המיון','צילום רנטגן','תעודת זהות'],rem:'לספר על כל אזור שכואב באף ובאוזן — גם אם לא הוזכר קודם. ולבקש סיכום מודפס לפני היציאה.'},
 audio:{l:'בדיקת שמיעה',c:'#E9A320',i:'ear',bring:['ההפניה','תעודת זהות'],rem:'לבקש את גיליון האודיוגרם עצמו, לא רק את המסקנה.'},
 ortho:{l:'אורתופד',c:'#2F6FD0',i:'bone',bring:['סיכום המיון','הדמיות אם יש','תעודת זהות'],rem:'לבקש שיירשמו טווחי התנועה במעלות, ולא רק "הגבלה קלה".'},
 neuro:{l:'נוירולוג',c:'#7B5EA7',i:'brain',bring:['סיכום המיון','כל ההדמיות','יומן הכאב'],rem:'לתאר בדיוק לאן הכאב מקרין, ומתי יש נימול או חולשה.'},
@@ -439,11 +439,17 @@ function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/8
 
 /* ═══ router ═══ */
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on')}
+function startPicker(){go('picker');requestAnimationFrame(()=>{drawBody();drawPickFoot()})}
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   if(t==='journey')drawPath();if(t==='docs')drawDocs();if(t==='diary')drawDiary()}
 function logout(){sb.auth.signOut().then(()=>location.href=location.pathname)}
+function applyBrand(){
+  const f=DB.firmRow;if(!f)return;
+  document.querySelectorAll('.logo').forEach(e=>{e.textContent=f.initials||'';e.style.background=f.brand||'#14807A'});
+  document.querySelectorAll('.firmName').forEach(e=>e.textContent=f.name||'');
+  document.documentElement.style.setProperty('--brand',f.brand||'#14807A');}
 function clientHome(){const c=C();if(!c)return go('signup');
-  $('#wName').textContent='ברוכה הבאה, '+c.name.split(' ')[0];
+  $('#wName').textContent='היי, '+c.name.split(' ')[0];
   if(c.stage==='signed_up')go('welcome');
   else if(c.stage==='waiting')go('wait');
   else{drawPath();tab('journey')}}
@@ -453,8 +459,8 @@ function lawGo(v){ if(v==='list'){drawLawList();go('lawList')}
   else if(v==='client'){drawLawClient();go('lawClient')} }
 
 /* ═══ body map ═══ */
-function zCount(z){const c=C();return z.parts.filter(p=>(c.sel[p]||[]).length).length}
-function zColor(z){const c=C();const p=z.parts.find(p=>(c.sel[p]||[]).length);return p?colorOf(p):null}
+function zCount(z){const c=C();if(!c)return 0;return z.parts.filter(p=>(c.sel[p]||[]).length).length}
+function zColor(z){const c=C();if(!c)return null;const p=z.parts.find(p=>(c.sel[p]||[]).length);return p?colorOf(p):null}
 function drawBody(){
   const zs=VIEWS[S.view];let h='';
   const mir=cx=>S.view==='back'?` transform="translate(${2*cx},0) scale(-1,1)"`:'';
@@ -497,7 +503,7 @@ function openPart(parts,title){
       ${p.s.map(s=>{const on=cur.includes(s);return `<div class="sy${on?' on':''}" data-p="${pk}" data-s="${s}" ${on?`style="background:${cc};border-color:${cc}"`:''}>
         <span class="bx"><svg viewBox="0 0 24 24" style="stroke:${cc}"><path d="M20 6L9 17l-5-5"/></svg></span>${s}</div>`}).join('')}
       <div class="sy other" data-o="${pk}"><span class="bx"><svg viewBox="0 0 24 24" style="stroke:${cc}"><path d="M20 6L9 17l-5-5"/></svg></span>${OTHER}</div>
-      <textarea data-ta="${pk}" placeholder="כתבי כאן…" style="display:${c.notes[pk]?'block':'none'}">${c.notes[pk]||''}</textarea>
+      <textarea data-ta="${pk}" placeholder="לכתוב כאן…" style="display:${c.notes[pk]?'block':'none'}">${c.notes[pk]||''}</textarea>
       </div></div>`;b.appendChild(a)});
   b.querySelectorAll('.accH').forEach(h=>h.onclick=()=>{h.parentElement.classList.toggle('open');sizeA(h.parentElement)});
   b.querySelectorAll('.sy[data-s]').forEach(e=>e.onclick=()=>togSym(e));
@@ -523,13 +529,13 @@ function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.r
   if($('#s-journey').classList.contains('on'))drawPath();
   if(S.openPart&&C()&&C().stage!=='signed_up')void syncSymptoms()}
 
-function drawPickFoot(){const c=C();
+function drawPickFoot(){const c=C();if(!c)return;
   const m=Object.keys(c.sel).filter(k=>c.sel[k].length&&k!=='mind');
   $('#pickPills').innerHTML=m.map(k=>{const col=colorOf(k);
     return `<span class="pill" style="background:${TINT[col]};color:${DEEP[col]}">${PARTS[k].l} · ${c.sel[k].length}</span>`}).join('');
   const mc=(c.sel['mind']||[]).length;$('#mindCt').style.display=mc?'inline-block':'none';$('#mindCt').textContent=mc;
   const all=Object.keys(c.sel).filter(k=>c.sel[k].length),b=$('#pickCta');
-  if(all.length){b.disabled=false;b.textContent=`המשך · ${all.length} אזורים`}else{b.disabled=true;b.textContent='סימני לפחות אזור אחד'}}
+  if(all.length){b.disabled=false;b.textContent=`המשך · ${all.length} אזורים`}else{b.disabled=true;b.textContent='לסמן לפחות אזור אחד'}}
 
 async function submitSymptoms(){const c=C();c.desc=$('#desc').value;c.plan=buildPlan(c.sel);c.stage='waiting';
   go('wait');toast('שומר…');
@@ -548,7 +554,7 @@ function drawPlan(){const c=C();if(!c)return;
       <div style="flex:1"><div style="font-size:15px;font-weight:700">${a.l}</div>
         <div class="why">${a.reason.join(' · ')}</div></div>
       <button style="border:0;background:none;padding:2px" onclick="dropSpec(${i})">${ic('plus',17,'#C9BFB2')}</button>
-    </div>`).join('')||'<div style="text-align:center;color:var(--ink3);padding:40px 0">אין המלצות — סמני סימפטומים קודם</div>';
+    </div>`).join('')||'<div style="text-align:center;color:var(--ink3);padding:40px 0">אין המלצות — צריך לסמן סימפטומים קודם</div>';
   $('#planList').querySelectorAll('button').forEach(b=>b.style.transform='rotate(45deg)');
 }
 function dropSpec(i){const c=C();c.plan.splice(i,1);drawPlan()}
@@ -607,7 +613,7 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
 async function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';
   drawLawClient();await saveApptRow(a);toast('אושר · הלקוח עודכן')}
 async function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='returned';
-  a.note='בסיכום חסר תאריך הפגיעה. קבעי תור חוזר קצר ובקשי להוסיף אותו.';
+  a.note='בסיכום חסר תאריך הפגיעה. כדאי לקבוע תור חוזר קצר ולבקש להוסיף אותו.';
   drawLawClient();await saveApptRow(a);toast('הוחזר להשלמה')}
 
 /* ═══ invite link + QR ═══ */
@@ -618,7 +624,8 @@ function drawInvite(){
   try{new QRCode(box,{text:url,width:180,height:180,colorDark:'#2E2A26',colorLight:'#ffffff'})}
   catch(e){box.innerHTML='<div style="font-size:12px;color:#A79FB3;padding:26px">הקוד ייווצר כשהעמוד מקוון</div>'}}
 function shareWA(){
-  const t=encodeURIComponent('היי, זה המשרד של עו״ד רון לוי. כדי שנוכל לנהל את התיק שלך יחד ולא לפספס כלום — הירשמי כאן:\n'+inviteURL());
+  const fn=DB.firmRow?DB.firmRow.name:'המשרד';
+  const t=encodeURIComponent('היי, זה '+fn+'. כדי שננהל את התיק שלך יחד ולא נפספס כלום — נרשמים כאן:\n'+inviteURL());
   window.open('https://wa.me/?text='+t,'_blank')}
 function copyLink(){navigator.clipboard?.writeText(inviteURL());toast('הקישור הועתק')}
 
@@ -631,13 +638,14 @@ async function doSignup(){
   let {data:{session}}=await sb.auth.getSession();
   if(!session){const r=await sb.auth.signInAnonymously();
     if(r.error)return toast('שגיאת כניסה: '+r.error.message);session=r.data.session}
-  const {data:firm}=await sb.from('firms').select('id').eq('slug','ronlevi').maybeSingle();
+  const {data:firm}=await sb.from('firms').select('*').eq('slug','ronlevi').maybeSingle();
   if(!firm)return toast('לא נמצא משרד — הרץ את ה-SQL');
+  DB.firmRow=firm;applyBrand();
   const {data,error}=await sb.from('clients').insert({firm_id:firm.id,auth_uid:session.user.id,
     name:n,phone:p,case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
   if(error)return toast('שגיאה: '+error.message);
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
-  $('#wName').textContent='ברוכה הבאה, '+n.split(' ')[0];go('welcome')}
+  drawBody();drawPickFoot();$('#wName').textContent='היי, '+n.split(' ')[0];go('welcome')}
 
 async function lawLogin(){const e=$('#lEmail').value.trim();if(!e)return toast('צריך מייל');
   const {error}=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.origin+location.pathname}});
@@ -703,12 +711,12 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
     <input id="fDoc" placeholder="שם הרופא"><input id="fDate" type="date" placeholder="תאריך">
     <div style="display:flex;gap:8px"><input id="fTime" placeholder="שעה" style="flex:1"><input id="fPlace" placeholder="מקום" style="flex:1"></div>`;
     $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px" onclick="saveAppt()">שמירת התור</button>`;return}
-  if(a.status==='returned'){b.innerHTML=`<div class="ret"><h4>עו״ד רון ביקש להשלים</h4><p>${a.note}</p>
+  if(a.status==='returned'){b.innerHTML=`<div class="ret"><h4>עורך הדין ביקש להשלים</h4><p>${a.note}</p>
     <button class="btn2" style="margin-top:11px;border-radius:12px;padding:11px;font-size:13.5px;color:#C24A34;border-color:#F0CFC8" onclick="reopen()">קביעת תור חוזר</button></div>`;
     $('#shFoot').innerHTML='';return}
   if(a.status==='pending'){b.innerHTML=`<div class="state"><div class="big" style="background:#FBEBD1;color:#B07A1E">${ic('clock',28)}</div>
     <div style="font-size:17px;font-weight:700">קיבלנו, תודה</div>
-    <div style="font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.6">עו״ד רון עובר על הסיכום.<br>נעדכן אותך היום.</div></div>
+    <div style="font-size:13.5px;color:var(--ink2);margin-top:6px;line-height:1.6">עורך הדין עובר על הסיכום.<br>נעדכן היום.</div></div>
     <div class="filerow">${ic('file',20,'#8C837A')}<div style="flex:1"><div style="font-size:13.5px">סיכום ${a.l}</div>
     <div style="font-size:11.5px;color:var(--ink3)">הועלה היום</div></div>${ic('check',18,a.c)}</div>`;
     $('#shFoot').innerHTML='';return}
@@ -720,22 +728,22 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
       <div style="font-size:14px;font-weight:700">${fmtDate(a.date)}${a.time?' · '+a.time:''}</div>
       <div style="font-size:12px;color:var(--ink2)">${dd>0?'בעוד '+dd+' ימים':'היום'}${a.place?' · '+a.place:''}</div></div></div>
     <div class="prep" style="background:${TINT[a.c]}">
-      <h4 style="color:${DEEP[a.c]}">קחי איתך</h4>
+      <h4 style="color:${DEEP[a.c]}">לקחת איתך</h4>
       <div class="bring">${a.bring.map(x=>`<span style="color:${DEEP[a.c]}">${x}</span>`).join('')}</div>
       <div class="hr" style="background:${a.c}"></div>
-      <h4 style="color:${DEEP[a.c]}">אל תשכחי לספר</h4>
+      <h4 style="color:${DEEP[a.c]}">לא לשכוח לספר</h4>
       <p style="margin:0;font-size:12.5px;line-height:1.8;color:${DEEP[a.c]}">${a.rem}</p></div>
     <div class="tiles">${a.tasks.map((t,i)=>`<div class="tile${t.done?' done':''}" data-t="${i}">
       ${ic(t.done?'check':'clock',21,t.done?'#14807A':'#B5ABA0')}<div class="tl">${t.l}</div></div>`).join('')}</div>`;
   b.querySelectorAll('.tile').forEach(e=>e.onclick=()=>{a.tasks[+e.dataset.t].done=!a.tasks[+e.dataset.t].done;renderStep();void saveApptRow(a)});
-  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px;display:flex;align-items:center;justify-content:center;gap:7px" onclick="upload()">${ic('cam',17,'#fff')}צלמי את הסיכום</button>`}
+  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px;display:flex;align-items:center;justify-content:center;gap:7px" onclick="upload()">${ic('cam',17,'#fff')}צילום הסיכום</button>`}
 function fakePhoto(){const a=S.openStep;
   $('#fDoc').value='ד״ר א. שרון';$('#fDate').value=daysFrom(7);$('#fTime').value='09:15';$('#fPlace').value='מכבי · רמת אביב';
-  toast('נקרא מהצילום — אשרי שזה נכון')}
+  toast('נקרא מהצילום — לאשר שזה נכון')}
 function saveAppt(){const a=S.openStep;
   const dt=$('#fDate').value;if(!dt)return toast('צריך תאריך');
   a.doctor=$('#fDoc').value.trim();a.date=dt;a.time=$('#fTime').value.trim();a.place=$('#fPlace').value.trim();
-  a.status='scheduled';closeSheet();drawPath();void saveApptRow(a);toast('נשמר · נזכיר לך 3 ימים לפני')}
+  a.status='scheduled';closeSheet();drawPath();void saveApptRow(a);toast('נשמר · נזכיר 3 ימים לפני')}
 function reopen(){const a=S.openStep;a.status='approved';a.date=null;a.tasks.forEach(t=>t.done=false);
   renderStep();drawPath();void saveApptRow(a)}
 async function upload(){const a=S.openStep,c=C();a.status='pending';
@@ -761,14 +769,14 @@ function drawDiary(){const c=C();
   $('#dChips').querySelectorAll('span').forEach(e=>e.onclick=()=>{const x=e.dataset.c,i=c.dchips.indexOf(x);
     i>-1?c.dchips.splice(i,1):c.dchips.push(x);drawDiary()});
   $('#hist').innerHTML=c.hist.map(v=>`<i style="height:${8+v*4.6}px"></i>`).join('')}
-async function saveDiary(){const c=C();if(c.pain===null)return toast('סמני קודם את רמת הכאב');
+async function saveDiary(){const c=C();if(c.pain===null)return toast('קודם צריך לסמן את רמת הכאב');
   const pain=c.pain,chips=[...c.dchips];
   c.hist.shift();c.hist.push(pain);c.pain=null;c.dchips=[];drawDiary();
   toast('נשמר. נתראה מחר');setTimeout(()=>tab('journey'),900);
   await sb.from('diary').insert({client_id:c.id,pain,chips})}
 function drawDocs(){const c=C(),l=$('#docsList');
   if(!c.docs.length){l.innerHTML=`<div style="text-align:center;padding:50px 20px;color:var(--ink3)">
-    <div style="margin-bottom:12px">${ic('file',34,'#C9BFB2')}</div><div style="font-size:14.5px">עדיין לא העלית מסמכים</div></div>`;return}
+    <div style="margin-bottom:12px">${ic('file',34,'#C9BFB2')}</div><div style="font-size:14.5px">עדיין אין מסמכים</div></div>`;return}
   l.innerHTML=c.docs.map(d=>`<div class="filerow">
     <div style="width:38px;height:38px;border-radius:12px;background:${TINT[d.c]};color:${DEEP[d.c]};display:flex;align-items:center;justify-content:center">${ic('file',19)}</div>
     <div style="flex:1"><div style="font-size:14px;font-weight:600">${d.n}</div>
@@ -778,8 +786,9 @@ let tt;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on
 window.addEventListener('resize',()=>{if($('#s-journey').classList.contains('on'))drawPath()});
 
 /* ═══ persistence ═══ */
-const SEL='*, symptoms(*), part_notes(*), appointments(*), documents(*)';
+const SEL='*, firms(*), symptoms(*), part_notes(*), appointments(*), documents(*)';
 function mapClient(r){
+  if(r.firms)DB.firmRow=r.firms;
   const sel={},notes={};
   (r.symptoms||[]).forEach(x=>{(sel[x.part_key]=sel[x.part_key]||[]).push(x.symptom)});
   (r.part_notes||[]).forEach(x=>notes[x.part_key]=x.note);
@@ -795,11 +804,14 @@ function mapClient(r){
 }
 async function myClient(){
   const {data}=await sb.from('clients').select(SEL).limit(1);
-  return (data&&data.length)?mapClient(data[0]):null;
+  if(!data||!data.length)return null;
+  const m=mapClient(data[0]);applyBrand();return m;
 }
 async function loadFirmClients(){
   const {data}=await sb.from('clients').select(SEL).order('created_at',{ascending:false});
   DB.clients=(data||[]).map(mapClient);
+  if(!DB.firmRow&&DB.firm){const {data:f}=await sb.from('firms').select('*').eq('id',DB.firm).maybeSingle();DB.firmRow=f}
+  applyBrand();
 }
 async function saveClientRow(){const c=C();if(!c)return;
   await sb.from('clients').update({name:c.name,phone:c.phone,case_type:c.type,stage:c.stage,description:c.desc}).eq('id',c.id)}
@@ -842,7 +854,6 @@ function subscribeRT(){
 
 /* ═══ boot ═══ */
 async function boot(){
-  drawBody();
   const joining=location.hash.indexOf('join')>-1;
   let {data:{session}}=await sb.auth.getSession();
 
@@ -851,16 +862,18 @@ async function boot(){
       if(r.error){toast('שגיאת כניסה: '+r.error.message);return}
       session=r.data.session}
     const me=await myClient();
-    if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawPickFoot();clientHome();subscribeRT();return}
+    if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawBody();drawPickFoot();clientHome();subscribeRT();return}
     DB.role='client';return go('signup');
   }
   if(!session)return go('lawLogin');
 
   const {data:law}=await sb.from('lawyers').select('*').eq('id',session.user.id).maybeSingle();
-  if(law){DB.role='lawyer';DB.firm=law.firm_id;await loadFirmClients();lawGo('list');subscribeRT();return}
+  if(law){DB.role='lawyer';DB.firm=law.firm_id;
+    const {data:f}=await sb.from('firms').select('*').eq('id',law.firm_id).maybeSingle();
+    DB.firmRow=f;applyBrand();await loadFirmClients();lawGo('list');subscribeRT();return}
 
   const me=await myClient();
-  if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawPickFoot();clientHome();subscribeRT();return}
+  if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawBody();drawPickFoot();clientHome();subscribeRT();return}
   go('lawLogin');
 }
 boot();
