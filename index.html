@@ -245,10 +245,13 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
     <h1>כניסת עורך דין</h1>
     <p>נשלח לך קישור למייל. בלי סיסמה.</p>
   </div>
-  <div class="pad"><input id="lEmail" type="email" placeholder="המייל שלך" inputmode="email">
-    <div id="lMsg" style="display:none;background:#EAF3F1;border-radius:14px;padding:12px;font-size:13px;color:#0D5F5A;line-height:1.6">
-      נשלח קישור. פתח אותו מאותו מכשיר.</div></div>
-  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawLogin()">שליחת קישור</button></div>
+  <div class="pad">
+    <input id="lEmail" type="email" placeholder="מייל" inputmode="email" autocomplete="username">
+    <input id="lPass" type="password" placeholder="סיסמה" autocomplete="current-password">
+    <div id="lMsg" style="display:none;background:#FDF0ED;border-radius:14px;padding:12px;font-size:13px;color:#C24A34;line-height:1.6"></div>
+  </div>
+  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawLogin()">כניסה</button>
+    <button class="ghost" onclick="lawSignup()">אין לי חשבון — הרשמה</button></div>
 </section>
 
 <!-- ═══ LAWYER ═══ -->
@@ -647,10 +650,22 @@ async function doSignup(){
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
   drawBody();drawPickFoot();$('#wName').textContent='היי, '+n.split(' ')[0];go('welcome')}
 
-async function lawLogin(){const e=$('#lEmail').value.trim();if(!e)return toast('צריך מייל');
-  const {error}=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.origin+location.pathname}});
-  if(error)return toast(error.message);
-  $('#lMsg').style.display='block';toast('נשלח קישור למייל')}
+function lawErr(m){const e=$('#lMsg');e.textContent=m;e.style.display=m?'block':'none'}
+async function lawLogin(){
+  const e=$('#lEmail').value.trim(),p=$('#lPass').value;
+  if(!e||!p)return lawErr('צריך מייל וסיסמה');
+  lawErr('');toast('רגע…');
+  const {error}=await sb.auth.signInWithPassword({email:e,password:p});
+  if(error)return lawErr(error.message);
+  boot()}
+async function lawSignup(){
+  const e=$('#lEmail').value.trim(),p=$('#lPass').value;
+  if(!e||p.length<6)return lawErr('צריך מייל וסיסמה של 6 תווים לפחות');
+  lawErr('');toast('נרשם…');
+  const {data,error}=await sb.auth.signUp({email:e,password:p});
+  if(error)return lawErr(error.message);
+  if(!data.session)return lawErr('נדרש אישור מייל — כבה את Confirm email בסופאבייס');
+  toast('נרשמת. עכשיו צריך לחבר אותך למשרד ב-SQL');boot()}
 
 /* ═══ journey ═══ */
 function orderedSteps(){const c=C();
@@ -876,6 +891,7 @@ async function boot(){
   if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawBody();drawPickFoot();clientHome();subscribeRT();return}
   go('lawLogin');
 }
+sb.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_IN'&&!DB.role) boot(); });
 boot();
 </script>
 </body>
