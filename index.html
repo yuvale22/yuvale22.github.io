@@ -189,7 +189,7 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
     <h1>יופי, סיימנו את החלק שלך</h1>
     <p>עו״ד רון בונה איתך עכשיו את תוכנית הבדיקות.<br>ברגע שתאושר — המסלול ייפתח כאן.</p>
   </div>
-  <div class="foot"><button class="btn2" onclick="setRole('lawyer');lawGo('plan')">מעבר לצד עורך הדין ←</button></div>
+  <div class="foot"><button class="btn2" onclick="refreshMe()">בדיקה אם התוכנית אושרה</button></div>
 </section>
 
 <section class="screen" id="s-journey">
@@ -238,6 +238,19 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
   <div class="foot"><button class="btn" onclick="doSignup()">התחלה</button></div>
 </section>
 
+<section class="screen" id="s-lawLogin">
+  <div class="hero">
+    <div class="ring" style="background:#14807A;box-shadow:0 0 0 12px #D5EAE7">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7z"/><path d="M11 6L4 13l3 3 7-7"/><path d="M3 21h10"/></svg></div>
+    <h1>כניסת עורך דין</h1>
+    <p>נשלח לך קישור למייל. בלי סיסמה.</p>
+  </div>
+  <div class="pad"><input id="lEmail" type="email" placeholder="המייל שלך" inputmode="email">
+    <div id="lMsg" style="display:none;background:#EAF3F1;border-radius:14px;padding:12px;font-size:13px;color:#0D5F5A;line-height:1.6">
+      נשלח קישור. פתח אותו מאותו מכשיר.</div></div>
+  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawLogin()">שליחת קישור</button></div>
+</section>
+
 <!-- ═══ LAWYER ═══ -->
 <section class="screen" id="s-lawList">
   <div class="top"><h1>הלקוחות שלי</h1><p class="sub">מי ממתין לך, ומי תקוע.</p></div>
@@ -276,10 +289,7 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 
 </div>
 
-<div class="rolesw" id="rolesw">
-  <button class="on" data-r="client" onclick="setRole('client')">לקוח</button>
-  <button data-r="lawyer" onclick="setRole('lawyer')">עו״ד</button>
-</div>
+<div class="rolesw" id="rolesw"><button class="on" onclick="logout()">יציאה</button></div>
 
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"><div class="grab"></div>
@@ -291,6 +301,7 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 /* ═══ palette ═══ */
 const TINT={'#E8654F':'#FBE0DA','#7B5EA7':'#EBE3F4','#2F6FD0':'#DCE8F9','#E9A320':'#FBEBD1','#14807A':'#D5EAE7','#3E9B57':'#DDEFE2','#C75C8A':'#F7E1EB','#4A8FA8':'#DDECF1','#8A8F98':'#E6E8EA','#D98324':'#FAE9D4'};
@@ -411,25 +422,16 @@ back:[{id:'a',d:D.head,cx:120,cy:47,tag:'ראש',parts:['head']},{id:'b',d:D.nec
 /* ═══ state ═══ */
 const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mile:true},
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
-const DB={role:'client',clients:[],active:null};
-function newClient(name,phone,type){
-  const c={id:'c'+Date.now().toString(36),name,phone,type,stage:'invited',sel:{},notes:{},desc:'',
-    plan:[],docs:[],hist:[4,6,5,7,5,4,6],pain:null,dchips:[],alerts:[]};
-  DB.clients.push(c);return c;
-}
+const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
+const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
 const colorMap={};let ci=0;
 const $=s=>document.querySelector(s);
 const C=()=>DB.clients.find(c=>c.id===DB.active);
 const colorOf=k=>colorMap[k]||(colorMap[k]=PAL[ci++%PAL.length]);
 
-/* seed demo */
-(function(){ const d=newClient('דנה כהן','050-1234567','תאונת דרכים'); DB.active=d.id;
-  const y=newClient('יוסי מזרחי','052-7654321','תאונת עבודה'); y.stage='active';
-  y.plan=[{id:'y1',spec:'ortho',l:'אורתופד',c:'#2F6FD0',i:'bone',reason:['גב תחתון'],status:'pending',
-    date:daysFrom(-3),time:'11:00',doctor:'ד״ר שרון',place:'מכבי',bring:SPECS.ortho.bring,rem:SPECS.ortho.rem,tasks:[{l:'הגעתי',done:true}]}];
-  y.docs=[{n:'סיכום אורתופד',d:'לפני 3 ימים',c:'#2F6FD0'}];
-})();
 function daysFrom(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
 function fmtDate(s){if(!s)return'';const d=new Date(s),m=['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
   return d.getDate()+' ב'+m[d.getMonth()]}
@@ -439,11 +441,10 @@ function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/8
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on')}
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   if(t==='journey')drawPath();if(t==='docs')drawDocs();if(t==='diary')drawDiary()}
-function setRole(r){DB.role=r;$('#rolesw').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
-  if(r==='lawyer')lawGo('list');else clientHome()}
+function logout(){sb.auth.signOut().then(()=>location.href=location.pathname)}
 function clientHome(){const c=C();if(!c)return go('signup');
   $('#wName').textContent='ברוכה הבאה, '+c.name.split(' ')[0];
-  if(c.stage==='invited')go('welcome');
+  if(c.stage==='signed_up')go('welcome');
   else if(c.stage==='waiting')go('wait');
   else{drawPath();tab('journey')}}
 function lawGo(v){ if(v==='list'){drawLawList();go('lawList')}
@@ -519,7 +520,8 @@ function updSave(){const c=C(),n=S.openPart.reduce((a,p)=>a+(c.sel[p]||[]).lengt
   const b=$('#svBtn');if(b)b.textContent=n?`שמירה · נבחרו ${n}`:'שמירה'}
 function openSheet(){$('#sheet').classList.add('on');$('#scrim').classList.add('on')}
 function closeSheet(){$('#sheet').classList.remove('on');$('#scrim').classList.remove('on');drawBody();drawPickFoot();
-  if($('#s-journey').classList.contains('on'))drawPath()}
+  if($('#s-journey').classList.contains('on'))drawPath();
+  if(S.openPart&&C()&&C().stage!=='signed_up')void syncSymptoms()}
 
 function drawPickFoot(){const c=C();
   const m=Object.keys(c.sel).filter(k=>c.sel[k].length&&k!=='mind');
@@ -529,8 +531,10 @@ function drawPickFoot(){const c=C();
   const all=Object.keys(c.sel).filter(k=>c.sel[k].length),b=$('#pickCta');
   if(all.length){b.disabled=false;b.textContent=`המשך · ${all.length} אזורים`}else{b.disabled=true;b.textContent='סימני לפחות אזור אחד'}}
 
-function submitSymptoms(){const c=C();c.desc=$('#desc').value;c.plan=buildPlan(c.sel);c.stage='waiting';
-  go('wait');toast('נשלח לעורך הדין')}
+async function submitSymptoms(){const c=C();c.desc=$('#desc').value;c.plan=buildPlan(c.sel);c.stage='waiting';
+  go('wait');toast('שומר…');
+  await syncSymptoms();await saveClientRow();await savePlan();
+  toast('נשלח לעורך הדין')}
 
 /* ═══ lawyer: plan ═══ */
 function drawPlan(){const c=C();if(!c)return;
@@ -554,9 +558,10 @@ function addSpecPrompt(){const c=C();
   const k=miss[0];c.plan.push({id:'x'+Date.now().toString(36),spec:k,l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,
     reason:['נוסף ידנית על ידי עו״ד'],status:'proposed',date:null,time:'',place:'',doctor:'',
     bring:SPECS[k].bring,rem:SPECS[k].rem,tasks:[{l:'הגעתי',done:false}]});drawPlan()}
-function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
+async function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
   c.plan.forEach(a=>a.status='approved');c.stage='active';
-  toast('התוכנית אושרה · המסלול נפתח ללקוח');setRole('client')}
+  await savePlan();await saveClientRow();
+  toast('התוכנית אושרה · המסלול נפתח ללקוח');lawGo('list')}
 
 /* ═══ lawyer: list + client ═══ */
 function statusOf(c){
@@ -599,9 +604,11 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
       <span class="tagp" style="background:${a.status==='done'?'#DDEFE2':a.status==='pending'?'#FDF3E2':'#F0EDE8'};color:${a.status==='done'?'#256B3A':a.status==='pending'?'#8A5B12':'#8C837A'}">
         ${a.status==='done'?'הושלם':a.status==='pending'?'ממתין':a.date?'נקבע':'לא נקבע'}</span></div>`}).join('');
   $('#lcBody').innerHTML=h}
-function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';drawLawClient();toast('אושר · הלקוח עודכן')}
-function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='returned';
-  a.note='בסיכום חסר תאריך הפגיעה. קבעי תור חוזר קצר ובקשי להוסיף אותו.';drawLawClient();toast('הוחזר להשלמה')}
+async function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';
+  drawLawClient();await saveApptRow(a);toast('אושר · הלקוח עודכן')}
+async function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='returned';
+  a.note='בסיכום חסר תאריך הפגיעה. קבעי תור חוזר קצר ובקשי להוסיף אותו.';
+  drawLawClient();await saveApptRow(a);toast('הוחזר להשלמה')}
 
 /* ═══ invite link + QR ═══ */
 function inviteURL(){return location.origin+location.pathname+'#join'}
@@ -616,13 +623,26 @@ function shareWA(){
 function copyLink(){navigator.clipboard?.writeText(inviteURL());toast('הקישור הועתק')}
 
 /* ═══ client self-signup ═══ */
-function doSignup(){
+async function doSignup(){
   const n=$('#sName').value.trim(),p=$('#sPhone').value.trim(),t=$('#sType').value;
   if(!n)return toast('צריך שם');
   if(!$('#sOk').checked)return toast('צריך לאשר את העברת המידע');
-  const c=newClient(n,p,t);DB.active=c.id;
-  $('#wName').textContent='ברוכה הבאה, '+n.split(' ')[0];
-  go('welcome')}
+  toast('רגע…');
+  let {data:{session}}=await sb.auth.getSession();
+  if(!session){const r=await sb.auth.signInAnonymously();
+    if(r.error)return toast('שגיאת כניסה: '+r.error.message);session=r.data.session}
+  const {data:firm}=await sb.from('firms').select('id').eq('slug','ronlevi').maybeSingle();
+  if(!firm)return toast('לא נמצא משרד — הרץ את ה-SQL');
+  const {data,error}=await sb.from('clients').insert({firm_id:firm.id,auth_uid:session.user.id,
+    name:n,phone:p,case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
+  if(error)return toast('שגיאה: '+error.message);
+  DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
+  $('#wName').textContent='ברוכה הבאה, '+n.split(' ')[0];go('welcome')}
+
+async function lawLogin(){const e=$('#lEmail').value.trim();if(!e)return toast('צריך מייל');
+  const {error}=await sb.auth.signInWithOtp({email:e,options:{emailRedirectTo:location.origin+location.pathname}});
+  if(error)return toast(error.message);
+  $('#lMsg').style.display='block';toast('נשלח קישור למייל')}
 
 /* ═══ journey ═══ */
 function orderedSteps(){const c=C();
@@ -665,7 +685,7 @@ function drawPath(){const c=C();if(!c)return;
 
 /* ═══ step sheet ═══ */
 function openStep(id){const c=C();
-  if(id.startsWith('m'))return toast('ייפתח כשכל התורים יושלמו');
+  if(MILE.some(m=>m.id===id))return toast('ייפתח כשכל התורים יושלמו');
   const a=c.plan.find(x=>x.id===id);if(!a)return;
   S.openStep=a;S.openPart=null;
   $('#shTitle').textContent=a.l;$('#shSub').textContent=a.doctor?`${a.doctor} · ${a.place||''}`:'עוד לא נקבע תור';
@@ -707,7 +727,7 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
       <p style="margin:0;font-size:12.5px;line-height:1.8;color:${DEEP[a.c]}">${a.rem}</p></div>
     <div class="tiles">${a.tasks.map((t,i)=>`<div class="tile${t.done?' done':''}" data-t="${i}">
       ${ic(t.done?'check':'clock',21,t.done?'#14807A':'#B5ABA0')}<div class="tl">${t.l}</div></div>`).join('')}</div>`;
-  b.querySelectorAll('.tile').forEach(e=>e.onclick=()=>{a.tasks[+e.dataset.t].done=!a.tasks[+e.dataset.t].done;renderStep()});
+  b.querySelectorAll('.tile').forEach(e=>e.onclick=()=>{a.tasks[+e.dataset.t].done=!a.tasks[+e.dataset.t].done;renderStep();void saveApptRow(a)});
   $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px;display:flex;align-items:center;justify-content:center;gap:7px" onclick="upload()">${ic('cam',17,'#fff')}צלמי את הסיכום</button>`}
 function fakePhoto(){const a=S.openStep;
   $('#fDoc').value='ד״ר א. שרון';$('#fDate').value=daysFrom(7);$('#fTime').value='09:15';$('#fPlace').value='מכבי · רמת אביב';
@@ -715,10 +735,14 @@ function fakePhoto(){const a=S.openStep;
 function saveAppt(){const a=S.openStep;
   const dt=$('#fDate').value;if(!dt)return toast('צריך תאריך');
   a.doctor=$('#fDoc').value.trim();a.date=dt;a.time=$('#fTime').value.trim();a.place=$('#fPlace').value.trim();
-  a.status='scheduled';closeSheet();drawPath();toast('נשמר · נזכיר לך 3 ימים לפני')}
-function reopen(){const a=S.openStep;a.status='approved';a.date=null;a.tasks.forEach(t=>t.done=false);renderStep();drawPath()}
-function upload(){const a=S.openStep,c=C();a.status='pending';
-  c.docs.unshift({n:'סיכום '+a.l,d:'היום',c:a.c});renderStep();drawPath();toast('נשלח לעורך הדין')}
+  a.status='scheduled';closeSheet();drawPath();void saveApptRow(a);toast('נשמר · נזכיר לך 3 ימים לפני')}
+function reopen(){const a=S.openStep;a.status='approved';a.date=null;a.tasks.forEach(t=>t.done=false);
+  renderStep();drawPath();void saveApptRow(a)}
+async function upload(){const a=S.openStep,c=C();a.status='pending';
+  c.docs.unshift({n:'סיכום '+a.l,d:'היום',c:a.c});renderStep();drawPath();
+  await saveApptRow(a);
+  await sb.from('documents').insert({client_id:c.id,appointment_id:a.id,name:'סיכום '+a.l});
+  toast('נשלח לעורך הדין')}
 function celebrate(a){$('#celPop').style.background=a.c;$('#celPop').innerHTML=ic('check',56,'#fff');
   $('#celTitle').textContent='כל הכבוד!';$('#celText').textContent=`${a.l} הושלם ואושר.`;
   const c=$('#cel');c.querySelectorAll('.conf').forEach(e=>e.remove());
@@ -737,8 +761,11 @@ function drawDiary(){const c=C();
   $('#dChips').querySelectorAll('span').forEach(e=>e.onclick=()=>{const x=e.dataset.c,i=c.dchips.indexOf(x);
     i>-1?c.dchips.splice(i,1):c.dchips.push(x);drawDiary()});
   $('#hist').innerHTML=c.hist.map(v=>`<i style="height:${8+v*4.6}px"></i>`).join('')}
-function saveDiary(){const c=C();if(c.pain===null)return toast('סמני קודם את רמת הכאב');
-  c.hist.shift();c.hist.push(c.pain);c.pain=null;c.dchips=[];drawDiary();toast('נשמר. נתראה מחר');setTimeout(()=>tab('journey'),900)}
+async function saveDiary(){const c=C();if(c.pain===null)return toast('סמני קודם את רמת הכאב');
+  const pain=c.pain,chips=[...c.dchips];
+  c.hist.shift();c.hist.push(pain);c.pain=null;c.dchips=[];drawDiary();
+  toast('נשמר. נתראה מחר');setTimeout(()=>tab('journey'),900);
+  await sb.from('diary').insert({client_id:c.id,pain,chips})}
 function drawDocs(){const c=C(),l=$('#docsList');
   if(!c.docs.length){l.innerHTML=`<div style="text-align:center;padding:50px 20px;color:var(--ink3)">
     <div style="margin-bottom:12px">${ic('file',34,'#C9BFB2')}</div><div style="font-size:14.5px">עדיין לא העלית מסמכים</div></div>`;return}
@@ -749,10 +776,94 @@ function drawDocs(){const c=C(),l=$('#docsList');
 
 let tt;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2500)}
 window.addEventListener('resize',()=>{if($('#s-journey').classList.contains('on'))drawPath()});
-(function init(){
+
+/* ═══ persistence ═══ */
+const SEL='*, symptoms(*), part_notes(*), appointments(*), documents(*)';
+function mapClient(r){
+  const sel={},notes={};
+  (r.symptoms||[]).forEach(x=>{(sel[x.part_key]=sel[x.part_key]||[]).push(x.symptom)});
+  (r.part_notes||[]).forEach(x=>notes[x.part_key]=x.note);
+  return {id:r.id,name:r.name,phone:r.phone||'',type:r.case_type,stage:r.stage,desc:r.description||'',
+    sel,notes,
+    plan:(r.appointments||[]).slice().sort((a,b)=>(a.sort||0)-(b.sort||0)).map(a=>({
+      id:a.id,spec:a.spec,l:a.label,c:a.color,i:a.icon,reason:a.reason||[],status:a.status,
+      date:a.appt_date,time:a.appt_time||'',place:a.place||'',doctor:a.doctor||'',
+      bring:a.bring||[],rem:a.remember||'',note:a.lawyer_note||'',
+      tasks:[{l:'הגעתי',done:!!a.arrived}]})),
+    docs:(r.documents||[]).map(d=>({n:d.name,d:'הועלה',c:'#2F6FD0'})),
+    hist:[4,6,5,7,5,4,6],pain:null,dchips:[]};
+}
+async function myClient(){
+  const {data}=await sb.from('clients').select(SEL).limit(1);
+  return (data&&data.length)?mapClient(data[0]):null;
+}
+async function loadFirmClients(){
+  const {data}=await sb.from('clients').select(SEL).order('created_at',{ascending:false});
+  DB.clients=(data||[]).map(mapClient);
+}
+async function saveClientRow(){const c=C();if(!c)return;
+  await sb.from('clients').update({name:c.name,phone:c.phone,case_type:c.type,stage:c.stage,description:c.desc}).eq('id',c.id)}
+async function syncSymptoms(){const c=C();if(!c)return;
+  await sb.from('symptoms').delete().eq('client_id',c.id);
+  const rows=[];Object.keys(c.sel).forEach(k=>(c.sel[k]||[]).forEach(x=>rows.push({client_id:c.id,part_key:k,symptom:x})));
+  if(rows.length)await sb.from('symptoms').insert(rows);
+  const nr=Object.keys(c.notes).filter(k=>c.notes[k]).map(k=>({client_id:c.id,part_key:k,note:c.notes[k]}));
+  if(nr.length)await sb.from('part_notes').upsert(nr,{onConflict:'client_id,part_key'});
+}
+async function savePlan(){const c=C();if(!c)return;
+  await sb.from('appointments').delete().eq('client_id',c.id);
+  if(!c.plan.length)return;
+  const rows=c.plan.map((a,i)=>({client_id:c.id,spec:a.spec,label:a.l,color:a.c,icon:a.i,reason:a.reason,
+    status:a.status,appt_date:a.date,appt_time:a.time||null,place:a.place||null,doctor:a.doctor||null,
+    bring:a.bring,remember:a.rem,lawyer_note:a.note||null,arrived:!!(a.tasks&&a.tasks[0].done),sort:i}));
+  const {data,error}=await sb.from('appointments').insert(rows).select();
+  if(error)return toast('שגיאת שמירה: '+error.message);
+  (data||[]).sort((x,y)=>x.sort-y.sort).forEach((r,i)=>{if(c.plan[i])c.plan[i].id=r.id});
+}
+async function saveApptRow(a){
+  await sb.from('appointments').update({status:a.status,appt_date:a.date,appt_time:a.time||null,
+    place:a.place||null,doctor:a.doctor||null,lawyer_note:a.note||null,
+    arrived:!!(a.tasks&&a.tasks[0].done)}).eq('id',a.id)}
+async function refreshMe(){const me=await myClient();
+  if(!me)return;DB.clients=[me];DB.active=me.id;clientHome();toast('עודכן')}
+
+/* ═══ realtime ═══ */
+function subscribeRT(){
+  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},async()=>{
+    if(DB.role==='lawyer'){await loadFirmClients();
+      if($('#s-lawList').classList.contains('on'))drawLawList();
+      if($('#s-lawClient').classList.contains('on'))drawLawClient();}
+    else if(DB.role==='client'){const me=await myClient();if(!me)return;
+      const wasStage=C()&&C().stage;DB.clients=[me];DB.active=me.id;
+      if($('#s-wait').classList.contains('on')&&me.stage==='active'){clientHome();toast('התוכנית אושרה!')}
+      else if($('#s-journey').classList.contains('on'))drawPath();}
+  }).subscribe();
+}
+
+/* ═══ boot ═══ */
+async function boot(){
   drawBody();
-  if(location.hash.indexOf('join')>-1){DB.active=null;go('signup');return}
-  drawPickFoot();clientHome()})();
+  const joining=location.hash.indexOf('join')>-1;
+  let {data:{session}}=await sb.auth.getSession();
+
+  if(joining){
+    if(!session){const r=await sb.auth.signInAnonymously();
+      if(r.error){toast('שגיאת כניסה: '+r.error.message);return}
+      session=r.data.session}
+    const me=await myClient();
+    if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawPickFoot();clientHome();subscribeRT();return}
+    DB.role='client';return go('signup');
+  }
+  if(!session)return go('lawLogin');
+
+  const {data:law}=await sb.from('lawyers').select('*').eq('id',session.user.id).maybeSingle();
+  if(law){DB.role='lawyer';DB.firm=law.firm_id;await loadFirmClients();lawGo('list');subscribeRT();return}
+
+  const me=await myClient();
+  if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawPickFoot();clientHome();subscribeRT();return}
+  go('lawLogin');
+}
+boot();
 </script>
 </body>
 </html>
