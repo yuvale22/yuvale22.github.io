@@ -130,6 +130,20 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .scale button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--chip);background:#fff;font-size:14px;font-weight:600;color:var(--ink2);transition:.16s}
 .scale button.on{color:#fff;border-color:transparent}
 .hist{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:6px}.hist i{flex:1;border-radius:5px 5px 0 0;background:#E8654F;opacity:.75;display:block}
+/* lawyer list: search, tabs, buckets, star */
+.srch{position:relative;margin-bottom:12px}
+.srch input{margin:0;padding-inline-start:40px}
+.srch svg{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);color:var(--ink3);pointer-events:none}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:3px;margin-bottom:16px}
+.seg button{flex:1;border:0;background:none;border-radius:10px;padding:9px;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink2);transition:.15s}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,20,26,.10)}
+.bhead{display:flex;align-items:center;gap:8px;margin:20px 2px 9px}
+.bhead:first-child{margin-top:0}
+.bhead b{font-size:12.5px;font-weight:700}
+.bhead i{font-style:normal;font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 8px}
+.star{flex:none;padding:6px;margin:-6px;cursor:pointer;color:var(--dot);line-height:0}
+.star.on{color:#E8A33D}
+.empty{text-align:center;color:var(--ink3);font-size:13.5px;padding:40px 20px;line-height:1.7}
 /* notifications, files, privacy */
 .nbar{margin:0 20px 12px;border-radius:var(--r);padding:14px 15px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--sh)}
 .nbar .x{margin-inline-start:auto;opacity:.5;cursor:pointer;flex:none}
@@ -302,7 +316,17 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 <!-- ═══ LAWYER ═══ -->
 <section class="screen" id="s-lawList">
   <div class="top"><h1>הלקוחות שלי</h1><p class="sub">מי ממתין לך, ומי תקוע.</p></div>
-  <div class="scroll pad" style="padding-top:16px" id="lawList"></div>
+  <div class="scroll pad" style="padding-top:16px">
+    <div class="srch">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="lawQ" placeholder="חיפוש לפי שם" oninput="drawLawList()" autocomplete="off">
+    </div>
+    <div class="seg">
+      <button id="segT" class="on" onclick="lawView('triage')">לפי דחיפות</button>
+      <button id="segA" onclick="lawView('all')">כל הלקוחות</button>
+    </div>
+    <div id="lawList"></div>
+  </div>
   <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawGo('invite')">הזמנת לקוח חדש</button></div>
 </section>
 
@@ -744,13 +768,75 @@ function statusOf(c){
   const un=c.plan.filter(a=>!a.date).length;
   if(un)return{t:`${un} תורים לא נקבעו`,b:'#EAF3F1',f:'#0D5F5A'};
   return{t:'הכל בסדר',b:'#DDEFE2',f:'#256B3A'}}
+let LAWVIEW='triage';
+const BUCKETS=[
+  ['pend','ממתין לך','#FBE0DA','#C24A34'],
+  ['act' ,'דורש טיפול','#FBEBD1','#8A5B12'],
+  ['soon','תורים קרובים','#EAF3F1','#0D5F5A'],
+  ['ok'  ,'מתקדם','#F1EFEC','#7C7A78']];
+
+function triage(c){
+  const P=c.plan||[], D=c.docs||[];
+  if(c.stage==='waiting'||!P.length) return {k:'pend',r:'ממתין להרכבת תוכנית'};
+  const pend=P.filter(a=>a.status==='pending').length;
+  if(pend) return {k:'pend',r:pend===1?'מסמך ממתין לאישורך':pend+' מסמכים ממתינים לאישורך'};
+  const ret  =P.filter(a=>a.status==='returned').length;
+  const late =P.filter(a=>a.status==='scheduled'&&a.date&&daysTo(a.date)<0&&!D.some(d=>d.appt===a.id)).length;
+  const unset=P.filter(a=>!a.date).length;
+  if(ret||late||unset){
+    const b=[];
+    if(late) b.push(late+' תורים עברו בלי מסמך');
+    if(ret)  b.push(ret+' הוחזרו להשלמה');
+    if(unset)b.push(unset+' תורים לא נקבעו');
+    return {k:'act',r:b.join(' · ')}}
+  const soon=P.filter(a=>a.status==='scheduled'&&a.date&&daysTo(a.date)>=0&&daysTo(a.date)<=7)
+              .sort((a,b)=>a.date<b.date?-1:1);
+  if(soon.length){const d=daysTo(soon[0].date);
+    return {k:'soon',r:soon[0].l+' · '+(d===0?'היום':d===1?'מחר':'בעוד '+d+' ימים')}}
+  return {k:'ok',r:P.length+' תורים · הכל בזמן'}}
+
+function lawView(v){LAWVIEW=v;
+  $('#segT').classList.toggle('on',v==='triage');
+  $('#segA').classList.toggle('on',v==='all');
+  drawLawList()}
+
+function lawRow(c){
+  const t=triage(c), meta=BUCKETS.find(b=>b[0]===t.k);
+  return `<div class="crow" onclick="openLawClient('${c.id}')">
+    <div class="star${c.star?' on':''}" onclick="event.stopPropagation();toggleStar('${c.id}')">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="${c.star?'currentColor':'none'}" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round">
+        <path d="M12 3.6l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg></div>
+    <div class="ava">${c.name.split(' ').map(x=>x[0]).join('')}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:15px;font-weight:700">${c.name}</div>
+      <div style="font-size:12px;color:${meta[3]};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.r}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:2px">${c.type}</div></div>
+    ${LAWVIEW==='all'?`<span class="tagp" style="background:${meta[2]};color:${meta[3]}">${meta[1]}</span>`:''}</div>`}
+
 function drawLawList(){
-  $('#lawList').innerHTML=DB.clients.map(c=>{const s=statusOf(c);
-    return `<div class="crow" onclick="openLawClient('${c.id}')">
-      <div class="ava">${c.name.split(' ').map(x=>x[0]).join('')}</div>
-      <div style="flex:1"><div style="font-size:15px;font-weight:700">${c.name}</div>
-        <div style="font-size:12px;color:var(--ink2);margin-top:2px">${c.type} · ${c.plan.length} תורים</div></div>
-      <span class="tagp" style="background:${s.b};color:${s.f}">${s.t}</span></div>`}).join('')}
+  const box=$('#lawList');if(!box)return;
+  const q=(($('#lawQ')||{}).value||'').trim();
+  const pool=DB.clients.filter(c=>!q||(c.name||'').includes(q));
+  if(!pool.length){box.innerHTML=`<div class="empty">${q?'לא נמצא לקוח בשם הזה':'עדיין אין לקוחות.<br>שלח את הקישור ללקוח הראשון.'}</div>`;return}
+
+  const star=pool.filter(c=>c.star), rest=pool.filter(c=>!c.star);
+  const head=(t,n,bg,fg)=>`<div class="bhead"><b style="color:${fg}">${t}</b><i style="background:${bg};color:${fg}">${n}</i></div>`;
+  let h='';
+  if(star.length) h+=head('מסומנים',star.length,'#FBF0DC','#8A5B12')+star.map(lawRow).join('');
+
+  if(LAWVIEW==='all'){
+    h+=(star.length?head('שאר הלקוחות',rest.length,'#F1EFEC','#7C7A78'):'')+rest.map(lawRow).join('');
+  }else{
+    BUCKETS.forEach(([k,t,bg,fg])=>{
+      const g=rest.filter(c=>triage(c).k===k);
+      if(g.length) h+=head(t,g.length,bg,fg)+g.map(lawRow).join('')});
+  }
+  box.innerHTML=h}
+
+async function toggleStar(id){
+  const c=DB.clients.find(x=>x.id===id);if(!c)return;
+  c.star=!c.star;drawLawList();
+  await sb.from('clients').update({starred:c.star}).eq('id',id)}
 function openLawClient(id){DB.active=id;const c=C();
   if(c.stage==='waiting')return lawGo('plan');
   lawGo('client')}
@@ -930,10 +1016,16 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
     <div style="background:${TINT[a.c]};border-radius:18px;padding:14px;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:${DEEP[a.c]};margin-bottom:6px">למה התור הזה</div>
       <div style="font-size:12.5px;color:${DEEP[a.c]};line-height:1.7">${a.reason.join(' · ')}</div></div>
-    <div style="border:1.5px dashed #D6C9B8;border-radius:20px;padding:20px;text-align:center;margin-bottom:12px" onclick="fakePhoto()">
-      ${ic('cam',28,a.c)}<div style="font-size:14.5px;font-weight:600;margin-top:8px">צילום הזימון</div>
-      <div style="font-size:11.5px;color:var(--ink3);margin-top:3px">SMS או אפליקציית הקופה — נמלא לבד</div></div>
-    <div style="text-align:center;font-size:12px;color:var(--ink3);margin-bottom:12px">או להקליד</div>
+    <div style="font-size:12.5px;font-weight:700;margin-bottom:8px">צילום הזימון</div>
+    <div class="up">
+      <div class="upBtn" onclick="pickAppt('camera')">${ic('cam',22,'#17171A')}מצלמה</div>
+      <div class="upBtn" onclick="pickAppt()">${ic('file',22,'#17171A')}גלריה</div>
+      <div class="upBtn" onclick="pickAppt('pdf')">${ic('file',22,'#17171A')}PDF</div>
+    </div>
+    <div id="apShot"></div>
+    <div style="font-size:11.5px;color:var(--ink3);line-height:1.6;margin-bottom:14px">
+      צלם את ה-SMS או את הזימון מהקופה — הוא יישמר בתיק. את התאריך והשעה עדיין צריך למלא ידנית.</div>
+    <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">פרטי התור</div>
     <input id="fDoc" placeholder="שם הרופא"><input id="fDate" type="date" placeholder="תאריך">
     <div style="display:flex;gap:8px"><input id="fTime" placeholder="שעה" style="flex:1"><input id="fPlace" placeholder="מקום" style="flex:1"></div>`;
     $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px" onclick="saveAppt()">שמירת התור</button>`;return}
@@ -1010,19 +1102,20 @@ function pickUpload(accept,cap){
   if(cap)inp.capture='environment';
   inp.onchange=()=>{if(inp.files&&inp.files[0])uploadFile(inp.files[0])};
   inp.click()}
-async function uploadFile(file){
+async function uploadFile(file,redraw){
   const c=C(),a=S.openStep;
+  redraw = redraw || drawApptDocs;
   const kind=file.type.startsWith('image')?'image':'pdf';
   const rec={n:file.name,d:'עכשיו',c:a.c,appt:a.id,kind,up:false,url:URL.createObjectURL(file)};
-  c.docs.unshift(rec);drawApptDocs();
+  c.docs.unshift(rec);redraw();
   const safe=file.name.replace(/[^\w.\-]/g,'_');
   const path=c.id+'/'+Date.now()+'_'+safe;
   const {error}=await sb.storage.from('docs').upload(path,file,{upsert:false});
-  if(error){toast('שגיאת העלאה: '+error.message);c.docs=c.docs.filter(x=>x!==rec);drawApptDocs();return}
+  if(error){toast('שגיאת העלאה: '+error.message);c.docs=c.docs.filter(x=>x!==rec);redraw();return}
   const ins=await sb.from('documents').insert({client_id:c.id,appointment_id:(a.id&&a.id.length>20)?a.id:null,
     name:file.name,storage_path:path}).select().single();
   rec.up=true;rec.path=path;if(ins.data)rec.id=ins.data.id;
-  drawApptDocs();drawDocs();toast('הקובץ נשמר')}
+  redraw();drawDocs();toast('הקובץ נשמר')}
 async function finishUpload(){
   const c=C(),a=S.openStep;
   if(!(c.docs||[]).some(d=>d.appt===a.id))return toast('צריך לצרף לפחות מסמך אחד');
@@ -1032,9 +1125,22 @@ async function openDoc(path){
   const {data,error}=await sb.storage.from('docs').createSignedUrl(path,120);
   if(error)return toast('לא ניתן לפתוח: '+error.message);
   window.open(data.signedUrl,'_blank')}
-function fakePhoto(){const a=S.openStep;
-  $('#fDoc').value='ד״ר א. שרון';$('#fDate').value=daysFrom(7);$('#fTime').value='09:15';$('#fPlace').value='מכבי · רמת אביב';
-  toast('נקרא מהצילום — לאשר שזה נכון')}
+function pickAppt(mode){
+  const inp=document.createElement('input');inp.type='file';
+  inp.accept = mode==='pdf' ? 'application/pdf' : 'image/*';
+  if(mode==='camera')inp.capture='environment';
+  inp.onchange=()=>{if(inp.files&&inp.files[0])uploadFile(inp.files[0],drawApptShot)};
+  inp.click()}
+function drawApptShot(){
+  const box=$('#apShot');if(!box)return;
+  const a=S.openStep,c=C();
+  const list=(c.docs||[]).filter(d=>d.appt===a.id);
+  box.innerHTML=list.map(d=>`<div class="filerow">
+    ${d.url&&d.kind==='image'?`<img class="thumb" src="${d.url}">`:
+      `<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:var(--ink2)">${ic('file',20)}</div>`}
+    <div style="flex:1"><div style="font-size:13.5px;font-weight:600">${d.n}</div>
+      <div style="font-size:11.5px;color:var(--ink3)">${d.up?'נשמר':'מעלה…'}</div></div>
+    ${d.up?ic('check',18,'#14807A'):''}</div>`).join('')}
 function saveAppt(){const a=S.openStep;
   const dt=$('#fDate').value;if(!dt)return toast('צריך תאריך');
   a.doctor=$('#fDoc').value.trim();a.date=dt;a.time=$('#fTime').value.trim();a.place=$('#fPlace').value.trim();
@@ -1170,7 +1276,7 @@ function mapClient(r){
       date:a.appt_date,time:a.appt_time||'',place:a.place||'',doctor:a.doctor||'',
       bring:a.bring||[],rem:a.remember||'',func:a.func||[],note:a.lawyer_note||'',
       tasks:[{l:'הגעתי',done:!!a.arrived}]})),
-    email:r.email||'',notifyEmail:r.notify_email!==false,
+    email:r.email||'',notifyEmail:r.notify_email!==false,star:!!r.starred,
     docs:(r.documents||[]).map(d=>({id:d.id,n:d.name,d:new Date(d.created_at).toLocaleDateString('he-IL'),
       c:'#2F6FD0',appt:d.appointment_id,path:d.storage_path,up:true,
       kind:/\.(jpg|jpeg|png|heic|webp)$/i.test(d.name)?'image':'pdf'})),
