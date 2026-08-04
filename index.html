@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FDF7F0">
-<title>המסלול · MVP</title>
+<title>לצידך</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314807A'/%3E%3Ccircle cx='25' cy='36' r='12' fill='none' stroke='%23FFFFFF' stroke-opacity='.55' stroke-width='7'/%3E%3Ccircle cx='41' cy='26' r='12' fill='none' stroke='%23FFFFFF' stroke-width='7'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314807A'/%3E%3Ccircle cx='25' cy='36' r='12' fill='none' stroke='%23FFFFFF' stroke-opacity='.55' stroke-width='7'/%3E%3Ccircle cx='41' cy='26' r='12' fill='none' stroke='%23FFFFFF' stroke-width='7'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#14807A">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -39,7 +42,9 @@ button{font:inherit;cursor:pointer}
 .hero .ring{width:112px;height:112px;border-radius:50%;background:#E8654F;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 0 12px #FBE0DA;margin-bottom:26px}
 .hero h1{font-size:27px}.hero p{font-size:15.5px;color:var(--ink2);line-height:1.7;margin:14px 0 0}
 .firm{display:flex;align-items:center;gap:9px;justify-content:center;padding-top:26px}
-.logo{width:30px;height:30px;border-radius:10px;background:var(--brand);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.logo{width:32px;height:32px;border-radius:10px;background:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+.logo svg{width:23px;height:23px}
+.wm{display:block;margin:16px auto 0;height:26px;width:auto;color:var(--brand)}
 /* body */
 .rot{display:flex;gap:4px;background:#fff;border:1px solid var(--border);border-radius:99px;padding:4px;margin:16px auto 0;width:fit-content}
 .rot button{font-size:14px;font-weight:600;color:var(--ink2);background:none;border:0;border-radius:99px;padding:9px 20px;display:flex;align-items:center;gap:7px;transition:.22s}
@@ -170,13 +175,19 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 
 <!-- ═══ CLIENT ═══ -->
 <section class="screen on" id="s-welcome">
-  <div class="firm"><div class="logo"></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
+  <div class="firm"><div class="logo"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="25" cy="36" r="12" stroke="#fff" stroke-opacity=".55" stroke-width="7.5"/><circle cx="41" cy="26" r="12" stroke="#fff" stroke-width="7.5"/></svg></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
   <div class="hero">
-    <div class="ring"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/><circle cx="12" cy="12" r="10"/></svg></div>
-    <h1 id="wName">היי</h1>
-    <p>מכאן והלאה אין מה לזכור.<br>נגיד לך בדיוק מה השלב הבא, מתי, ומה חשוב לא לשכוח בו.</p>
+    <div class="ring" style="background:var(--brand);box-shadow:0 0 0 12px #D5EAE7">
+      <svg width="54" height="54" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <circle cx="25" cy="36" r="13" stroke="#fff" stroke-opacity=".5" stroke-width="7"/>
+        <circle cx="41" cy="26" r="13" stroke="#fff" stroke-width="7"/></svg></div>
+    <svg class="wm" viewBox="0 0 264.1 100.1" fill="currentColor" aria-label="לצידך"><path d="M1016 -385H745V721Q745 876 678.5 937.5Q612 999 455 999H39V1241H471Q766 1241 891.0 1120.5Q1016 1000 1016 719Z" transform="translate(0.00,81.30) scale(0.04883,-0.04883)"/><path d="M983 0H713V999H41V1241H1137V999H983Z" transform="translate(57.62,81.30) scale(0.04883,-0.04883)"/><path d="M174 1241H444V582H174Z" transform="translate(115.82,81.30) scale(0.04883,-0.04883)"/><path d="M1139 0H90V242H762L10 1241H334L713 727Q779 759 808.5 823.0Q838 887 850 1010L872 1241H1149L1128 1008Q1114 868 1083.5 791.5Q1053 715 995.0 662.5Q937 610 836 569L1139 174Z" transform="translate(146.00,81.30) scale(0.04883,-0.04883)"/><path d="M193 231Q481 325 641.0 480.0Q801 635 801 821Q801 999 578 999H70V1665H346V1241H623Q1073 1241 1073 848Q1073 538 840.0 301.0Q607 64 193 -59Z" transform="translate(206.88,81.30) scale(0.04883,-0.04883)"/></svg>
+    <div id="wName" style="font-size:14px;font-weight:600;color:var(--ink2);margin:22px 0 7px"></div>
+    <h1>לא עוברים את זה לבד</h1>
+    <p>המטרה פשוטה — שתרגיש שעורך הדין שלך נמצא לצידך בכל שלב.<br>
+    כל בדיקה, כל מועד וכל מסמך במקום אחד ובאישורו, כך ששום פרט חשוב לא ילך לאיבוד.</p>
   </div>
-  <div class="foot"><button class="btn" onclick="startPicker()">מתחילים</button></div>
+  <div class="foot"><button class="btn" onclick="startPicker()">התחלה</button></div>
 </section>
 
 <section class="screen" id="s-picker">
@@ -219,12 +230,11 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 </section>
 
 <section class="screen" id="s-journey">
-  <div class="jhead"><div style="display:flex;align-items:center;gap:9px"><div class="logo"></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
+  <div class="jhead"><div style="display:flex;align-items:center;gap:9px"><div class="logo"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="25" cy="36" r="12" stroke="#fff" stroke-opacity=".55" stroke-width="7.5"/><circle cx="41" cy="26" r="12" stroke="#fff" stroke-width="7.5"/></svg></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
     <span class="count" id="jCount"></span></div>
   <div class="scroll"><div id="notifBar"></div><div class="path" id="path"></div></div>
   <div class="tabs">
     <button class="tab on" data-t="journey" onclick="tab('journey')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h4l10-10-4-4L4 15z"/><path d="M14 5l4 4"/></svg>המסלול</button>
-    <button class="tab" data-t="diary" onclick="tab('diary')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16v16H4z"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>יומן</button>
     <button class="tab" data-t="docs" onclick="tab('docs')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>מסמכים</button>
     <button class="tab" data-t="privacy" onclick="tab('privacy')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>פרטיות</button>
   </div>
@@ -235,15 +245,6 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   <div class="scroll pad" style="padding-top:16px" id="privBody"></div>
   <div class="foot"><button class="ghost" onclick="tab('journey')">חזרה למסלול</button></div>
 </section>
-<section class="screen" id="s-diary">
-  <div class="top"><h1>איך היה היום?</h1><p class="sub">חצי דקה ביום. זה מה שבונה את התיעוד שלך.</p></div>
-  <div class="scroll pad" style="padding-top:16px">
-    <div class="card"><div style="font-size:14.5px;font-weight:600">רמת הכאב היום</div><div class="scale" id="scale"></div></div>
-    <div class="card"><div style="font-size:14.5px;font-weight:600;margin-bottom:11px">מה הפריע לך היום?</div><div id="dChips" style="display:flex;gap:8px;flex-wrap:wrap"></div></div>
-    <div class="card"><div style="font-size:14.5px;font-weight:600">שבוע אחרון</div><div class="hist" id="hist"></div></div>
-  </div>
-  <div class="foot"><button class="btn" onclick="saveDiary()">שמירה</button><button class="ghost" onclick="tab('journey')">חזרה למסלול</button></div>
-</section>
 
 <section class="screen" id="s-docs">
   <div class="top"><h1>המסמכים שלי</h1><p class="sub">כל מה שהועלה נשמר כאן ונשלח אוטומטית לעורך הדין.</p></div>
@@ -253,7 +254,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 
 <section class="screen" id="s-signup">
   <div class="top">
-    <div class="firm" style="justify-content:flex-start;padding-top:0"><div class="logo"></div>
+    <div class="firm" style="justify-content:flex-start;padding-top:0"><div class="logo"><svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="25" cy="36" r="12" stroke="#fff" stroke-opacity=".55" stroke-width="7.5"/><circle cx="41" cy="26" r="12" stroke="#fff" stroke-width="7.5"/></svg></div>
       <span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
     <h1 style="margin-top:20px">נעים להכיר</h1>
     <p class="sub">כמה פרטים ומתחילים. זה ייקח פחות מדקה.</p>
@@ -277,8 +278,11 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 <section class="screen" id="s-lawLogin">
   <div class="hero">
     <div class="ring" style="background:#14807A;box-shadow:0 0 0 12px #D5EAE7">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7z"/><path d="M11 6L4 13l3 3 7-7"/><path d="M3 21h10"/></svg></div>
-    <h1 id="lTitle">כניסת עורך דין</h1>
+      <svg width="54" height="54" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <circle cx="25" cy="36" r="13" stroke="#fff" stroke-opacity=".5" stroke-width="7"/>
+        <circle cx="41" cy="26" r="13" stroke="#fff" stroke-width="7"/></svg></div>
+    <svg class="wm" viewBox="0 0 264.1 100.1" fill="currentColor" aria-label="לצידך"><path d="M1016 -385H745V721Q745 876 678.5 937.5Q612 999 455 999H39V1241H471Q766 1241 891.0 1120.5Q1016 1000 1016 719Z" transform="translate(0.00,81.30) scale(0.04883,-0.04883)"/><path d="M983 0H713V999H41V1241H1137V999H983Z" transform="translate(57.62,81.30) scale(0.04883,-0.04883)"/><path d="M174 1241H444V582H174Z" transform="translate(115.82,81.30) scale(0.04883,-0.04883)"/><path d="M1139 0H90V242H762L10 1241H334L713 727Q779 759 808.5 823.0Q838 887 850 1010L872 1241H1149L1128 1008Q1114 868 1083.5 791.5Q1053 715 995.0 662.5Q937 610 836 569L1139 174Z" transform="translate(146.00,81.30) scale(0.04883,-0.04883)"/><path d="M193 231Q481 325 641.0 480.0Q801 635 801 821Q801 999 578 999H70V1665H346V1241H623Q1073 1241 1073 848Q1073 538 840.0 301.0Q607 64 193 -59Z" transform="translate(206.88,81.30) scale(0.04883,-0.04883)"/></svg>
+    <h1 id="lTitle" style="margin-top:20px">כניסה עורך דין</h1>
     <p id="lSubt">מייל וסיסמה. זהו.</p>
   </div>
   <div class="pad">
@@ -492,15 +496,15 @@ function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remo
 function startPicker(){go('picker');requestAnimationFrame(()=>{drawBody();drawPickFoot()})}
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   if(t==='journey'){drawPath();drawNotifBar()}
-  if(t==='docs')drawDocs();if(t==='diary')drawDiary();if(t==='privacy')drawPrivacy()}
+  if(t==='docs')drawDocs();if(t==='privacy')drawPrivacy()}
 function logout(){sb.auth.signOut().then(()=>location.href=location.pathname)}
 function applyBrand(){
   const f=DB.firmRow;if(!f)return;
-  document.querySelectorAll('.logo').forEach(e=>{e.textContent=f.initials||'';e.style.background=f.brand||'#14807A'});
+  document.querySelectorAll('.logo').forEach(e=>{e.style.background=f.brand||'#14807A'});
   document.querySelectorAll('.firmName').forEach(e=>e.textContent=f.name||'');
   document.documentElement.style.setProperty('--brand',f.brand||'#14807A');}
 function clientHome(){const c=C();if(!c)return go('signup');
-  $('#wName').textContent='היי, '+c.name.split(' ')[0];
+  $('#wName').textContent='שלום, '+c.name.split(' ')[0];
   if(c.stage==='signed_up')go('welcome');
   else if(c.stage==='waiting')go('wait');
   else{drawPath();tab('journey')}}
@@ -658,6 +662,12 @@ function openPlanItem(i){
       `<span data-s="${k}" style="cursor:pointer;border-radius:99px;padding:8px 13px;font-size:12.5px;font-weight:600;
         background:${a.status===k?a.c:'#fff'};color:${a.status===k?'#fff':'#5E564E'};
         border:1.5px solid ${a.status===k?a.c:'var(--chip)'}">${t}</span>`).join('')}</div>
+    ${(a.func||[]).some(Boolean)?`<div style="background:var(--soft);border-radius:14px;padding:13px;margin-top:14px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:8px">מה הלקוח כתב לקראת הביקור</div>
+      ${FQ.map((q,i)=>(a.func||[])[i]?`<div style="margin-bottom:9px">
+        <div style="font-size:11.5px;color:var(--ink3)">${q}</div>
+        <div style="font-size:13px;line-height:1.6;margin-top:2px">${a.func[i]}</div></div>`:'').join('')}
+    </div>`:''}
     ${lab('הערה ללקוח')}
     <textarea id="pNote" placeholder="למשל: לבקש הפניה ל-MRI כבר בביקור הזה">${a.note||''}</textarea>
     ${lab('לקחת איתך')}
@@ -818,15 +828,15 @@ async function doSignup(){
     case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
   if(error)return toast('שגיאה: '+error.message);
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
-  drawBody();drawPickFoot();$('#wName').textContent='היי, '+n.split(' ')[0];go('welcome')}
+  drawBody();drawPickFoot();$('#wName').textContent='שלום, '+n.split(' ')[0];go('welcome')}
 
 function lawErr(m){const e=$('#lMsg');e.textContent=m||'';e.style.display=m?'block':'none'}
 let signupMode=false;
 function lawToggle(){
   signupMode=!signupMode;lawErr('');
   $('#lExtra').style.display=signupMode?'block':'none';
-  $('#lTitle').textContent=signupMode?'פתיחת חשבון':'כניסת עורך דין';
-  $('#lSubt').textContent=signupMode?'ארבעה שדות ומתחילים.':'מייל וסיסמה. זהו.';
+  $('#lTitle').textContent=signupMode?'פתיחת חשבון':'כניסה עורך דין';
+  $('#lSubt').textContent=signupMode?'לצורך הרשמה יש למלא:':'מייל וסיסמה. זהו.';
   $('#lMain').textContent=signupMode?'יצירת חשבון':'כניסה';
   $('#lMain').setAttribute('onclick',signupMode?'lawSignup()':'lawLogin()');
   $('#lSwitch').textContent=signupMode?'יש לי כבר חשבון — כניסה':'אין לי חשבון — הרשמה';
@@ -956,6 +966,17 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
       ${ic(t.done?'check':'clock',21,t.done?'#14807A':'#B5ABA0')}<div class="tl">${t.l}</div></div>`).join('')}</div>`;
   b.querySelectorAll('.tile').forEach(e=>e.onclick=()=>{a.tasks[+e.dataset.t].done=!a.tasks[+e.dataset.t].done;renderStep();void saveApptRow(a)});
   $('#shBody').insertAdjacentHTML('beforeend',`
+    <div style="background:#fff;border-radius:16px;padding:15px;margin-top:16px;box-shadow:var(--sh)">
+      <div style="font-size:13.5px;font-weight:700">לקראת הביקור</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:1.65;margin:5px 0 13px">
+        שלוש שאלות שישאלו אותך בצורה כזו או אחרת. כדאי לחשוב עליהן מראש — קל לשכוח דברים כשיושבים מול הרופא.</div>
+      ${FQ.map((q,i)=>`<div style="margin-bottom:11px">
+        <div style="font-size:12.5px;font-weight:600;margin-bottom:5px">${q}</div>
+        <textarea id="fq${i}" style="min-height:56px;margin:0">${(a.func||[])[i]||''}</textarea></div>`).join('')}
+      <button class="btn2" style="padding:12px;font-size:14px" onclick="saveFunc()">שמירה</button>
+      <div style="font-size:11px;color:var(--ink3);line-height:1.6;margin-top:10px">
+        כתוב מה שקרה בפועל. זה לא נוסח לתשובה — זה תזכורת לך.</div>
+    </div>
     <div style="font-size:12.5px;font-weight:700;margin:16px 0 8px">מסמכים מהתור</div>
     <div class="up">
       <div class="upBtn" onclick="pickUpload('image/*','camera')">${ic('cam',22,'#17171A')}צילום</div>
@@ -965,6 +986,15 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
     <div id="apDocs"></div>`);
   drawApptDocs();
   $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c}" onclick="finishUpload()">שליחה לעורך הדין</button>`}
+const FQ=[
+  'מה אתה לא מצליח לעשות היום, שהיית מסוגל לעשות לפני הפגיעה?',
+  'כמה ימי עבודה או לימודים פספסת מאז הפגיעה?',
+  'במה נעזרת באחרים — בבית, בנהיגה, בטיפול בילדים?'];
+async function saveFunc(){
+  const a=S.openStep;
+  a.func=FQ.map((_,i)=>{const el=$('#fq'+i);return el?el.value.trim():''});
+  if(a.id&&a.id.length>20)await sb.from('appointments').update({func:a.func}).eq('id',a.id);
+  toast('נשמר')}
 function drawApptDocs(){
   const box=$('#apDocs');if(!box)return;
   const a=S.openStep,c=C();
@@ -1021,20 +1051,6 @@ function celebrate(a){$('#celPop').style.background=a.c;$('#celPop').innerHTML=i
 function closeCel(){$('#cel').classList.remove('on');drawPath()}
 
 /* ═══ diary + docs ═══ */
-function drawDiary(){const c=C();
-  $('#scale').innerHTML=[0,2,4,6,8,10].map(n=>`<button data-n="${n}" class="${c.pain===n?'on':''}" style="${c.pain===n?`background:${n<4?'#3E9B57':n<8?'#E9A320':'#E8654F'}`:''}">${n}</button>`).join('');
-  $('#scale').querySelectorAll('button').forEach(b=>b.onclick=()=>{c.pain=+b.dataset.n;drawDiary()});
-  const chips=['כאב בלילה','קושי לישון','קושי בעבודה','נזקקתי לעזרה','לא יצאתי מהבית','נטלתי משככי כאבים'];
-  $('#dChips').innerHTML=chips.map(x=>{const on=c.dchips.includes(x);
-    return `<span data-c="${x}" style="border-radius:99px;padding:9px 14px;font-size:13.5px;font-weight:600;cursor:pointer;background:${on?'#E8654F':'#fff'};color:${on?'#fff':'#5E564E'};border:1.5px solid ${on?'#E8654F':'var(--chip)'}">${x}</span>`}).join('');
-  $('#dChips').querySelectorAll('span').forEach(e=>e.onclick=()=>{const x=e.dataset.c,i=c.dchips.indexOf(x);
-    i>-1?c.dchips.splice(i,1):c.dchips.push(x);drawDiary()});
-  $('#hist').innerHTML=c.hist.map(v=>`<i style="height:${8+v*4.6}px"></i>`).join('')}
-async function saveDiary(){const c=C();if(c.pain===null)return toast('קודם צריך לסמן את רמת הכאב');
-  const pain=c.pain,chips=[...c.dchips];
-  c.hist.shift();c.hist.push(pain);c.pain=null;c.dchips=[];drawDiary();
-  toast('נשמר. נתראה מחר');setTimeout(()=>tab('journey'),900);
-  await sb.from('diary').insert({client_id:c.id,pain,chips})}
 function drawDocs(){const c=C(),l=$('#docsList');
   if(!c.docs.length){l.innerHTML=`<div style="text-align:center;padding:50px 20px;color:var(--ink3)">
     <div style="margin-bottom:12px">${ic('file',34,'#C9BFB2')}</div><div style="font-size:14.5px">עדיין אין מסמכים</div></div>`;return}
@@ -1152,13 +1168,13 @@ function mapClient(r){
     plan:(r.appointments||[]).slice().sort((a,b)=>(a.sort||0)-(b.sort||0)).map(a=>({
       id:a.id,spec:a.spec,l:a.label,c:a.color,i:a.icon,reason:a.reason||[],status:a.status,
       date:a.appt_date,time:a.appt_time||'',place:a.place||'',doctor:a.doctor||'',
-      bring:a.bring||[],rem:a.remember||'',note:a.lawyer_note||'',
+      bring:a.bring||[],rem:a.remember||'',func:a.func||[],note:a.lawyer_note||'',
       tasks:[{l:'הגעתי',done:!!a.arrived}]})),
     email:r.email||'',notifyEmail:r.notify_email!==false,
     docs:(r.documents||[]).map(d=>({id:d.id,n:d.name,d:new Date(d.created_at).toLocaleDateString('he-IL'),
       c:'#2F6FD0',appt:d.appointment_id,path:d.storage_path,up:true,
       kind:/\.(jpg|jpeg|png|heic|webp)$/i.test(d.name)?'image':'pdf'})),
-    hist:[4,6,5,7,5,4,6],pain:null,dchips:[]};
+    };
 }
 async function myClient(){
   const {data}=await sb.from('clients').select(SEL).limit(1);
@@ -1194,7 +1210,7 @@ async function savePlan(){const c=C();if(!c)return;
 async function saveApptRow(a){
   await sb.from('appointments').update({status:a.status,appt_date:a.date,appt_time:a.time||null,
     place:a.place||null,doctor:a.doctor||null,lawyer_note:a.note||null,
-    bring:a.bring||[],remember:a.rem||null,
+    bring:a.bring||[],remember:a.rem||null,func:a.func||[],
     arrived:!!(a.tasks&&a.tasks[0].done)}).eq('id',a.id)}
 async function refreshMe(){const me=await myClient();
   if(!me)return;DB.clients=[me];DB.active=me.id;clientHome();toast('עודכן')}
