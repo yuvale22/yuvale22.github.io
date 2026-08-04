@@ -600,37 +600,88 @@ function renderPicker(){
         <div class="why">${inPlan?'כבר בתוכנית':'לחיצה כדי להוסיף'}</div></div>
       ${inPlan?ic('check',18,'#14807A'):ic('plus',18,'#C9BFB2')}</div>`}).join('')
     ||'<div style="text-align:center;color:var(--ink3);padding:30px 0">לא נמצא תחום</div>'}
+const STATUSES=[['approved','לא נקבע'],['scheduled','נקבע'],['pending','ממתין לאישור'],['done','הושלם'],['returned','הוחזר']];
 function openPlanItem(i){
   const c=C(),a=c.plan[i];if(!a)return;
   S.openPart=null;S.openStep=a;S.planIdx=i;
-  $('#shTitle').textContent=a.l;$('#shSub').textContent='הערה שתופיע ללקוח בשלב הזה';
+  $('#shTitle').textContent=a.l;$('#shSub').textContent='עריכת השלב';
   $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
+  const lab=t=>`<div style="font-size:12.5px;font-weight:700;margin:14px 0 6px">${t}</div>`;
   $('#shBody').innerHTML=`
-    <div style="background:${TINT[a.c]};border-radius:16px;padding:13px;margin-bottom:12px">
+    <div style="background:${TINT[a.c]};border-radius:16px;padding:13px">
       <div style="font-size:12px;font-weight:700;color:${DEEP[a.c]};margin-bottom:5px">למה נכנס לתוכנית</div>
       <div style="font-size:12.5px;color:${DEEP[a.c]};line-height:1.7">${a.reason.join(' · ')}</div></div>
-    ${a.date?`<div class="filerow" style="background:var(--soft)">${ic('cal',19,a.c)}
-      <div style="flex:1;font-size:13.5px">${fmtDate(a.date)}${a.time?' · '+a.time:''}${a.doctor?' · '+a.doctor:''}</div></div>`:''}
-    <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">הערה ללקוח</div>
+    ${lab('פרטי התור')}
+    <input id="eDoc" placeholder="שם הרופא" value="${a.doctor||''}">
+    <div style="display:flex;gap:8px"><input id="eDate" type="date" value="${a.date||''}" style="flex:1">
+      <input id="eTime" placeholder="שעה" value="${a.time||''}" style="flex:1"></div>
+    <input id="ePlace" placeholder="מקום" value="${a.place||''}">
+    ${lab('סטטוס')}
+    <div id="eStat" style="display:flex;gap:6px;flex-wrap:wrap">${STATUSES.map(([k,t])=>
+      `<span data-s="${k}" style="cursor:pointer;border-radius:99px;padding:8px 13px;font-size:12.5px;font-weight:600;
+        background:${a.status===k?a.c:'#fff'};color:${a.status===k?'#fff':'#5E564E'};
+        border:1.5px solid ${a.status===k?a.c:'var(--chip)'}">${t}</span>`).join('')}</div>
+    ${lab('הערה ללקוח')}
     <textarea id="pNote" placeholder="למשל: לבקש הפניה ל-MRI כבר בביקור הזה">${a.note||''}</textarea>
-    <div style="font-size:11.5px;color:var(--ink3);line-height:1.6">ההערה תוצג בכרטיס ההכנה של השלב, מעל רשימת מה לקחת.</div>`;
+    ${lab('לקחת איתך')}
+    <input id="eBring" placeholder="מופרד בפסיקים" value="${(a.bring||[]).join(', ')}">
+    ${lab('לא לשכוח לספר')}
+    <textarea id="eRem" style="min-height:64px">${a.rem||''}</textarea>`;
+  $('#shBody').querySelectorAll('#eStat span').forEach(el=>el.onclick=()=>{
+    a.status=el.dataset.s;openPlanItem(S.planIdx)});
   $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
-    <button class="btn" style="--c:${a.c};border-radius:16px;padding:14px;font-size:15px" onclick="savePlanNote()">שמירה</button>
-    <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8" onclick="removePlanItem()">הסרה</button></div>`;
+    <button class="btn" style="--c:${a.c};border-radius:16px;padding:14px;font-size:15px" onclick="savePlanItem()">שמירה</button>
+    <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8;flex:0 0 34%" onclick="removePlanItem()">מחיקה</button></div>`;
   openSheet()}
-async function savePlanNote(){
-  const a=S.openStep;a.note=$('#pNote').value.trim();
-  closeSheet();
+function refreshLawViews(){
   if($('#s-lawPlan').classList.contains('on'))drawPlan();
   if($('#s-lawClient').classList.contains('on'))drawLawClient();
-  if($('#s-lawPath').classList.contains('on'))drawPath('#lawPath');
+  if($('#s-lawPath').classList.contains('on'))drawPath('#lawPath');}
+async function savePlanItem(){
+  const a=S.openStep;
+  a.doctor=$('#eDoc').value.trim();
+  a.date=$('#eDate').value||null;
+  a.time=$('#eTime').value.trim();
+  a.place=$('#ePlace').value.trim();
+  a.note=$('#pNote').value.trim();
+  a.bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
+  a.rem=$('#eRem').value.trim();
+  if(!a.date&&a.status==='scheduled')a.status='approved';
+  closeSheet();refreshLawViews();
   if(a.id&&a.id.length>20)await saveApptRow(a);
-  toast('ההערה נשמרה')}
-function removePlanItem(){
-  const c=C();c.plan.splice(S.planIdx,1);closeSheet();
-  if($('#s-lawPlan').classList.contains('on'))drawPlan();
-  if($('#s-lawClient').classList.contains('on'))drawLawClient();
-  toast('הוסר')}
+  toast('נשמר')}
+async function removePlanItem(){
+  const c=C(),a=c.plan[S.planIdx];
+  if(!confirm('למחוק את '+a.l+' מהתוכנית?'))return;
+  c.plan.splice(S.planIdx,1);closeSheet();refreshLawViews();
+  if(a.id&&a.id.length>20)await sb.from('appointments').delete().eq('id',a.id);
+  toast('נמחק')}
+
+/* ── client details: edit / delete ── */
+function openClientEdit(){
+  const c=C();S.openPart=null;S.openStep=null;
+  $('#shTitle').textContent='פרטי הלקוח';$('#shSub').textContent='עריכה או מחיקה';
+  $('#shIc').style.background='var(--brand)';$('#shIc').innerHTML=ic('star',23,'#fff');
+  $('#shBody').innerHTML=`
+    <input id="cName" placeholder="שם מלא" value="${c.name||''}">
+    <input id="cPhone" placeholder="טלפון" inputmode="tel" value="${c.phone||''}">
+    <select id="cType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
+      ${['תאונת דרכים','תאונת עבודה','נזקי גוף אחר'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select>
+    ${c.desc?`<div style="background:var(--soft);border-radius:14px;padding:12px;font-size:12.5px;color:var(--ink2);line-height:1.7;margin-top:6px">
+      <b style="color:var(--ink)">מה שהלקוח כתב:</b><br>${c.desc}</div>`:''}`;
+  $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
+    <button class="btn" style="--c:#14807A;border-radius:16px;padding:14px;font-size:15px" onclick="saveClientEdit()">שמירה</button>
+    <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8;flex:0 0 34%" onclick="deleteClient()">מחיקה</button></div>`;
+  openSheet()}
+async function saveClientEdit(){
+  const c=C();c.name=$('#cName').value.trim()||c.name;c.phone=$('#cPhone').value.trim();c.type=$('#cType').value;
+  closeSheet();drawLawClient();drawLawList();await saveClientRow();toast('נשמר')}
+async function deleteClient(){
+  const c=C();
+  if(!confirm('למחוק את התיק של '+c.name+' לצמיתות? כל התורים והמסמכים יימחקו.'))return;
+  await sb.from('clients').delete().eq('id',c.id);
+  DB.clients=DB.clients.filter(x=>x.id!==c.id);DB.active=null;
+  closeSheet();lawGo('list');toast('התיק נמחק')}
 async function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
   c.plan.forEach(a=>a.status='approved');c.stage='active';
   await savePlan();await saveClientRow();
@@ -655,7 +706,7 @@ function openLawClient(id){DB.active=id;const c=C();
   if(c.stage==='waiting')return lawGo('plan');
   lawGo('client')}
 function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
-  $('#lcSub').textContent=`${c.type} · ${c.phone}`;
+  $('#lcSub').textContent=`${c.type} · ${c.phone||'—'}`;
   const pend=c.plan.filter(a=>a.status==='pending');
   let h='';
   if(pend.length)h+=`<div style="font-size:12px;font-weight:700;color:#C24A34;margin-bottom:8px">ממתין לאישורך</div>`+
@@ -668,8 +719,13 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
       <div style="display:flex;gap:8px">
         <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
         <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="lawReturn('${a.id}')">החזרה</button></div></div>`).join('');
-  h+=`<button class="btn2" style="margin-bottom:14px" onclick="lawGo('path')">המסלול של הלקוח</button>`;
-  h+=`<div style="font-size:12px;font-weight:700;color:var(--ink2);margin:16px 0 8px">התוכנית</div>`;
+  h+=`<div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="btn2" style="flex:1" onclick="lawGo('path')">המסלול</button>
+    <button class="btn2" style="flex:1" onclick="openClientEdit()">פרטי הלקוח</button></div>`;
+  h+=`<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px">
+    <span style="font-size:12px;font-weight:700;color:var(--ink2)">התוכנית</span>
+    <button style="border:0;background:none;font-size:12.5px;font-weight:700;color:var(--brand);padding:0"
+      onclick="openSpecPicker()">+ הוספת רופא</button></div>`;
   h+=c.plan.map((a,i)=>{const d=daysTo(a.date);
     return `<div class="crow" onclick="openPlanItem(${i})">
       <div class="av" style="background:${TINT[a.c]};color:${DEEP[a.c]}">${ic(a.i,18)}</div>
@@ -952,6 +1008,7 @@ async function savePlan(){const c=C();if(!c)return;
 async function saveApptRow(a){
   await sb.from('appointments').update({status:a.status,appt_date:a.date,appt_time:a.time||null,
     place:a.place||null,doctor:a.doctor||null,lawyer_note:a.note||null,
+    bring:a.bring||[],remember:a.rem||null,
     arrived:!!(a.tasks&&a.tasks[0].done)}).eq('id',a.id)}
 async function refreshMe(){const me=await myClient();
   if(!me)return;DB.clients=[me];DB.active=me.id;clientHome();toast('עודכן')}
