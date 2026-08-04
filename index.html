@@ -8,8 +8,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--canvas:#FDF7F0;--surface:#fff;--border:#EFE5DA;--chip:#E7DCCE;--skin:#F2E3D5;--skinLine:#E3CDB8;--skinHi:#EBD6C4;
---ink:#2E2A26;--ink2:#8C837A;--ink3:#A79FB3;--soft:#FAF6F1;--track:#EDE2D5;--dot:#DCCFC0;--lock:#E7E0EA;--lockFg:#A79FB3;--brand:#14807A}
+:root{--canvas:#F7F6F4;--surface:#fff;--border:#ECEAE6;--chip:#E4E1DC;--skin:#F0E3D6;--skinLine:#E0CDB9;--skinHi:#E9D8C7;
+--ink:#17171A;--ink2:#7C7A78;--ink3:#A5A3A0;--soft:#F4F3F1;--track:#E9E7E3;--dot:#D6D3CE;--lock:#EBE9EE;--lockFg:#A5A3AA;--brand:#14807A;
+--sh:0 1px 2px rgba(20,20,26,.04),0 4px 16px rgba(20,20,26,.06);
+--sh2:0 2px 6px rgba(20,20,26,.06),0 12px 32px rgba(20,20,26,.10);
+--r:16px;--r2:20px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%}
 body{font-family:'Assistant',system-ui,sans-serif;background:#E6DFD6;color:var(--ink);display:flex;justify-content:center;overflow:hidden}
@@ -17,17 +20,21 @@ body{font-family:'Assistant',system-ui,sans-serif;background:#E6DFD6;color:var(-
 .screen{position:absolute;inset:0;display:none;flex-direction:column}
 .screen.on{display:flex}
 .scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-h1{font-size:24px;font-weight:700;margin:0;line-height:1.2;letter-spacing:-.2px}
-h2{font-size:19px;font-weight:700;margin:0}
-.sub{font-size:14.5px;color:var(--ink2);margin-top:7px;line-height:1.55}
+h1{font-size:27px;font-weight:700;margin:0;line-height:1.15;letter-spacing:-.6px}
+h2{font-size:20px;font-weight:700;margin:0;letter-spacing:-.3px}
+.sub{font-size:15px;color:var(--ink2);margin-top:8px;line-height:1.55}
 .pad{padding:0 20px}.top{padding:20px 20px 0;flex:none}
 button{font:inherit;cursor:pointer}
-.btn{width:100%;border:0;font-size:16px;font-weight:600;color:#fff;background:var(--c,#E8654F);border-radius:20px;padding:16px;transition:transform .12s}
-.btn:active{transform:scale(.985)}.btn[disabled]{background:#E3D8CB;cursor:default}
-.btn2{width:100%;border:1.5px solid var(--chip);background:#fff;border-radius:20px;padding:15px;font-size:15px;font-weight:600;color:var(--ink)}
+.btn{width:100%;border:0;font-size:16.5px;font-weight:700;color:#fff;background:var(--c,#E8654F);border-radius:var(--r);
+  padding:17px;transition:transform .12s,filter .15s;box-shadow:0 4px 14px -6px rgba(20,20,26,.35)}
+.btn:active{transform:scale(.98);filter:brightness(.96)}
+.btn[disabled]{background:#E6E4E0;color:#A5A3A0;cursor:default;box-shadow:none}
+.btn2{width:100%;border:0;background:var(--soft);border-radius:var(--r);padding:16px;font-size:15.5px;font-weight:700;color:var(--ink);transition:background .15s}
+.btn2:active{background:#EDEBE8}
 .ghost{width:100%;background:none;border:0;font-size:14px;color:var(--ink3);padding:14px 0 0}
 .bars{display:flex;gap:6px;margin-bottom:20px}.bar{flex:1;height:4px;border-radius:99px;background:var(--track)}.bar.on{background:#E8654F}
-.foot{padding:14px 20px calc(16px + env(safe-area-inset-bottom));flex:none;background:linear-gradient(to top,var(--canvas) 65%,rgba(253,247,240,0))}
+.foot{padding:14px 20px calc(16px + env(safe-area-inset-bottom));flex:none;background:var(--canvas);
+  box-shadow:0 -8px 20px -12px rgba(20,20,26,.14)}
 .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;text-align:center}
 .hero .ring{width:112px;height:112px;border-radius:50%;background:#E8654F;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 0 12px #FBE0DA;margin-bottom:26px}
 .hero h1{font-size:27px}.hero p{font-size:15.5px;color:var(--ink2);line-height:1.7;margin:14px 0 0}
@@ -47,7 +54,7 @@ button{font:inherit;cursor:pointer}
 .zone:active{fill:var(--skinHi)}
 .badge text{font-size:15px;font-weight:700;fill:#fff}.badge circle{stroke:var(--canvas);stroke-width:3}
 .ztag{font-size:12px;font-weight:600;fill:var(--ink2);pointer-events:none}
-.mind{margin:6px 20px 0;background:#fff;border:1px solid var(--border);border-radius:20px;padding:13px 15px;display:flex;align-items:center;gap:12px}
+.mind{margin:6px 20px 0;background:#fff;border:0;border-radius:var(--r2);padding:15px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh)}
 .mind .ic{width:40px;height:40px;border-radius:50%;background:#EBE3F4;color:#7B5EA7;flex:none;display:flex;align-items:center;justify-content:center}
 .pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
 .pill{border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600}
@@ -68,33 +75,38 @@ button{font:inherit;cursor:pointer}
 .tick{position:absolute;bottom:1px;left:1px;width:28px;height:28px;border-radius:50%;background:#fff;border:3px solid var(--canvas);display:flex;align-items:center;justify-content:center}
 .dpill{position:absolute;bottom:-4px;left:-8px;background:#fff;border:3px solid var(--canvas);border-radius:99px;padding:4px 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
 .nowtag{position:absolute;top:-6px;right:-4px;background:var(--ink);color:#fff;border:3px solid var(--canvas);border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700}
-.tabs{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.92);padding:8px 0 calc(8px + env(safe-area-inset-bottom));flex:none}
+.tabs{display:flex;border-top:1px solid var(--border);background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  padding:9px 0 calc(9px + env(safe-area-inset-bottom));flex:none}
 .tab{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--ink3);padding:5px 0}
 .tab.on{color:var(--brand)}
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(46,42,38,.34);opacity:0;pointer-events:none;transition:opacity .28s;z-index:8}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:9;margin:0 auto;max-width:430px;background:#fff;border-radius:30px 30px 0 0;
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:9;margin:0 auto;max-width:430px;background:#fff;border-radius:26px 26px 0 0;box-shadow:var(--sh2);
  padding:12px 18px calc(16px + env(safe-area-inset-bottom));transform:translateY(103%);transition:transform .36s cubic-bezier(.32,.72,0,1);max-height:88dvh;display:flex;flex-direction:column}
 .sheet.on{transform:none}
 .grab{width:42px;height:4px;border-radius:99px;background:#E5DCD2;margin:0 auto 15px;flex:none}
 .shead{display:flex;align-items:center;gap:12px;margin-bottom:15px;flex:none}
 .shead .ic{width:50px;height:50px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff}
 .sbody{overflow-y:auto;flex:1;margin:0 -4px;padding:0 4px}.sfoot{flex:none;padding-top:12px}
-.acc{border:1.5px solid var(--border);border-radius:18px;margin-bottom:10px;overflow:hidden}
+.acc{border:0;border-radius:var(--r);margin-bottom:10px;overflow:hidden;background:#fff;box-shadow:var(--sh)}
 .acc.open{border-color:var(--chip);background:var(--soft)}
 .accH{display:flex;align-items:center;gap:10px;padding:14px 15px;user-select:none;cursor:pointer}
 .accH .nm{flex:1;font-size:15.5px;font-weight:600}
 .ct{font-size:12px;font-weight:700;color:#fff;border-radius:99px;padding:3px 9px;min-width:26px;text-align:center}
 .chev{width:19px;height:19px;color:#B5ABA0;transition:transform .26s;flex:none}.acc.open .chev{transform:rotate(180deg)}
 .accB{max-height:0;overflow:hidden;transition:max-height .3s ease}.accIn{padding:0 12px 12px}
-.sy{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:12px 14px;margin-bottom:8px;font-size:14.5px;font-weight:500;cursor:pointer;transition:.18s}
+.sy{display:flex;align-items:center;gap:11px;background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:14px 15px;
+  margin-bottom:9px;font-size:15px;font-weight:600;cursor:pointer;transition:.18s}
 .sy .bx{width:21px;height:21px;border-radius:7px;border:1.8px solid #D6C9B8;flex:none;display:flex;align-items:center;justify-content:center;transition:.18s}
 .sy .bx svg{width:13px;height:13px;opacity:0;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 .sy.on{color:#fff}.sy.on .bx{background:#fff!important;border-color:#fff!important}.sy.on .bx svg{opacity:1}
 .sy.other{border-style:dashed;background:var(--soft);color:var(--ink2)}.sy.other .bx{border-radius:50%}
-textarea,input{width:100%;font:inherit;font-size:14.5px;color:var(--ink);background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:12px 14px;outline:none;margin-bottom:8px}
-textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9BDAE}
+textarea,input{width:100%;font:inherit;font-size:15.5px;color:var(--ink);background:var(--soft);border:1.5px solid transparent;
+  border-radius:14px;padding:14px 15px;outline:none;margin-bottom:9px;transition:.15s}
+textarea{resize:none;min-height:84px}
+input:focus,textarea:focus{background:#fff;border-color:var(--ink);box-shadow:0 0 0 3px rgba(20,20,26,.06)}
+input::placeholder,textarea::placeholder{color:#A5A3A0}
 .prep{border-radius:18px;padding:14px;margin-bottom:14px}.prep h4{margin:0 0 9px;font-size:13px;font-weight:700}
 .bring{display:flex;gap:8px;flex-wrap:wrap}.bring span{background:#fff;border-radius:99px;padding:6px 12px;font-size:12.5px;font-weight:500}
 .hr{height:1px;margin:13px 0;opacity:.5}
@@ -102,26 +114,40 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 .tile{flex:1;border-radius:16px;padding:11px;text-align:center;background:var(--soft);border:1.5px dashed #DFD3C5;cursor:pointer}
 .tile.done{background:#F0F7F5;border:1.5px solid #D5EAE7}
 .tile .tl{font-size:11.5px;font-weight:600;margin-top:3px;color:var(--ink2)}.tile.done .tl{color:var(--brand)}
-.filerow{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.filerow{background:#fff;border:0;border-radius:14px;padding:13px;display:flex;align-items:center;gap:11px;margin-bottom:10px;box-shadow:var(--sh)}
 .state{text-align:center;padding:12px 0 18px}
 .state .big{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 13px}
 .ret{background:#FDF0ED;border-radius:18px;padding:14px}
 .ret h4{margin:0 0 6px;font-size:13px;font-weight:700;color:#C24A34}
 .ret p{margin:0;font-size:12.5px;color:#8C4433;line-height:1.65}
-.card{background:#fff;border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:12px}
+.card{background:#fff;border:0;border-radius:var(--r2);padding:17px;margin-bottom:12px;box-shadow:var(--sh)}
 .scale{display:flex;gap:5px;margin-top:12px}
 .scale button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--chip);background:#fff;font-size:14px;font-weight:600;color:var(--ink2);transition:.16s}
 .scale button.on{color:#fff;border-color:transparent}
 .hist{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:6px}.hist i{flex:1;border-radius:5px 5px 0 0;background:#E8654F;opacity:.75;display:block}
+/* notifications, files, privacy */
+.nbar{margin:0 20px 12px;border-radius:var(--r);padding:14px 15px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--sh)}
+.nbar .x{margin-inline-start:auto;opacity:.5;cursor:pointer;flex:none}
+.up{display:flex;gap:9px;margin-bottom:12px}
+.upBtn{flex:1;background:var(--soft);border:0;border-radius:14px;padding:15px 10px;display:flex;flex-direction:column;
+  align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--ink);cursor:pointer;transition:background .15s}
+.upBtn:active{background:#EAE8E4}
+.thumb{width:44px;height:44px;border-radius:11px;object-fit:cover;flex:none;background:var(--soft)}
+.privRow{display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--border)}
+.privRow:last-child{border:0}
 /* plan / lawyer */
-.dr{background:#fff;border:1.5px solid var(--chip);border-radius:18px;padding:12px 13px;margin-bottom:9px;display:flex;gap:11px;align-items:flex-start}
-.dr.new{border-color:#C7B8DE;background:#FBF9FD}
+.dr{background:#fff;border:0;border-radius:var(--r);padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;
+  box-shadow:var(--sh);cursor:pointer;transition:transform .12s}
+.dr:active{transform:scale(.985)}
+.dr.new{box-shadow:0 0 0 2px #C7B8DE,var(--sh)}
 .dr .av{width:40px;height:40px;border-radius:50%;color:#fff;flex:none;display:flex;align-items:center;justify-content:center}
 .why{font-size:11.5px;color:var(--ink2);line-height:1.5;margin-top:4px}
-.crow{background:#fff;border:1px solid var(--border);border-radius:18px;padding:13px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer}
+.crow{background:#fff;border:0;border-radius:var(--r);padding:15px;margin-bottom:10px;display:flex;gap:13px;align-items:center;
+  cursor:pointer;box-shadow:var(--sh);transition:transform .12s}
+.crow:active{transform:scale(.985)}
 .ava{width:42px;height:42px;border-radius:50%;background:#EAF3F1;color:var(--brand);font-size:14px;font-weight:700;flex:none;display:flex;align-items:center;justify-content:center}
 .tagp{font-size:11px;font-weight:700;border-radius:99px;padding:4px 10px;white-space:nowrap}
-.qrbox{background:#fff;border:1px solid var(--border);border-radius:22px;padding:20px;text-align:center;margin-bottom:14px}
+.qrbox{background:#fff;border:0;border-radius:var(--r2);padding:22px;text-align:center;margin-bottom:14px;box-shadow:var(--sh)}
 .qrbox #qr{display:flex;justify-content:center;margin-bottom:12px}
 .linkbox{background:var(--soft);border-radius:12px;padding:11px;font-size:12px;color:var(--ink2);word-break:break-all;direction:ltr;text-align:left}
 .rolesw{position:fixed;top:8px;left:8px;z-index:60;display:flex;gap:3px;background:rgba(46,42,38,.85);border-radius:99px;padding:3px}
@@ -195,14 +221,20 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
 <section class="screen" id="s-journey">
   <div class="jhead"><div style="display:flex;align-items:center;gap:9px"><div class="logo"></div><span class="firmName" style="font-size:13.5px;font-weight:600"></span></div>
     <span class="count" id="jCount"></span></div>
-  <div class="scroll"><div class="path" id="path"></div></div>
+  <div class="scroll"><div id="notifBar"></div><div class="path" id="path"></div></div>
   <div class="tabs">
     <button class="tab on" data-t="journey" onclick="tab('journey')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19h4l10-10-4-4L4 15z"/><path d="M14 5l4 4"/></svg>המסלול</button>
     <button class="tab" data-t="diary" onclick="tab('diary')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5h16v16H4z"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>יומן</button>
     <button class="tab" data-t="docs" onclick="tab('docs')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>מסמכים</button>
+    <button class="tab" data-t="privacy" onclick="tab('privacy')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>פרטיות</button>
   </div>
 </section>
 
+<section class="screen" id="s-privacy">
+  <div class="top"><h1>הפרטיות שלך</h1><p class="sub">המידע הרפואי שלך שמור ומוצפן, ורק המשרד שמטפל בך רואה אותו.</p></div>
+  <div class="scroll pad" style="padding-top:16px" id="privBody"></div>
+  <div class="foot"><button class="ghost" onclick="tab('journey')">חזרה למסלול</button></div>
+</section>
 <section class="screen" id="s-diary">
   <div class="top"><h1>איך היה היום?</h1><p class="sub">חצי דקה ביום. זה מה שבונה את התיעוד שלך.</p></div>
   <div class="scroll pad" style="padding-top:16px">
@@ -229,11 +261,15 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
   <div class="scroll pad" style="padding-top:18px">
     <input id="sName" placeholder="שם מלא">
     <input id="sPhone" placeholder="טלפון" inputmode="tel">
+    <input id="sMail" placeholder="אימייל לתזכורות" inputmode="email" autocapitalize="off">
     <select id="sType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
       <option>תאונת דרכים</option><option>תאונת עבודה</option><option>נזקי גוף אחר</option></select>
     <label style="display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-radius:16px;padding:13px;margin-top:6px;cursor:pointer">
       <input type="checkbox" id="sOk" style="width:19px;height:19px;margin:2px 0 0;flex:none;accent-color:#14807A">
       <span style="font-size:12.5px;color:var(--ink2);line-height:1.6">אני מאשר/ת שהמידע הרפואי שאמלא כאן יועבר לעורך הדין שלי לצורך ניהול התיק.</span></label>
+    <label style="display:flex;gap:10px;align-items:flex-start;background:var(--soft);border-radius:16px;padding:13px;margin-top:9px;cursor:pointer">
+      <input type="checkbox" id="sMailOk" checked style="width:19px;height:19px;margin:2px 0 0;flex:none;accent-color:#14807A">
+      <span style="font-size:12.5px;color:var(--ink2);line-height:1.6">שלחו לי תזכורת במייל לפני כל תור. המייל לא יכיל פרטים רפואיים — רק תזכורת וקישור.</span></label>
   </div>
   <div class="foot"><button class="btn" onclick="doSignup()">התחלה</button></div>
 </section>
@@ -455,7 +491,8 @@ function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/8
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on')}
 function startPicker(){go('picker');requestAnimationFrame(()=>{drawBody();drawPickFoot()})}
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  if(t==='journey')drawPath();if(t==='docs')drawDocs();if(t==='diary')drawDiary()}
+  if(t==='journey'){drawPath();drawNotifBar()}
+  if(t==='docs')drawDocs();if(t==='diary')drawDiary();if(t==='privacy')drawPrivacy()}
 function logout(){sb.auth.signOut().then(()=>location.href=location.pathname)}
 function applyBrand(){
   const f=DB.firmRow;if(!f)return;
@@ -665,6 +702,7 @@ function openClientEdit(){
   $('#shBody').innerHTML=`
     <input id="cName" placeholder="שם מלא" value="${c.name||''}">
     <input id="cPhone" placeholder="טלפון" inputmode="tel" value="${c.phone||''}">
+    <input id="cMail" placeholder="אימייל לתזכורות" inputmode="email" value="${c.email||''}">
     <select id="cType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
       ${['תאונת דרכים','תאונת עבודה','נזקי גוף אחר'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select>
     ${c.desc?`<div style="background:var(--soft);border-radius:14px;padding:12px;font-size:12.5px;color:var(--ink2);line-height:1.7;margin-top:6px">
@@ -674,7 +712,8 @@ function openClientEdit(){
     <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8;flex:0 0 34%" onclick="deleteClient()">מחיקה</button></div>`;
   openSheet()}
 async function saveClientEdit(){
-  const c=C();c.name=$('#cName').value.trim()||c.name;c.phone=$('#cPhone').value.trim();c.type=$('#cType').value;
+  const c=C();c.name=$('#cName').value.trim()||c.name;c.phone=$('#cPhone').value.trim();
+  c.email=$('#cMail').value.trim();c.type=$('#cType').value;
   closeSheet();drawLawClient();drawLawList();await saveClientRow();toast('נשמר')}
 async function deleteClient(){
   const c=C();
@@ -715,7 +754,10 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
         <div class="av" style="background:${a.c};width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff">${ic(a.i,19)}</div>
         <div><div style="font-size:15px;font-weight:700">${a.l}</div>
         <div style="font-size:12px;color:var(--ink2)">${a.doctor||''} · ${fmtDate(a.date)}</div></div></div>
-      <div class="filerow" style="margin:0 0 11px">${ic('file',19,'#8C837A')}<div style="flex:1;font-size:13.5px">סיכום ${a.l}</div></div>
+      ${(c.docs||[]).filter(d=>d.appt===a.id).map(d=>`<div class="filerow" style="margin:0 0 9px" ${d.path?`onclick="openDoc('${d.path}')"`:''}>
+        ${ic('file',19,'#7C7A78')}<div style="flex:1;font-size:13.5px;font-weight:600">${d.n}</div>
+        <span style="font-size:11.5px;color:var(--brand);font-weight:700">פתיחה</span></div>`).join('')
+        ||`<div class="filerow" style="margin:0 0 11px">${ic('file',19,'#7C7A78')}<div style="flex:1;font-size:13.5px">אין קבצים</div></div>`}
       <div style="display:flex;gap:8px">
         <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
         <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="lawReturn('${a.id}')">החזרה</button></div></div>`).join('');
@@ -768,8 +810,10 @@ async function doSignup(){
   if(!firm){const r=await sb.from('firms').select('*').limit(1);firm=r.data&&r.data[0]}
   if(!firm)return toast('לא נמצא משרד — בקש קישור חדש מעורך הדין');
   DB.firmRow=firm;applyBrand();
+  const em=($('#sMail').value||'').trim();
   const {data,error}=await sb.from('clients').insert({firm_id:firm.id,auth_uid:session.user.id,
-    name:n,phone:p,case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
+    name:n,phone:p,email:em||null,notify_email:$('#sMailOk').checked,
+    case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
   if(error)return toast('שגיאה: '+error.message);
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
   drawBody();drawPickFoot();$('#wName').textContent='היי, '+n.split(' ')[0];go('welcome')}
@@ -909,7 +953,53 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
     <div class="tiles">${a.tasks.map((t,i)=>`<div class="tile${t.done?' done':''}" data-t="${i}">
       ${ic(t.done?'check':'clock',21,t.done?'#14807A':'#B5ABA0')}<div class="tl">${t.l}</div></div>`).join('')}</div>`;
   b.querySelectorAll('.tile').forEach(e=>e.onclick=()=>{a.tasks[+e.dataset.t].done=!a.tasks[+e.dataset.t].done;renderStep();void saveApptRow(a)});
-  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c};border-radius:19px;padding:15px;display:flex;align-items:center;justify-content:center;gap:7px" onclick="upload()">${ic('cam',17,'#fff')}צילום הסיכום</button>`}
+  $('#shBody').insertAdjacentHTML('beforeend',`
+    <div style="font-size:12.5px;font-weight:700;margin:16px 0 8px">מסמכים מהתור</div>
+    <div class="up">
+      <div class="upBtn" onclick="pickUpload('image/*','camera')">${ic('cam',22,'#17171A')}צילום</div>
+      <div class="upBtn" onclick="pickUpload('image/*')">${ic('file',22,'#17171A')}תמונה</div>
+      <div class="upBtn" onclick="pickUpload('application/pdf')">${ic('file',22,'#17171A')}PDF</div>
+    </div>
+    <div id="apDocs"></div>`);
+  drawApptDocs();
+  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c}" onclick="finishUpload()">שליחה לעורך הדין</button>`}
+function drawApptDocs(){
+  const box=$('#apDocs');if(!box)return;
+  const a=S.openStep,c=C();
+  const list=(c.docs||[]).filter(d=>d.appt===a.id);
+  box.innerHTML=list.length?list.map(d=>`<div class="filerow">
+    ${d.url&&d.kind==='image'?`<img class="thumb" src="${d.url}">`:`<div class="thumb" style="display:flex;align-items:center;justify-content:center;color:var(--ink2)">${ic('file',20)}</div>`}
+    <div style="flex:1"><div style="font-size:13.5px;font-weight:600">${d.n}</div>
+      <div style="font-size:11.5px;color:var(--ink3)">${d.d}</div></div>
+    ${d.up?ic('check',18,'#14807A'):'<span style="font-size:11.5px;color:var(--ink3)">מעלה…</span>'}</div>`).join('')
+    :`<div style="text-align:center;color:var(--ink3);font-size:13px;padding:14px 0">עדיין לא צורף מסמך</div>`}
+function pickUpload(accept,cap){
+  const inp=document.createElement('input');inp.type='file';inp.accept=accept;
+  if(cap)inp.capture='environment';
+  inp.onchange=()=>{if(inp.files&&inp.files[0])uploadFile(inp.files[0])};
+  inp.click()}
+async function uploadFile(file){
+  const c=C(),a=S.openStep;
+  const kind=file.type.startsWith('image')?'image':'pdf';
+  const rec={n:file.name,d:'עכשיו',c:a.c,appt:a.id,kind,up:false,url:URL.createObjectURL(file)};
+  c.docs.unshift(rec);drawApptDocs();
+  const safe=file.name.replace(/[^\w.\-]/g,'_');
+  const path=c.id+'/'+Date.now()+'_'+safe;
+  const {error}=await sb.storage.from('docs').upload(path,file,{upsert:false});
+  if(error){toast('שגיאת העלאה: '+error.message);c.docs=c.docs.filter(x=>x!==rec);drawApptDocs();return}
+  const ins=await sb.from('documents').insert({client_id:c.id,appointment_id:(a.id&&a.id.length>20)?a.id:null,
+    name:file.name,storage_path:path}).select().single();
+  rec.up=true;rec.path=path;if(ins.data)rec.id=ins.data.id;
+  drawApptDocs();drawDocs();toast('הקובץ נשמר')}
+async function finishUpload(){
+  const c=C(),a=S.openStep;
+  if(!(c.docs||[]).some(d=>d.appt===a.id))return toast('צריך לצרף לפחות מסמך אחד');
+  a.status='pending';renderStep();drawPath();await saveApptRow(a);
+  notify('נשלח לעורך הדין','המסמכים מ'+a.l+' התקבלו');toast('נשלח לעורך הדין')}
+async function openDoc(path){
+  const {data,error}=await sb.storage.from('docs').createSignedUrl(path,120);
+  if(error)return toast('לא ניתן לפתוח: '+error.message);
+  window.open(data.signedUrl,'_blank')}
 function fakePhoto(){const a=S.openStep;
   $('#fDoc').value='ד״ר א. שרון';$('#fDate').value=daysFrom(7);$('#fTime').value='09:15';$('#fPlace').value='מכבי · רמת אביב';
   toast('נקרא מהצילום — לאשר שזה נכון')}
@@ -919,11 +1009,7 @@ function saveAppt(){const a=S.openStep;
   a.status='scheduled';closeSheet();drawPath();void saveApptRow(a);toast('נשמר · נזכיר 3 ימים לפני')}
 function reopen(){const a=S.openStep;a.status='approved';a.date=null;a.tasks.forEach(t=>t.done=false);
   renderStep();drawPath();void saveApptRow(a)}
-async function upload(){const a=S.openStep,c=C();a.status='pending';
-  c.docs.unshift({n:'סיכום '+a.l,d:'היום',c:a.c});renderStep();drawPath();
-  await saveApptRow(a);
-  await sb.from('documents').insert({client_id:c.id,appointment_id:a.id,name:'סיכום '+a.l});
-  toast('נשלח לעורך הדין')}
+
 function celebrate(a){$('#celPop').style.background=a.c;$('#celPop').innerHTML=ic('check',56,'#fff');
   $('#celTitle').textContent='כל הכבוד!';$('#celText').textContent=`${a.l} הושלם ואושר.`;
   const c=$('#cel');c.querySelectorAll('.conf').forEach(e=>e.remove());
@@ -950,10 +1036,104 @@ async function saveDiary(){const c=C();if(c.pain===null)return toast('קודם �
 function drawDocs(){const c=C(),l=$('#docsList');
   if(!c.docs.length){l.innerHTML=`<div style="text-align:center;padding:50px 20px;color:var(--ink3)">
     <div style="margin-bottom:12px">${ic('file',34,'#C9BFB2')}</div><div style="font-size:14.5px">עדיין אין מסמכים</div></div>`;return}
-  l.innerHTML=c.docs.map(d=>`<div class="filerow">
-    <div style="width:38px;height:38px;border-radius:12px;background:${TINT[d.c]};color:${DEEP[d.c]};display:flex;align-items:center;justify-content:center">${ic('file',19)}</div>
-    <div style="flex:1"><div style="font-size:14px;font-weight:600">${d.n}</div>
+  l.innerHTML=c.docs.map(d=>`<div class="filerow" ${d.path?`onclick="openDoc('${d.path}')"`:''}>
+    ${d.url&&d.kind==='image'?`<img class="thumb" src="${d.url}">`:
+      `<div class="thumb" style="background:${TINT[d.c]||'var(--soft)'};color:${DEEP[d.c]||'var(--ink2)'};display:flex;align-items:center;justify-content:center">${ic('file',19)}</div>`}
+    <div style="flex:1"><div style="font-size:14.5px;font-weight:700">${d.n}</div>
     <div style="font-size:11.5px;color:var(--ink3)">${d.d}</div></div>${ic('check',18,'#14807A')}</div>`).join('')}
+
+/* ═══ notifications ═══ */
+function notifKey(k){return 'n_'+(C()?C().id:'x')+'_'+k+'_'+new Date().toDateString()}
+function notify(title,body){
+  try{
+    if(!('Notification' in window))return;
+    if(Notification.permission==='granted')new Notification(title,{body,icon:''});
+  }catch(e){}
+}
+async function askNotif(){
+  if(!('Notification' in window))return toast('הדפדפן לא תומך בהתראות');
+  const r=await Notification.requestPermission();
+  drawNotifBar();
+  toast(r==='granted'?'התראות הופעלו':'ההתראות נשארו כבויות')}
+function pendingAlerts(){
+  const c=C();if(!c)return[];
+  const out=[];
+  (c.plan||[]).forEach(a=>{
+    if(a.status==='returned')out.push({t:'עורך הדין ביקש להשלים',b:a.l+' — '+(a.note||''),c:'#FDF0ED',f:'#C24A34',go:a.id});
+    else if(a.date&&a.status==='scheduled'){
+      const d=daysTo(a.date);
+      if(d===0)out.push({t:'התור שלך היום',b:a.l+(a.time?' · '+a.time:''),c:'#FBE0DA',f:'#C24A34',go:a.id});
+      else if(d>0&&d<=3)out.push({t:'תור בעוד '+d+' ימים',b:a.l+' · '+fmtDate(a.date),c:'#FBEBD1',f:'#8A5B12',go:a.id});
+    }
+  });
+  const unset=(c.plan||[]).filter(a=>!a.date).length;
+  if(unset)out.push({t:unset+' תורים עוד לא נקבעו',b:'כדאי לקבוע בהקדם — פער בטיפולים פוגע בתיק',c:'#EAF3F1',f:'#0D5F5A'});
+  return out}
+function drawNotifBar(){
+  const box=$('#notifBar');if(!box)return;
+  const al=pendingAlerts();
+  let h='';
+  if('Notification' in window && Notification.permission==='default')
+    h+=`<div class="nbar" style="background:#fff" onclick="askNotif()">
+      <div style="width:38px;height:38px;border-radius:11px;background:var(--soft);display:flex;align-items:center;justify-content:center;flex:none">${ic('clock',19,'#17171A')}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700">להפעיל תזכורות?</div>
+      <div style="font-size:12.5px;color:var(--ink2);margin-top:2px">נזכיר לפני כל תור. בלי ספאם.</div></div></div>`;
+  h+=al.map(a=>`<div class="nbar" style="background:${a.c}" ${a.go?`onclick="openStep('${a.go}')"`:''}>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700;color:${a.f}">${a.t}</div>
+    <div style="font-size:12.5px;color:${a.f};opacity:.85;margin-top:3px;line-height:1.5">${a.b}</div></div></div>`).join('');
+  box.innerHTML=h;
+  al.forEach(a=>{const k=notifKey(a.t);
+    if(!localStorage.getItem(k)){localStorage.setItem(k,'1');notify(a.t,a.b)}})}
+
+/* ═══ privacy ═══ */
+function drawPrivacy(){
+  const c=C();if(!c)return;
+  $('#privBody').innerHTML=`
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:10px">מה שמור עליך</div>
+      <div class="privRow"><div style="flex:1;font-size:14px">אזורי פגיעה וסימפטומים</div>
+        <div style="font-size:13px;color:var(--ink2)">${Object.values(c.sel||{}).reduce((a,b)=>a+b.length,0)} פריטים</div></div>
+      <div class="privRow"><div style="flex:1;font-size:14px">תורים</div>
+        <div style="font-size:13px;color:var(--ink2)">${(c.plan||[]).length}</div></div>
+      <div class="privRow"><div style="flex:1;font-size:14px">מסמכים רפואיים</div>
+        <div style="font-size:13px;color:var(--ink2)">${(c.docs||[]).length}</div></div>
+      <div class="privRow"><div style="flex:1;font-size:14px">יומן תסמינים</div>
+        <div style="font-size:13px;color:var(--ink2)">נשמר</div></div>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">מי רואה את זה</div>
+      <div style="font-size:13.5px;color:var(--ink2);line-height:1.75">
+        רק את/ה והמשרד שמטפל בתיק שלך — ${DB.firmRow?DB.firmRow.name:'המשרד'}.<br>
+        ההרשאה נאכפת בשרת עצמו, לא רק באפליקציה, כך שגם משרד אחר לא יכול להגיע למידע.<br>
+        המסמכים שמורים בנפרד ונפתחים רק בקישור זמני של שתי דקות.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:8px">השליטה שלך</div>
+      <div style="font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:13px">
+        אפשר להוריד עותק של כל המידע, ואפשר לבקש למחוק הכל.</div>
+      <label style="display:flex;align-items:center;gap:12px;padding:13px;background:var(--soft);border-radius:14px;margin-bottom:13px;cursor:pointer">
+        <input type="checkbox" id="pMailOk" ${c.notifyEmail?'checked':''} onchange="toggleMail()"
+          style="width:19px;height:19px;flex:none;accent-color:#14807A">
+        <span style="flex:1;font-size:13.5px;font-weight:600">תזכורות במייל${c.email?' · '+c.email:''}</span></label>
+      <button class="btn2" style="margin-bottom:9px" onclick="exportMyData()">הורדת המידע שלי</button>
+      <button class="btn2" style="color:#C24A34" onclick="requestDelete()">בקשת מחיקת המידע</button>
+    </div>
+    <div style="font-size:11.5px;color:var(--ink3);line-height:1.7;padding:4px 4px 20px">
+      המידע נשמר בשרתים באיחוד האירופי בהתאם לחוק הגנת הפרטיות. אישרת את העברתו לעורך הדין בעת ההרשמה.</div>`}
+async function toggleMail(){
+  const c=C();c.notifyEmail=$('#pMailOk').checked;
+  await sb.from('clients').update({notify_email:c.notifyEmail}).eq('id',c.id);
+  toast(c.notifyEmail?'תזכורות במייל הופעלו':'תזכורות במייל כובו')}
+function exportMyData(){
+  const c=C();const data={שם:c.name,טלפון:c.phone,סוג_תיק:c.type,תיאור:c.desc,סימפטומים:c.sel,הערות:c.notes,
+    תורים:(c.plan||[]).map(a=>({תחום:a.l,תאריך:a.date,שעה:a.time,רופא:a.doctor,מקום:a.place,סטטוס:a.status})),
+    מסמכים:(c.docs||[]).map(d=>d.n)};
+  const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download='המידע-שלי.json';a.click();URL.revokeObjectURL(u);toast('הקובץ הורד')}
+function requestDelete(){
+  if(!confirm('לשלוח בקשת מחיקה לעורך הדין? המידע יימחק לאחר אישורו.'))return;
+  toast('הבקשה נשלחה לעורך הדין')}
 
 let tt;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2500)}
 window.addEventListener('resize',()=>{if($('#s-journey').classList.contains('on'))drawPath()});
@@ -972,7 +1152,10 @@ function mapClient(r){
       date:a.appt_date,time:a.appt_time||'',place:a.place||'',doctor:a.doctor||'',
       bring:a.bring||[],rem:a.remember||'',note:a.lawyer_note||'',
       tasks:[{l:'הגעתי',done:!!a.arrived}]})),
-    docs:(r.documents||[]).map(d=>({n:d.name,d:'הועלה',c:'#2F6FD0'})),
+    email:r.email||'',notifyEmail:r.notify_email!==false,
+    docs:(r.documents||[]).map(d=>({id:d.id,n:d.name,d:new Date(d.created_at).toLocaleDateString('he-IL'),
+      c:'#2F6FD0',appt:d.appointment_id,path:d.storage_path,up:true,
+      kind:/\.(jpg|jpeg|png|heic|webp)$/i.test(d.name)?'image':'pdf'})),
     hist:[4,6,5,7,5,4,6],pain:null,dchips:[]};
 }
 async function myClient(){
@@ -987,7 +1170,8 @@ async function loadFirmClients(){
   applyBrand();
 }
 async function saveClientRow(){const c=C();if(!c)return;
-  await sb.from('clients').update({name:c.name,phone:c.phone,case_type:c.type,stage:c.stage,description:c.desc}).eq('id',c.id)}
+  await sb.from('clients').update({name:c.name,phone:c.phone,email:c.email||null,notify_email:c.notifyEmail!==false,
+    case_type:c.type,stage:c.stage,description:c.desc}).eq('id',c.id)}
 async function syncSymptoms(){const c=C();if(!c)return;
   await sb.from('symptoms').delete().eq('client_id',c.id);
   const rows=[];Object.keys(c.sel).forEach(k=>(c.sel[k]||[]).forEach(x=>rows.push({client_id:c.id,part_key:k,symptom:x})));
@@ -1016,13 +1200,14 @@ async function refreshMe(){const me=await myClient();
 /* ═══ realtime ═══ */
 function subscribeRT(){
   sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},async()=>{
-    if(DB.role==='lawyer'){await loadFirmClients();
+    if(DB.role==='lawyer'){const before=DB.clients.length;await loadFirmClients();
+      if(DB.clients.length>before)notify('לקוח חדש נרשם','יש תוכנית שממתינה לאישור');
       if($('#s-lawList').classList.contains('on'))drawLawList();
       if($('#s-lawClient').classList.contains('on'))drawLawClient();}
     else if(DB.role==='client'){const me=await myClient();if(!me)return;
       const wasStage=C()&&C().stage;DB.clients=[me];DB.active=me.id;
       if($('#s-wait').classList.contains('on')&&me.stage==='active'){clientHome();toast('התוכנית אושרה!')}
-      else if($('#s-journey').classList.contains('on'))drawPath();}
+      else if($('#s-journey').classList.contains('on')){drawPath();drawNotifBar()}}
   }).subscribe();
 }
 
