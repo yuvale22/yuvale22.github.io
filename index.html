@@ -286,9 +286,15 @@ textarea{resize:none;min-height:76px}input:focus,textarea:focus{border-color:#C9
     <h1 id="planTitle">מומלץ לקבוע 4 תורים</h1><p class="sub" id="planSub"></p></div>
   <div class="scroll pad" style="padding-top:14px" id="planList"></div>
   <div class="foot"><button class="btn" style="--c:#14807A" onclick="approvePlan()">אישור התוכנית ופתיחת המסלול</button>
-    <button class="ghost" onclick="addSpecPrompt()">+ הוספת רופא נוסף</button></div>
+    <button class="ghost" onclick="openSpecPicker()">+ הוספת רופא · חיפוש</button></div>
 </section>
 
+<section class="screen" id="s-lawPath">
+  <div class="jhead"><div><h2 id="lpName"></h2><div style="font-size:12px;color:var(--ink2)" id="lpSub"></div></div>
+    <span class="count" id="lpCount"></span></div>
+  <div class="scroll"><div class="path" id="lawPath"></div></div>
+  <div class="foot"><button class="ghost" onclick="lawGo('client')">חזרה לתיק</button></div>
+</section>
 <section class="screen" id="s-lawClient">
   <div class="top"><h1 id="lcName"></h1><p class="sub" id="lcSub"></p></div>
   <div class="scroll pad" style="padding-top:14px" id="lcBody"></div>
@@ -464,7 +470,9 @@ function clientHome(){const c=C();if(!c)return go('signup');
 function lawGo(v){ if(v==='list'){drawLawList();go('lawList')}
   else if(v==='invite'){go('lawInvite');drawInvite()}
   else if(v==='plan'){drawPlan();go('lawPlan')}
-  else if(v==='client'){drawLawClient();go('lawClient')} }
+  else if(v==='client'){drawLawClient();go('lawClient')}
+  else if(v==='path'){const c=C();$('#lpName').textContent=c.name;$('#lpSub').textContent='המסלול כפי שהלקוח רואה אותו';
+    go('lawPath');requestAnimationFrame(()=>drawPath('#lawPath'))} }
 
 /* ═══ body map ═══ */
 function zCount(z){const c=C();if(!c)return 0;return z.parts.filter(p=>(c.sel[p]||[]).length).length}
@@ -557,21 +565,72 @@ function drawPlan(){const c=C();if(!c)return;
   $('#planTitle').textContent=`מומלץ לקבוע ${c.plan.length} תורים`;
   $('#planSub').textContent=`${c.name} · לפי מה שסומן: ${areas||'—'}`;
   $('#planList').innerHTML=c.plan.map((a,i)=>`
-    <div class="dr${a.reason.some(r=>r.includes('·'))?' new':''}">
+    <div class="dr${a.reason.some(r=>r.includes('·'))?' new':''}" onclick="openPlanItem(${i})">
       <div class="av" style="background:${a.c}">${ic(a.i,20)}</div>
       <div style="flex:1"><div style="font-size:15px;font-weight:700">${a.l}</div>
-        <div class="why">${a.reason.join(' · ')}</div></div>
-      <button style="border:0;background:none;padding:2px" onclick="dropSpec(${i})">${ic('plus',17,'#C9BFB2')}</button>
+        <div class="why">${a.reason.join(' · ')}</div>
+        ${a.note?`<div style="font-size:11.5px;color:#0D5F5A;background:#EAF3F1;border-radius:9px;padding:6px 9px;margin-top:6px">${a.note}</div>`:''}</div>
+      <button style="border:0;background:none;padding:2px" onclick="event.stopPropagation();dropSpec(${i})">${ic('plus',17,'#C9BFB2')}</button>
     </div>`).join('')||'<div style="text-align:center;color:var(--ink3);padding:40px 0">אין המלצות — צריך לסמן סימפטומים קודם</div>';
   $('#planList').querySelectorAll('button').forEach(b=>b.style.transform='rotate(45deg)');
 }
 function dropSpec(i){const c=C();c.plan.splice(i,1);drawPlan()}
-function addSpecPrompt(){const c=C();
-  const miss=Object.keys(SPECS).filter(k=>!c.plan.some(a=>a.spec===k));
-  if(!miss.length)return toast('כל התחומים כבר בתוכנית');
-  const k=miss[0];c.plan.push({id:'x'+Date.now().toString(36),spec:k,l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,
-    reason:['נוסף ידנית על ידי עו״ד'],status:'proposed',date:null,time:'',place:'',doctor:'',
-    bring:SPECS[k].bring,rem:SPECS[k].rem,tasks:[{l:'הגעתי',done:false}]});drawPlan()}
+function addSpec(k){const c=C();
+  if(c.plan.some(a=>a.spec===k))return toast('כבר בתוכנית');
+  c.plan.push({id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),spec:k,
+    l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,reason:['נוסף ידנית על ידי עו״ד'],status:'proposed',
+    date:null,time:'',place:'',doctor:'',note:'',bring:SPECS[k].bring,rem:SPECS[k].rem,
+    tasks:[{l:'הגעתי',done:false}]});
+  drawPlan();renderPicker();toast(SPECS[k].l+' נוסף')}
+function openSpecPicker(){
+  S.openPart=null;S.openStep=null;
+  $('#shTitle').textContent='הוספת רופא';$('#shSub').textContent='חיפוש לפי תחום';
+  $('#shIc').style.background='#14807A';$('#shIc').innerHTML=ic('plus',24,'#fff');
+  $('#shBody').innerHTML='<input id="specQ" placeholder="חיפוש…" autocomplete="off"><div id="specList"></div>';
+  $('#shFoot').innerHTML='<button class="btn" style="--c:#14807A;border-radius:19px;padding:15px" onclick="closeSheet()">סיימתי</button>';
+  $('#specQ').oninput=renderPicker;renderPicker();openSheet();setTimeout(()=>$('#specQ').focus(),300)}
+function renderPicker(){
+  const box=$('#specList');if(!box)return;
+  const c=C(),q=(($('#specQ')||{}).value||'').trim();
+  const list=Object.keys(SPECS).filter(k=>!q||SPECS[k].l.includes(q));
+  box.innerHTML=list.map(k=>{const inPlan=c.plan.some(a=>a.spec===k);
+    return `<div class="dr" style="${inPlan?'opacity:.45':''}" onclick="${inPlan?'':"addSpec('"+k+"')"}">
+      <div class="av" style="background:${SPECS[k].c}">${ic(SPECS[k].i,20)}</div>
+      <div style="flex:1"><div style="font-size:15px;font-weight:700">${SPECS[k].l}</div>
+        <div class="why">${inPlan?'כבר בתוכנית':'לחיצה כדי להוסיף'}</div></div>
+      ${inPlan?ic('check',18,'#14807A'):ic('plus',18,'#C9BFB2')}</div>`}).join('')
+    ||'<div style="text-align:center;color:var(--ink3);padding:30px 0">לא נמצא תחום</div>'}
+function openPlanItem(i){
+  const c=C(),a=c.plan[i];if(!a)return;
+  S.openPart=null;S.openStep=a;S.planIdx=i;
+  $('#shTitle').textContent=a.l;$('#shSub').textContent='הערה שתופיע ללקוח בשלב הזה';
+  $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
+  $('#shBody').innerHTML=`
+    <div style="background:${TINT[a.c]};border-radius:16px;padding:13px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:${DEEP[a.c]};margin-bottom:5px">למה נכנס לתוכנית</div>
+      <div style="font-size:12.5px;color:${DEEP[a.c]};line-height:1.7">${a.reason.join(' · ')}</div></div>
+    ${a.date?`<div class="filerow" style="background:var(--soft)">${ic('cal',19,a.c)}
+      <div style="flex:1;font-size:13.5px">${fmtDate(a.date)}${a.time?' · '+a.time:''}${a.doctor?' · '+a.doctor:''}</div></div>`:''}
+    <div style="font-size:12.5px;font-weight:700;margin-bottom:7px">הערה ללקוח</div>
+    <textarea id="pNote" placeholder="למשל: לבקש הפניה ל-MRI כבר בביקור הזה">${a.note||''}</textarea>
+    <div style="font-size:11.5px;color:var(--ink3);line-height:1.6">ההערה תוצג בכרטיס ההכנה של השלב, מעל רשימת מה לקחת.</div>`;
+  $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
+    <button class="btn" style="--c:${a.c};border-radius:16px;padding:14px;font-size:15px" onclick="savePlanNote()">שמירה</button>
+    <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8" onclick="removePlanItem()">הסרה</button></div>`;
+  openSheet()}
+async function savePlanNote(){
+  const a=S.openStep;a.note=$('#pNote').value.trim();
+  closeSheet();
+  if($('#s-lawPlan').classList.contains('on'))drawPlan();
+  if($('#s-lawClient').classList.contains('on'))drawLawClient();
+  if($('#s-lawPath').classList.contains('on'))drawPath('#lawPath');
+  if(a.id&&a.id.length>20)await saveApptRow(a);
+  toast('ההערה נשמרה')}
+function removePlanItem(){
+  const c=C();c.plan.splice(S.planIdx,1);closeSheet();
+  if($('#s-lawPlan').classList.contains('on'))drawPlan();
+  if($('#s-lawClient').classList.contains('on'))drawLawClient();
+  toast('הוסר')}
 async function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
   c.plan.forEach(a=>a.status='approved');c.stage='active';
   await savePlan();await saveClientRow();
@@ -609,9 +668,10 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
       <div style="display:flex;gap:8px">
         <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
         <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="lawReturn('${a.id}')">החזרה</button></div></div>`).join('');
+  h+=`<button class="btn2" style="margin-bottom:14px" onclick="lawGo('path')">המסלול של הלקוח</button>`;
   h+=`<div style="font-size:12px;font-weight:700;color:var(--ink2);margin:16px 0 8px">התוכנית</div>`;
-  h+=c.plan.map(a=>{const d=daysTo(a.date);
-    return `<div class="crow" style="cursor:default">
+  h+=c.plan.map((a,i)=>{const d=daysTo(a.date);
+    return `<div class="crow" onclick="openPlanItem(${i})">
       <div class="av" style="background:${TINT[a.c]};color:${DEEP[a.c]}">${ic(a.i,18)}</div>
       <div style="flex:1"><div style="font-size:14.5px;font-weight:700">${a.l}</div>
         <div style="font-size:12px;color:var(--ink2);margin-top:2px">${a.date?fmtDate(a.date)+(d>=0?` · בעוד ${d} ימים`:' · עבר'):'עוד לא נקבע'}</div></div>
@@ -716,11 +776,11 @@ function stepState(a){
   if(!a.date)return'unset';
   const all=C().plan.filter(x=>x.date&&x.status!=='done').sort((x,y)=>new Date(x.date)-new Date(y.date));
   return all[0]&&all[0].id===a.id?'current':'next'}
-function drawPath(){const c=C();if(!c)return;
+function drawPath(sel){sel=sel||'#path';const c=C();if(!c)return;
   const steps=orderedSteps();
   const done=c.plan.filter(a=>a.status==='done').length;
-  $('#jCount').textContent=`${done} מתוך ${c.plan.length}`;
-  const XS=[.70,.33,.68,.30,.66,.34,.69,.31],GAP=168,TOP=78,W=$('#path').clientWidth||360;
+  const cnt=$(sel==='#path'?'#jCount':'#lpCount');if(cnt)cnt.textContent=`${done} מתוך ${c.plan.length}`;
+  const XS=[.70,.33,.68,.30,.66,.34,.69,.31],GAP=168,TOP=78,W=$(sel).clientWidth||360;
   const pts=steps.map((s,i)=>({x:XS[i%XS.length]*W,y:TOP+i*GAP}));
   const H=TOP+(steps.length-1)*GAP+120;
   let d='';pts.forEach((p,i)=>{if(!i){d=`M ${p.x} ${p.y}`;return}const q=pts[i-1];
@@ -742,12 +802,13 @@ function drawPath(){const c=C();if(!c)return;
       <div class="nlab${lk?' lk':''}${cur?' cur':''}">${s.l}</div>
       ${s.date?`<div class="nsub">${fmtDate(s.date)}${s.time?' · '+s.time:''}</div>`:(s.mile?'':'<div class="nsub">עוד לא נקבע</div>')}
     </div>`});
-  const el=$('#path');el.style.height=H+'px';el.innerHTML=h}
+  const el=$(sel);el.style.height=H+'px';el.innerHTML=h}
 
 /* ═══ step sheet ═══ */
 function openStep(id){const c=C();
   if(MILE.some(m=>m.id===id))return toast('ייפתח כשכל התורים יושלמו');
-  const a=c.plan.find(x=>x.id===id);if(!a)return;
+  const idx=c.plan.findIndex(x=>x.id===id);const a=c.plan[idx];if(!a)return;
+  if(DB.role==='lawyer')return openPlanItem(idx);
   S.openStep=a;S.openPart=null;
   $('#shTitle').textContent=a.l;$('#shSub').textContent=a.doctor?`${a.doctor} · ${a.place||''}`:'עוד לא נקבע תור';
   $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
@@ -780,6 +841,9 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
     <div class="filerow" style="background:var(--soft)">${ic('cal',20,a.c)}<div style="flex:1">
       <div style="font-size:14px;font-weight:700">${fmtDate(a.date)}${a.time?' · '+a.time:''}</div>
       <div style="font-size:12px;color:var(--ink2)">${dd>0?'בעוד '+dd+' ימים':'היום'}${a.place?' · '+a.place:''}</div></div></div>
+    ${a.note?`<div style="background:#EAF3F1;border-radius:16px;padding:13px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;color:#0D5F5A;margin-bottom:5px">הערה מעורך הדין</div>
+      <div style="font-size:13px;color:#0D5F5A;line-height:1.65">${a.note}</div></div>`:''}
     <div class="prep" style="background:${TINT[a.c]}">
       <h4 style="color:${DEEP[a.c]}">לקחת איתך</h4>
       <div class="bring">${a.bring.map(x=>`<span style="color:${DEEP[a.c]}">${x}</span>`).join('')}</div>
