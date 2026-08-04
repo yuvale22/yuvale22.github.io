@@ -296,68 +296,68 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
         <circle cx="25" cy="36" r="13" stroke="#fff" stroke-opacity=".5" stroke-width="7"/>
         <circle cx="41" cy="26" r="13" stroke="#fff" stroke-width="7"/></svg></div>
     <svg class="wm" viewBox="0 0 264.1 100.1" fill="currentColor" aria-label="לצידך"><path d="M1016 -385H745V721Q745 876 678.5 937.5Q612 999 455 999H39V1241H471Q766 1241 891.0 1120.5Q1016 1000 1016 719Z" transform="translate(0.00,81.30) scale(0.04883,-0.04883)"/><path d="M983 0H713V999H41V1241H1137V999H983Z" transform="translate(57.62,81.30) scale(0.04883,-0.04883)"/><path d="M174 1241H444V582H174Z" transform="translate(115.82,81.30) scale(0.04883,-0.04883)"/><path d="M1139 0H90V242H762L10 1241H334L713 727Q779 759 808.5 823.0Q838 887 850 1010L872 1241H1149L1128 1008Q1114 868 1083.5 791.5Q1053 715 995.0 662.5Q937 610 836 569L1139 174Z" transform="translate(146.00,81.30) scale(0.04883,-0.04883)"/><path d="M193 231Q481 325 641.0 480.0Q801 635 801 821Q801 999 578 999H70V1665H346V1241H623Q1073 1241 1073 848Q1073 538 840.0 301.0Q607 64 193 -59Z" transform="translate(206.88,81.30) scale(0.04883,-0.04883)"/></svg>
-    <h1 id="lTitle" style="margin-top:20px">כניסה עורך דין</h1>
-    <p id="lSubt">מייל וסיסמה. זהו.</p>
+    <h1 id="lTitle" style="margin-top:20px">כניסה למערכת</h1>
+    <p id="lSubt">ליווי לקוחות בתיקי נזקי גוף</p>
   </div>
   <div class="pad">
-    <input id="lEmail" type="email" placeholder="מייל" inputmode="email" autocomplete="username">
+    <input id="lEmail" type="email" placeholder="כתובת דוא״ל" inputmode="email" autocomplete="username">
     <input id="lPass" type="password" placeholder="סיסמה" autocomplete="current-password">
     <div id="lExtra" style="display:none">
-      <input id="lName" placeholder="השם שלך">
+      <input id="lName" placeholder="שם מלא">
       <input id="lFirm" placeholder="שם המשרד">
     </div>
     <div id="lMsg" style="display:none;background:#FDF0ED;border-radius:14px;padding:12px;font-size:13px;color:#C24A34;line-height:1.6"></div>
   </div>
   <div class="foot">
     <button class="btn" style="--c:#14807A" id="lMain" onclick="lawLogin()">כניסה</button>
-    <button class="ghost" id="lSwitch" onclick="lawToggle()">אין לי חשבון — הרשמה</button></div>
+    <button class="ghost" id="lSwitch" onclick="lawToggle()">פתיחת חשבון חדש</button></div>
 </section>
 
 <!-- ═══ LAWYER ═══ -->
 <section class="screen" id="s-lawList">
-  <div class="top"><h1>הלקוחות שלי</h1><p class="sub">מי ממתין לך, ומי תקוע.</p></div>
+  <div class="top"><h1>התיקים שלי</h1><p class="sub">מסודרים לפי דחיפות. תיקים הממתינים לטיפולך מוצגים ראשונים.</p></div>
   <div class="scroll pad" style="padding-top:16px">
     <div class="srch">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="lawQ" placeholder="חיפוש לפי שם" oninput="drawLawList()" autocomplete="off">
+      <input id="lawQ" placeholder="חיפוש לפי שם הלקוח" oninput="drawLawList()" autocomplete="off">
     </div>
     <div class="seg">
       <button id="segT" class="on" onclick="lawView('triage')">לפי דחיפות</button>
-      <button id="segA" onclick="lawView('all')">כל הלקוחות</button>
+      <button id="segA" onclick="lawView('all')">כל התיקים</button>
     </div>
     <div id="lawList"></div>
   </div>
-  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawGo('invite')">הזמנת לקוח חדש</button></div>
+  <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawGo('invite')">צירוף לקוח חדש</button></div>
 </section>
 
 <section class="screen" id="s-lawInvite">
-  <div class="top"><h1>הזמנת לקוח</h1><p class="sub">אותו קוד לכל הלקוחות. הלקוח נרשם בעצמו — לך אין מה למלא.</p></div>
+  <div class="top"><h1>צירוף לקוח</h1><p class="sub">קוד קבוע לכל לקוחות המשרד. הלקוח משלים את הרישום בעצמו.</p></div>
   <div class="scroll pad" style="padding-top:16px">
     <div class="qrbox"><div id="qr"></div>
-      <div style="font-size:14.5px;font-weight:700;margin-bottom:8px">לסריקה מהטלפון של הלקוח</div>
+      <div style="font-size:14.5px;font-weight:700;margin-bottom:8px">לסריקה ממכשיר הלקוח</div>
       <div class="linkbox" id="linkTxt"></div></div>
     <button class="btn" style="--c:#25D366;margin-bottom:10px" onclick="shareWA()">שליחה בוואטסאפ</button>
     <button class="btn2" onclick="copyLink()">העתקת הקישור</button>
     <div style="background:var(--soft);border-radius:16px;padding:13px;margin-top:14px;font-size:12.5px;color:var(--ink2);line-height:1.65">
       אחרי ההרשמה ומילוי הסימפטומים, הלקוח יופיע ברשימה שלך עם התוכנית מוכנה לאישור.</div>
   </div>
-  <div class="foot"><button class="ghost" onclick="lawGo('list')">חזרה לרשימה</button></div>
+  <div class="foot"><button class="ghost" onclick="lawGo('list')">חזרה לרשימת התיקים</button></div>
 </section>
 
 <section class="screen" id="s-lawPlan">
   <div class="top">
-    <div style="background:#EEF4F3;border-radius:99px;padding:6px 13px;font-size:11.5px;font-weight:600;color:#0D5F5A;width:fit-content;margin-bottom:12px">ממלאים יחד עם הלקוח</div>
+    <div style="background:#EEF4F3;border-radius:99px;padding:6px 13px;font-size:11.5px;font-weight:600;color:#0D5F5A;width:fit-content;margin-bottom:12px">מומלץ להשלים במעמד הפגישה עם הלקוח</div>
     <h1 id="planTitle">מומלץ לקבוע 4 תורים</h1><p class="sub" id="planSub"></p></div>
   <div class="scroll pad" style="padding-top:14px" id="planList"></div>
-  <div class="foot"><button class="btn" style="--c:#14807A" onclick="approvePlan()">אישור התוכנית ופתיחת המסלול</button>
-    <button class="ghost" onclick="openSpecPicker()">+ הוספת רופא · חיפוש</button></div>
+  <div class="foot"><button class="btn" style="--c:#14807A" onclick="approvePlan()">אישור התוכנית ופתיחת המסלול ללקוח</button>
+    <button class="ghost" onclick="openSpecPicker()">הוספת מומחה נוסף</button></div>
 </section>
 
 <section class="screen" id="s-lawPath">
   <div class="jhead"><div><h2 id="lpName"></h2><div style="font-size:12px;color:var(--ink2)" id="lpSub"></div></div>
     <span class="count" id="lpCount"></span></div>
   <div class="scroll"><div class="path" id="lawPath"></div></div>
-  <div class="foot"><button class="ghost" onclick="lawGo('client')">חזרה לתיק</button></div>
+  <div class="foot"><button class="ghost" onclick="lawGo('client')">חזרה לכרטיס התיק</button></div>
 </section>
 <section class="screen" id="s-lawClient">
   <div class="top"><h1 id="lcName"></h1><p class="sub" id="lcSub"></p></div>
@@ -669,7 +669,7 @@ const STATUSES=[['approved','לא נקבע'],['scheduled','נקבע'],['pending'
 function openPlanItem(i){
   const c=C(),a=c.plan[i];if(!a)return;
   S.openPart=null;S.openStep=a;S.planIdx=i;
-  $('#shTitle').textContent=a.l;$('#shSub').textContent='עריכת השלב';
+  $('#shTitle').textContent=a.l;$('#shSub').textContent='עריכת פרטי הבדיקה';
   $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
   const lab=t=>`<div style="font-size:12.5px;font-weight:700;margin:14px 0 6px">${t}</div>`;
   $('#shBody').innerHTML=`
@@ -687,7 +687,7 @@ function openPlanItem(i){
         background:${a.status===k?a.c:'#fff'};color:${a.status===k?'#fff':'#5E564E'};
         border:1.5px solid ${a.status===k?a.c:'var(--chip)'}">${t}</span>`).join('')}</div>
     ${(a.func||[]).some(Boolean)?`<div style="background:var(--soft);border-radius:14px;padding:13px;margin-top:14px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:8px">מה הלקוח כתב לקראת הביקור</div>
+      <div style="font-size:12px;font-weight:700;margin-bottom:8px">דיווח תפקודי מהלקוח</div>
       ${FQ.map((q,i)=>(a.func||[])[i]?`<div style="margin-bottom:9px">
         <div style="font-size:11.5px;color:var(--ink3)">${q}</div>
         <div style="font-size:13px;line-height:1.6;margin-top:2px">${a.func[i]}</div></div>`:'').join('')}
@@ -723,7 +723,7 @@ async function savePlanItem(){
   toast('נשמר')}
 async function removePlanItem(){
   const c=C(),a=c.plan[S.planIdx];
-  if(!confirm('למחוק את '+a.l+' מהתוכנית?'))return;
+  if(!confirm('להסיר את '+a.l+' מתוכנית הבדיקות?'))return;
   c.plan.splice(S.planIdx,1);closeSheet();refreshLawViews();
   if(a.id&&a.id.length>20)await sb.from('appointments').delete().eq('id',a.id);
   toast('נמחק')}
@@ -731,7 +731,7 @@ async function removePlanItem(){
 /* ── client details: edit / delete ── */
 function openClientEdit(){
   const c=C();S.openPart=null;S.openStep=null;
-  $('#shTitle').textContent='פרטי הלקוח';$('#shSub').textContent='עריכה או מחיקה';
+  $('#shTitle').textContent='פרטי התיק';$('#shSub').textContent='עדכון פרטים או סגירת התיק';
   $('#shIc').style.background='var(--brand)';$('#shIc').innerHTML=ic('star',23,'#fff');
   $('#shBody').innerHTML=`
     <input id="cName" placeholder="שם מלא" value="${c.name||''}">
@@ -740,7 +740,7 @@ function openClientEdit(){
     <select id="cType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
       ${['תאונת דרכים','תאונת עבודה','נזקי גוף אחר'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select>
     ${c.desc?`<div style="background:var(--soft);border-radius:14px;padding:12px;font-size:12.5px;color:var(--ink2);line-height:1.7;margin-top:6px">
-      <b style="color:var(--ink)">מה שהלקוח כתב:</b><br>${c.desc}</div>`:''}`;
+      <b style="color:var(--ink)">תיאור האירוע מפי הלקוח:</b><br>${c.desc}</div>`:''}`;
   $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
     <button class="btn" style="--c:#14807A;border-radius:16px;padding:14px;font-size:15px" onclick="saveClientEdit()">שמירה</button>
     <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8;flex:0 0 34%" onclick="deleteClient()">מחיקה</button></div>`;
@@ -751,7 +751,7 @@ async function saveClientEdit(){
   closeSheet();drawLawClient();drawLawList();await saveClientRow();toast('נשמר')}
 async function deleteClient(){
   const c=C();
-  if(!confirm('למחוק את התיק של '+c.name+' לצמיתות? כל התורים והמסמכים יימחקו.'))return;
+  if(!confirm('למחוק לצמיתות את התיק של '+c.name+'? כל התורים והמסמכים יימחקו.'))return;
   await sb.from('clients').delete().eq('id',c.id);
   DB.clients=DB.clients.filter(x=>x.id!==c.id);DB.active=null;
   closeSheet();lawGo('list');toast('התיק נמחק')}
@@ -770,30 +770,30 @@ function statusOf(c){
   return{t:'הכל בסדר',b:'#DDEFE2',f:'#256B3A'}}
 let LAWVIEW='triage';
 const BUCKETS=[
-  ['pend','ממתין לך','#FBE0DA','#C24A34'],
-  ['act' ,'דורש טיפול','#FBEBD1','#8A5B12'],
+  ['pend','ממתין לטיפולך','#FBE0DA','#C24A34'],
+  ['act' ,'טעון השלמה','#FBEBD1','#8A5B12'],
   ['soon','תורים קרובים','#EAF3F1','#0D5F5A'],
-  ['ok'  ,'מתקדם','#F1EFEC','#7C7A78']];
+  ['ok'  ,'מתנהל כסדרו','#F1EFEC','#7C7A78']];
 
 function triage(c){
   const P=c.plan||[], D=c.docs||[];
-  if(c.stage==='waiting'||!P.length) return {k:'pend',r:'ממתין להרכבת תוכנית'};
+  if(c.stage==='waiting'||!P.length) return {k:'pend',r:'טרם נקבעה תוכנית בדיקות'};
   const pend=P.filter(a=>a.status==='pending').length;
-  if(pend) return {k:'pend',r:pend===1?'מסמך ממתין לאישורך':pend+' מסמכים ממתינים לאישורך'};
+  if(pend) return {k:'pend',r:pend===1?'מסמך אחד ממתין לאישורך':pend+' מסמכים ממתינים לאישורך'};
   const ret  =P.filter(a=>a.status==='returned').length;
   const late =P.filter(a=>a.status==='scheduled'&&a.date&&daysTo(a.date)<0&&!D.some(d=>d.appt===a.id)).length;
   const unset=P.filter(a=>!a.date).length;
   if(ret||late||unset){
     const b=[];
-    if(late) b.push(late+' תורים עברו בלי מסמך');
+    if(late) b.push(late+' תורים חלפו ללא תיעוד');
     if(ret)  b.push(ret+' הוחזרו להשלמה');
-    if(unset)b.push(unset+' תורים לא נקבעו');
+    if(unset)b.push(unset+' תורים טרם נקבעו');
     return {k:'act',r:b.join(' · ')}}
   const soon=P.filter(a=>a.status==='scheduled'&&a.date&&daysTo(a.date)>=0&&daysTo(a.date)<=7)
               .sort((a,b)=>a.date<b.date?-1:1);
   if(soon.length){const d=daysTo(soon[0].date);
     return {k:'soon',r:soon[0].l+' · '+(d===0?'היום':d===1?'מחר':'בעוד '+d+' ימים')}}
-  return {k:'ok',r:P.length+' תורים · הכל בזמן'}}
+  return {k:'ok',r:P.length+' תורים · במועדם'}}
 
 function lawView(v){LAWVIEW=v;
   $('#segT').classList.toggle('on',v==='triage');
@@ -817,7 +817,7 @@ function drawLawList(){
   const box=$('#lawList');if(!box)return;
   const q=(($('#lawQ')||{}).value||'').trim();
   const pool=DB.clients.filter(c=>!q||(c.name||'').includes(q));
-  if(!pool.length){box.innerHTML=`<div class="empty">${q?'לא נמצא לקוח בשם הזה':'עדיין אין לקוחות.<br>שלח את הקישור ללקוח הראשון.'}</div>`;return}
+  if(!pool.length){box.innerHTML=`<div class="empty">${q?'לא נמצא תיק תואם':'טרם נפתחו תיקים.<br>שליחת הקישור ללקוח תפתח את התיק הראשון.'}</div>`;return}
 
   const star=pool.filter(c=>c.star), rest=pool.filter(c=>!c.star);
   const head=(t,n,bg,fg)=>`<div class="bhead"><b style="color:${fg}">${t}</b><i style="background:${bg};color:${fg}">${n}</i></div>`;
@@ -858,12 +858,12 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
         <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
         <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="lawReturn('${a.id}')">החזרה</button></div></div>`).join('');
   h+=`<div style="display:flex;gap:8px;margin-bottom:14px">
-    <button class="btn2" style="flex:1" onclick="lawGo('path')">המסלול</button>
-    <button class="btn2" style="flex:1" onclick="openClientEdit()">פרטי הלקוח</button></div>`;
+    <button class="btn2" style="flex:1" onclick="lawGo('path')">מסלול הבדיקות</button>
+    <button class="btn2" style="flex:1" onclick="openClientEdit()">פרטי התיק</button></div>`;
   h+=`<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px">
     <span style="font-size:12px;font-weight:700;color:var(--ink2)">התוכנית</span>
     <button style="border:0;background:none;font-size:12.5px;font-weight:700;color:var(--brand);padding:0"
-      onclick="openSpecPicker()">+ הוספת רופא</button></div>`;
+      onclick="openSpecPicker()">הוספת מומחה</button></div>`;
   h+=c.plan.map((a,i)=>{const d=daysTo(a.date);
     return `<div class="crow" onclick="openPlanItem(${i})">
       <div class="av" style="background:${TINT[a.c]};color:${DEEP[a.c]}">${ic(a.i,18)}</div>
@@ -921,11 +921,11 @@ let signupMode=false;
 function lawToggle(){
   signupMode=!signupMode;lawErr('');
   $('#lExtra').style.display=signupMode?'block':'none';
-  $('#lTitle').textContent=signupMode?'פתיחת חשבון':'כניסה עורך דין';
-  $('#lSubt').textContent=signupMode?'לצורך הרשמה יש למלא:':'מייל וסיסמה. זהו.';
+  $('#lTitle').textContent=signupMode?'פתיחת חשבון למשרד':'כניסה למערכת';
+  $('#lSubt').textContent=signupMode?'לצורך הרשמה יש למלא:':'ליווי לקוחות בתיקי נזקי גוף';
   $('#lMain').textContent=signupMode?'יצירת חשבון':'כניסה';
   $('#lMain').setAttribute('onclick',signupMode?'lawSignup()':'lawLogin()');
-  $('#lSwitch').textContent=signupMode?'יש לי כבר חשבון — כניסה':'אין לי חשבון — הרשמה';
+  $('#lSwitch').textContent=signupMode?'כניסה לחשבון קיים':'פתיחת חשבון חדש';
 }
 async function lawLogin(){
   const e=$('#lEmail').value.trim(),p=$('#lPass').value;
@@ -1351,7 +1351,9 @@ async function boot(){
     if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawBody();drawPickFoot();clientHome();subscribeRT();return}
     DB.role='client';return go('signup');
   }
-  if(!session)return go('lawLogin');
+  if(!session){go('lawLogin');
+    if(location.hash.indexOf('signup')>-1&&!signupMode)lawToggle();
+    return}
 
   const {data:law}=await sb.from('lawyers').select('*').eq('id',session.user.id).maybeSingle();
   if(law){DB.role='lawyer';DB.firm=law.firm_id;
