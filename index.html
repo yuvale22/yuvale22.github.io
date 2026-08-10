@@ -149,6 +149,20 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .scale button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--chip);background:#fff;font-size:14px;font-weight:600;color:var(--ink2);transition:.16s}
 .scale button.on{color:#fff;border-color:transparent}
 .hist{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:6px}.hist i{flex:1;border-radius:5px 5px 0 0;background:#E8654F;opacity:.75;display:block}
+/* ═══ ארכיון מסמכים בתיק ═══ */
+.docGrp{background:#fff;border-radius:var(--r2);padding:15px;margin-bottom:11px;box-shadow:var(--sh)}
+.docGrp>.gh{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+.docGrp .gav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;color:#fff;flex:none}
+.docGrp .gn{font-size:14.5px;font-weight:700}
+.docGrp .gs{font-size:11.5px;color:var(--ink2);margin-top:1px}
+.docGrp .cnt{margin-inline-start:auto;font-size:11.5px;font-weight:700;color:var(--ink2);
+  background:var(--soft);border-radius:99px;padding:3px 10px}
+.docRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--border);cursor:pointer}
+.docRow:first-of-type{border-top:0}
+.docRow .dn{flex:1;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.docRow .dd{font-size:11px;color:var(--ink3);margin-top:1px}
+.docRow .go{font-size:11.5px;color:var(--brand);font-weight:700;flex:none}
 /* ═══ סורק מסמכים ═══ */
 .scan{position:fixed;inset:0;z-index:60;background:#0B0B0D;display:none;flex-direction:column}
 .scan.on{display:flex}
@@ -189,6 +203,13 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .revBar .rre{background:rgba(255,255,255,.13);color:#fff}
 .revBar .rmo{background:rgba(255,255,255,.92);color:#17171A}
 .revBar .rok{background:#14807A;color:#fff}
+.revNav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+  border:0;background:rgba(255,255,255,.16);backdrop-filter:blur(6px);color:#fff;font-size:22px;line-height:1;z-index:4}
+.revNav:disabled{opacity:.22}
+.revNav.prev{inset-inline-end:10px}.revNav.next{inset-inline-start:10px}
+.revDots{display:flex;gap:6px;justify-content:center;padding:10px 0 2px}
+.revDots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.28);transition:.2s}
+.revDots i.on{background:#2FBFA8;width:20px;border-radius:99px}
 /* lawyer list: search, tabs, buckets, star */
 .srch{position:relative;margin-bottom:12px}
 .srch input{margin:0;padding-inline-start:40px}
@@ -437,13 +458,18 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   </div>
   <div class="scanRev" id="scanRev">
     <div class="revTop"><b id="revTitle">עמוד 1</b><span id="revSub">בדוק שהמסמך קריא</span></div>
-    <div class="revImg"><img id="revImg" alt=""></div>
+    <div class="revImg" id="revStage">
+      <img id="revImg" alt="">
+      <button class="revNav prev" id="revPrev" onclick="revStep(-1)">›</button>
+      <button class="revNav next" id="revNext" onclick="revStep(1)">‹</button>
+    </div>
+    <div class="revDots" id="revDots"></div>
     <div class="revBar" id="revBar"></div>
   </div>
   <div class="scanBar">
     <button class="sbtn" onclick="closeScan()">ביטול</button>
     <button class="shutter" id="scanShot" disabled onclick="grabPage()"></button>
-    <button class="sbtn" id="scanDone" disabled onclick="finishScan()">סיום</button>
+    <button class="sbtn" id="scanDone" disabled onclick="reviewAll()">בדיקה</button>
   </div>
 </div>
 
@@ -981,7 +1007,118 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
         <div style="font-size:12px;color:var(--ink2);margin-top:2px">${a.date?fmtDate(a.date)+(d>=0?` · בעוד ${d} ימים`:' · עבר'):'עוד לא נקבע'}</div></div>
       <span class="tagp" style="background:${a.status==='done'?'#DDEFE2':a.status==='pending'?'#FDF3E2':'#F0EDE8'};color:${a.status==='done'?'#256B3A':a.status==='pending'?'#8A5B12':'#8C837A'}">
         ${a.status==='done'?'הושלם':a.status==='pending'?'ממתין':a.date?'נקבע':'לא נקבע'}</span></div>`}).join('');
+  h+=docArchive(c);
   $('#lcBody').innerHTML=h}
+
+/* ── כל מסמכי התיק, מקובצים לפי הביקור שאליו שייכים ── */
+function docArchive(c){
+  const docs=c.docs||[];
+  let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin:26px 0 9px">
+    <span style="font-size:12px;font-weight:700;color:var(--ink2)">מסמכי התיק</span>
+    <span style="font-size:11.5px;color:var(--ink3)">${docs.length} מסמכים</span></div>`;
+  if(docs.some(d=>d.path))
+    h+=`<button class="btn2" id="zipBtn" style="margin-bottom:12px;display:flex;align-items:center;
+      justify-content:center;gap:8px" onclick="downloadZip()">
+      ${ic('file',18,'#17171A')}הורדת כל התיק · ZIP</button>`;
+  if(!docs.length)
+    return h+`<div class="empty" style="padding:26px 20px">טרם התקבלו מסמכים בתיק זה.</div>`;
+
+  // סדר הקבוצות: לפי תאריך הביקור, החדש למעלה. ללא תאריך — בסוף.
+  const groups=(c.plan||[]).slice().sort((x,y)=>{
+    if(!x.date&&!y.date)return 0; if(!x.date)return 1; if(!y.date)return -1;
+    return x.date<y.date?1:-1});
+
+  let shown=0;
+  groups.forEach(a=>{
+    const mine=docs.filter(d=>d.appt===a.id);
+    if(!mine.length)return; shown+=mine.length;
+    h+=`<div class="docGrp">
+      <div class="gh">
+        <div class="gav" style="background:${a.c}">${ic(a.i,18,'#fff')}</div>
+        <div><div class="gn">${a.l}${a.doctor?' · '+a.doctor:''}</div>
+          <div class="gs">${a.date?fmtDate(a.date):'ללא תאריך'}${a.place?' · '+a.place:''}</div></div>
+        <span class="cnt">${mine.length}</span></div>
+      ${mine.map(d=>docRow(d)).join('')}</div>`});
+
+  const loose=docs.filter(d=>!groups.some(a=>a.id===d.appt));
+  if(loose.length){
+    shown+=loose.length;
+    h+=`<div class="docGrp">
+      <div class="gh">
+        <div class="gav" style="background:#8C837A">${ic('file',18,'#fff')}</div>
+        <div><div class="gn">מסמכים כלליים</div>
+          <div class="gs">לא משויכים לביקור</div></div>
+        <span class="cnt">${loose.length}</span></div>
+      ${loose.map(d=>docRow(d)).join('')}</div>`}
+  return h}
+
+/* ── הורדת כל התיק כקובץ ZIP, מסודר בתיקיות לפי ביקור ── */
+function safeName(t){return String(t||'').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim().slice(0,80)}
+
+async function downloadZip(){
+  const c=C(),btn=$('#zipBtn');if(!c||!btn)return;
+  const docs=(c.docs||[]).filter(d=>d.path);
+  if(!docs.length)return toast('אין מסמכים להורדה');
+  const set=t=>{btn.textContent=t};
+  btn.disabled=true;
+  try{
+    set('מכין…');
+    await loadOnce('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+    if(!window.JSZip)throw new Error('jszip');
+
+    // קישורים חתומים לכל הקבצים בבת אחת
+    const {data:signed,error}=await sb.storage.from('docs')
+      .createSignedUrls(docs.map(d=>d.path),600);
+    if(error)throw error;
+    const urlOf={};(signed||[]).forEach(x=>{if(x.signedUrl)urlOf[x.path]=x.signedUrl});
+
+    const zip=new JSZip();
+    const plan=c.plan||[];
+    let done=0,failed=0;
+    for(const d of docs){
+      const u=urlOf[d.path];
+      if(!u){failed++;continue}
+      try{
+        const r=await fetch(u);
+        if(!r.ok)throw new Error(r.status);
+        const blob=await r.blob();
+        const a=plan.find(x=>x.id===d.appt);
+        const idx=a?plan.indexOf(a)+1:99;
+        const folder = a
+          ? String(idx).padStart(2,'0')+' - '+safeName(a.l)
+            +(a.doctor?' - '+safeName(a.doctor):'')
+            +(a.date?' - '+fmtDate(a.date):'')
+          : 'כללי';
+        zip.folder(folder).file(safeName(d.n)||('doc_'+(done+1)),blob);
+      }catch(e){failed++}
+      done++;
+      set('מוריד… '+done+'/'+docs.length);
+    }
+    if(!Object.keys(zip.files).length)throw new Error('empty');
+
+    set('דוחס…');
+    const out=await zip.generateAsync({type:'blob',compression:'DEFLATE',
+      compressionOptions:{level:6}},m=>{set('דוחס… '+Math.round(m.percent)+'%')});
+
+    const url=URL.createObjectURL(out),link=document.createElement('a');
+    link.href=url;
+    link.download=safeName(c.name)+' - תיק רפואי - '+new Date().toLocaleDateString('he-IL').replace(/\./g,'-')+'.zip';
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast(failed?('הורד · '+failed+' קבצים נכשלו'):'התיק הורד');
+  }catch(e){
+    toast('ההורדה נכשלה — נסה שוב');
+  }
+  btn.disabled=false;
+  btn.innerHTML=ic('file',18,'#17171A')+'הורדת כל התיק · ZIP'}
+
+function docRow(d){
+  return `<div class="docRow" ${d.path?`onclick="openDoc('${d.path}')"`:''}>
+    ${d.url&&d.kind==='image'
+      ? `<img class="thumb" style="width:38px;height:38px" src="${d.url}">`
+      : `<div class="thumb" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--ink2)">${ic('file',18)}</div>`}
+    <div style="flex:1;min-width:0"><div class="dn">${d.n}</div><div class="dd">${d.d||''}</div></div>
+    ${d.path?'<span class="go">פתיחה</span>':''}</div>`}
 async function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';
   drawLawClient();await saveApptRow(a);toast('אושר · הלקוח עודכן')}
 async function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='returned';
@@ -1383,24 +1520,50 @@ async function grabPage(){
     drawScanPages();
     $('#scanDone').disabled=false;
     if(navigator.vibrate)navigator.vibrate(30);
-    showReview(SCAN.pages.length-1,true);
+    showReview(SCAN.pages.length-1,'fresh');
   }catch(e){toast('הצילום נכשל, נסה שוב')}
   SCAN.last=null;
   setTimeout(()=>{SCAN.busy=false},1200)}
 
-function showReview(i,fresh){
+function showReview(i,mode){
+  const n=SCAN.pages.length;
+  if(!n){closeReview();return}
+  i=Math.max(0,Math.min(i,n-1));
   const pg=SCAN.pages[i];if(!pg)return;
-  SCAN.paused=true;SCAN.revIdx=i;
+  SCAN.paused=true;SCAN.revIdx=i;SCAN.revMode=mode||'browse';
   $('#revImg').src=pg.url;
-  $('#revTitle').textContent='עמוד '+(i+1)+' מתוך '+SCAN.pages.length;
-  $('#revSub').textContent=fresh?'בדוק שהכל קריא':'';
-  $('#revBar').innerHTML = fresh
+  $('#revTitle').textContent='עמוד '+(i+1)+' מתוך '+n;
+  $('#revSub').textContent = SCAN.revMode==='fresh' ? 'בדוק שהכל קריא'
+                           : 'החלק כדי לדפדף';
+  // חצים ונקודות — רק כשיש יותר מעמוד אחד ולא במצב צילום טרי
+  const multi = n>1 && SCAN.revMode!=='fresh';
+  $('#revPrev').style.display=multi?'':'none';
+  $('#revNext').style.display=multi?'':'none';
+  $('#revPrev').disabled=i===0;
+  $('#revNext').disabled=i===n-1;
+  $('#revDots').innerHTML = multi ? SCAN.pages.map((_,k)=>
+    `<i class="${k===i?'on':''}"></i>`).join('') : '';
+
+  $('#revBar').innerHTML = SCAN.revMode==='fresh'
     ? `<button class="rre" onclick="retakePage()">צלם מחדש</button>
        <button class="rmo" onclick="morePage()">עוד עמוד</button>
-       <button class="rok" onclick="finishScan()">שליחה · ${SCAN.pages.length}</button>`
-    : `<button class="rre" onclick="delPage(${i})">מחיקת העמוד</button>
-       <button class="rmo" onclick="closeReview()">חזרה</button>`;
+       <button class="rok" onclick="${n>1?'reviewAll()':'finishScan()'}">${n>1?'בדיקה ושליחה':'שליחה'}</button>`
+    : `<button class="rre" onclick="delPage(${i})">מחיקה</button>
+       <button class="rmo" onclick="closeReview()">עוד עמוד</button>
+       <button class="rok" onclick="finishScan()">שליחה · ${n}</button>`;
   $('#scanRev').classList.add('on')}
+
+function reviewAll(){showReview(0,'browse')}
+(function(){let x0=null;
+  const st=()=>document.getElementById('revStage');
+  document.addEventListener('touchstart',e=>{
+    const el=st();if(!el||!el.contains(e.target))return;x0=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;
+    if(Math.abs(dx)<55||SCAN.revMode==='fresh')return;
+    revStep(dx>0?-1:1);          // RTL: החלקה ימינה = הקודם
+  },{passive:true})})();
+function revStep(d){showReview(SCAN.revIdx+d,SCAN.revMode)}
 
 function closeReview(){
   $('#scanRev').classList.remove('on');$('#revImg').src='';
@@ -1417,13 +1580,14 @@ function morePage(){closeReview()}
 
 function drawScanPages(){
   $('#scanPages').innerHTML=SCAN.pages.map((p,i)=>
-    `<div class="del" onclick="showReview(${i},false)"><img src="${p.url}"><b>✕</b></div>`).join('');
-  $('#scanDone').textContent=SCAN.pages.length?'סיום · '+SCAN.pages.length:'סיום'}
+    `<div class="del" onclick="showReview(${i},'browse')"><img src="${p.url}"><b>✕</b></div>`).join('');
+  $('#scanDone').textContent=SCAN.pages.length?'בדיקה · '+SCAN.pages.length:'בדיקה'}
 function delPage(i){
   if(!SCAN.pages[i])return;
   URL.revokeObjectURL(SCAN.pages[i].url);SCAN.pages.splice(i,1);
   drawScanPages();$('#scanDone').disabled=!SCAN.pages.length;
-  closeReview()}
+  if(!SCAN.pages.length){closeReview();return}
+  showReview(Math.min(i,SCAN.pages.length-1),SCAN.revMode)}
 
 function stopScan(){
   SCAN.stop=true;
