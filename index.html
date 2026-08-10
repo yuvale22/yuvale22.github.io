@@ -34,7 +34,10 @@ button{font:inherit;cursor:pointer}
 .btn[disabled]{background:#E6E4E0;color:#A5A3A0;cursor:default;box-shadow:none}
 .btn2{width:100%;border:0;background:var(--soft);border-radius:var(--r);padding:16px;font-size:15.5px;font-weight:700;color:var(--ink);transition:background .15s}
 .btn2:active{background:#EDEBE8}
-.ghost{width:100%;background:none;border:0;font-size:14px;color:var(--ink3);padding:14px 0 0}
+.ghost{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
+  font-size:15.5px;font-weight:700;color:#17171A;padding:15px;margin-top:9px;transition:.15s}
+.ghost:hover{background:#F7F6F4;border-color:var(--chip)}
+.ghost:active{transform:scale(.985)}
 
 /* ── מחשב: מסגרת רחבה, שתי עמודות, טיפוגרפיה גדולה יותר ── */
 @media (min-width:900px){
@@ -44,12 +47,16 @@ button{font:inherit;cursor:pointer}
   .app.wide .pad{padding:0 40px}
   .app.wide .foot{padding:18px 40px 24px}
   .app.wide h1{font-size:32px}
-  .app.wide .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
-  .app.wide .top,.app.wide .pad,.app.wide .foot,.app.wide .jhead{max-width:1500px;margin-inline:auto;width:100%}
-  .app.wide .foot .btn{max-width:420px;margin-inline:auto;display:block}
+  /* ── עמודת תוכן מרכזית, כמו CRM ── */
+  .app.wide .top,.app.wide .pad,.app.wide .foot,.app.wide .jhead{width:100%}
+  .app.wide .top>*,.app.wide .jhead>*{max-width:1180px;margin-inline:auto;width:100%}
+  .app.wide .pad>*,.app.wide .grid2,.app.wide .srch,.app.wide .seg,
+  .app.wide #lcBody>*,.app.wide #planList{max-width:1180px;margin-inline:auto}
+  .app.wide .qrbox{max-width:560px}
+  .app.wide .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
   .app.wide .grid2 .crow,.app.wide .grid2 .dr{margin-bottom:0}
   .app.wide .bhead{grid-column:1/-1;margin-top:24px}
-  .app.wide .srch,.app.wide .seg{max-width:520px}
+  .app.wide .foot .btn,.app.wide .foot .btn2{max-width:340px;margin-inline:auto;display:block}
   .sheet{max-width:620px;border-radius:24px;bottom:auto;top:50%;transform:translateY(-45%) scale(.97)}
   .sheet.on{transform:translateY(-50%) scale(1)}
   .jhead{padding:22px 40px}
