@@ -54,8 +54,17 @@ button{font:inherit;cursor:pointer}
   .app.wide .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
   .app.wide .grid2 .crow,.app.wide .grid2 .dr{margin-bottom:0}
   .app.wide .bhead,.app.wide .empty{grid-column:1/-1}
-  .sheet{max-width:620px;border-radius:24px;bottom:auto;top:50%;transform:translateY(-45%) scale(.97)}
+  /* חלונית עריכה במחשב — גדולה ונוחה, לא גיליון טלפון */
+  .sheet{max-width:820px;width:calc(100% - 80px);border-radius:24px;bottom:auto;top:50%;
+    transform:translateY(-45%) scale(.97);max-height:86dvh;padding:22px 30px 26px}
   .sheet.on{transform:translateY(-50%) scale(1)}
+  .sheet .grab{display:none}
+  .sheet .shead h2{font-size:23px}
+  .sheet textarea{min-height:96px}
+  .sheet input,.sheet textarea,.sheet select{font-size:16px;padding:15px 16px}
+  #shBody{padding-inline:2px}
+  /* פרטי התור בשתי עמודות במקום אחת ארוכה */
+  #shBody .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
   .jhead{padding-block:22px}
   .tabs{max-width:520px;margin:0 auto;border:0}
 }
@@ -859,12 +868,22 @@ function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/8
 
 /* ═══ router ═══ */
 function setWide(on){const a=document.querySelector('.app');if(a)a.classList.toggle('wide',!!on)}
-const BACK={lawInvite:'list',lawClient:'list',lawPath:'client',lawPlan:'list'};
+/* יעד החזרה לכל מסך. law = מסכי עורך הדין, fn = פעולה מיוחדת */
+const BACK={
+  lawInvite:{law:'list'}, lawClient:{law:'list'},
+  lawPath:{law:'client'}, lawPlan:{law:'list'},
+  describe:{fn:()=>startPicker()},
+  picker:{go:'welcome'}
+};
 let BACK_TO=null;
 function setBack(id){
   BACK_TO=BACK[id]||null;
   const b=$('#backBtn');if(b)b.classList.toggle('on',!!BACK_TO)}
-function goBack(){if(BACK_TO)lawGo(BACK_TO)}
+function goBack(){
+  const t=BACK_TO;if(!t)return;
+  if(t.fn)return t.fn();
+  if(t.law)return lawGo(t.law);
+  if(t.go)return go(t.go)}
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on');
   setWide(id.indexOf('law')===0);setBack(id)}
 function goDescribe(){go('describe');requestAnimationFrame(drawLiab)}
@@ -1070,10 +1089,12 @@ function openPlanItem(i){
       <div style="font-size:12px;font-weight:700;color:${DEEP[a.c]};margin-bottom:5px">למה נכנס לתוכנית</div>
       <div style="font-size:12.5px;color:${DEEP[a.c]};line-height:1.7">${a.reason.join(' · ')}</div></div>
     ${lab('פרטי התור')}
-    <input id="eDoc" placeholder="שם הרופא" value="${a.doctor||''}">
-    <div style="display:flex;gap:8px"><input id="eDate" type="date" value="${a.date||''}" style="flex:1">
-      <input id="eTime" placeholder="שעה" value="${a.time||''}" style="flex:1"></div>
-    <input id="ePlace" placeholder="מקום" value="${a.place||''}">
+    <div class="fgrid">
+      <input id="eDoc" placeholder="שם הרופא" value="${a.doctor||''}">
+      <input id="ePlace" placeholder="מקום" value="${a.place||''}">
+      <input id="eDate" type="date" value="${a.date||''}">
+      <input id="eTime" placeholder="שעה" value="${a.time||''}">
+    </div>
     ${lab('סטטוס')}
     <div id="eStat" style="display:flex;gap:6px;flex-wrap:wrap">${STATUSES.map(([k,t])=>
       `<span data-s="${k}" style="cursor:pointer;border-radius:99px;padding:8px 13px;font-size:12.5px;font-weight:600;
@@ -1276,9 +1297,12 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
         ${ic('file',19,'#7C7A78')}<div style="flex:1;font-size:13.5px;font-weight:600">${d.n}</div>
         <span style="font-size:11.5px;color:var(--brand);font-weight:700">פתיחה</span></div>`).join('')
         ||`<div class="filerow" style="margin:0 0 11px">${ic('file',19,'#7C7A78')}<div style="flex:1;font-size:13.5px">אין קבצים</div></div>`}
+      ${a.note?`<div style="background:#EAF3F1;border-radius:12px;padding:10px 12px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#0D5F5A;margin-bottom:3px">ההערה שלך ללקוח</div>
+        <div style="font-size:12.5px;color:#0D5F5A;line-height:1.6">${a.note}</div></div>`:''}
       <div style="display:flex;gap:8px">
         <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
-        <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="lawReturn('${a.id}')">החזרה</button></div></div>`).join('');
+        <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="openDocNote('${a.id}')">${a.note?'עריכת ההערה':'הערות'}</button></div></div>`).join('');
   h+=`<div style="display:flex;gap:8px;margin-bottom:14px">
     <button class="btn2" style="flex:1" onclick="lawGo('path')">מסלול הבדיקות</button>
     <button class="btn2" style="flex:1" onclick="openClientEdit()">פרטי התיק</button></div>`;
@@ -1407,9 +1431,40 @@ function docRow(d){
     ${d.path?'<span class="go">פתיחה</span>':''}</div>`}
 async function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';
   drawLawClient();await saveApptRow(a);toast('אושר · הלקוח עודכן')}
-async function lawReturn(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='returned';
-  a.note='בסיכום חסר תאריך הפגיעה. כדאי לקבוע תור חוזר קצר ולבקש להוסיף אותו.';
-  drawLawClient();await saveApptRow(a);toast('הוחזר להשלמה')}
+/* הערה על מסמכים שהתקבלו — המסמכים נשארים בתיק בכל מקרה */
+const NOTE_CHIPS=['בסיכום חסר תאריך הפגיעה','חסרה החתמה או חותמת של הרופא',
+  'חסרות ההדמיות שנעשו בביקור','הצילום לא קריא — נא לסרוק שוב',
+  'לבקש בביקור הבא שיירשמו טווחי תנועה במעלות'];
+function openDocNote(id){
+  const c=C(),a=c.plan.find(x=>x.id===id);if(!a)return;
+  S.openStep=null;S.noteAppt=a;
+  $('#shTitle').textContent='הערות';
+  $('#shSub').textContent=a.l+(a.doctor?' · '+a.doctor:'');
+  $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
+  $('#shBody').innerHTML=`
+    <div style="font-size:12.5px;color:var(--ink2);line-height:1.7;margin-bottom:12px">
+      ההערה תופיע ללקוח בכרטיס הביקור. המסמכים שכבר הועלו נשארים בתיק בכל מקרה.</div>
+    <textarea id="dNote" style="min-height:110px" placeholder="מה חסר או מה לבקש בביקור הבא">${(a.note||'').replace(/</g,'&lt;')}</textarea>
+    <div style="font-size:11.5px;font-weight:700;color:var(--ink3);margin:14px 0 7px">נוסחים מוכנים</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px">
+      ${NOTE_CHIPS.map((t,i)=>`<button type="button" data-chip="${i}"
+        style="border:1.5px solid var(--border);background:#fff;border-radius:99px;padding:8px 13px;
+        font-size:12.5px;font-weight:600;color:#17171A;cursor:pointer">${t}</button>`).join('')}</div>`;
+  $('#shBody').querySelectorAll('[data-chip]').forEach(b=>b.onclick=()=>{
+    const t=$('#dNote'),v=NOTE_CHIPS[b.dataset.chip];
+    t.value=t.value.trim()?t.value.trim()+'. '+v:v;t.focus()});
+  $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
+    <button class="btn" style="--c:#14807A;padding:14px;font-size:15px" onclick="saveDocNote()">שמירה</button>
+    ${a.note?`<button class="btn2" style="padding:14px;font-size:15px;color:#C24A34;flex:0 0 34%"
+      onclick="clearDocNote()">מחיקת ההערה</button>`:''}</div>`;
+  openSheet()}
+async function saveDocNote(){
+  const a=S.noteAppt;if(!a)return;
+  a.note=$('#dNote').value.trim();
+  closeSheet();refreshLawViews();
+  if(a.id&&a.id.length>20)await saveApptRow(a);
+  toast(a.note?'ההערה נשמרה · הלקוח יראה אותה':'ההערה נמחקה')}
+async function clearDocNote(){$('#dNote').value='';await saveDocNote()}
 
 /* ═══ invite link + QR ═══ */
 function inviteURL(){return location.origin+location.pathname+'#join='+(DB.firmRow?DB.firmRow.slug:'')}
