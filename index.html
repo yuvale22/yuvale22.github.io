@@ -176,6 +176,19 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .scanPages .del b{position:absolute;top:-5px;inset-inline-end:-5px;background:#C24A34;color:#fff;
   width:19px;height:19px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center}
 .scanLoad{color:#fff;text-align:center;font-size:15px;line-height:1.8;padding:0 40px;z-index:5}
+.scanRev{position:absolute;inset:0;z-index:8;background:#0B0B0D;display:none;flex-direction:column}
+.scanRev.on{display:flex}
+.revTop{flex:none;padding:calc(14px + env(safe-area-inset-top)) 20px 10px;color:#fff;
+  display:flex;align-items:center;gap:12px}
+.revTop b{font-size:16px;font-weight:700}
+.revTop span{font-size:13px;color:rgba(255,255,255,.55)}
+.revImg{flex:1;position:relative;overflow:auto;padding:0 16px;display:flex;align-items:flex-start;justify-content:center}
+.revImg img{max-width:100%;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.6);background:#fff}
+.revBar{flex:none;padding:14px 20px calc(18px + env(safe-area-inset-bottom));display:flex;gap:9px}
+.revBar button{flex:1;border:0;border-radius:14px;padding:15px 8px;font:inherit;font-size:14.5px;font-weight:700}
+.revBar .rre{background:rgba(255,255,255,.13);color:#fff}
+.revBar .rmo{background:rgba(255,255,255,.92);color:#17171A}
+.revBar .rok{background:#14807A;color:#fff}
 /* lawyer list: search, tabs, buckets, star */
 .srch{position:relative;margin-bottom:12px}
 .srch input{margin:0;padding-inline-start:40px}
@@ -421,6 +434,11 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
     <button class="scanX" onclick="closeScan()">✕</button>
     <div class="scanHint"><span id="scanHint">מכין את הסורק…</span></div>
     <div class="scanPages" id="scanPages"></div>
+  </div>
+  <div class="scanRev" id="scanRev">
+    <div class="revTop"><b id="revTitle">עמוד 1</b><span id="revSub">בדוק שהמסמך קריא</span></div>
+    <div class="revImg"><img id="revImg" alt=""></div>
+    <div class="revBar" id="revBar"></div>
   </div>
   <div class="scanBar">
     <button class="sbtn" onclick="closeScan()">ביטול</button>
@@ -1276,6 +1294,7 @@ async function openScan(onDone){
 const DET_W=480;
 function tickScan(){
   if(SCAN.stop)return;
+  if(SCAN.paused){SCAN.raf=null;return}
   const v=$('#scanVid'),ov=$('#scanOv');
   if(!v.videoWidth){SCAN.raf=setTimeout(tickScan,120);return}
   const W=v.videoWidth,H=v.videoHeight,sc=DET_W/W;
@@ -1363,31 +1382,64 @@ async function grabPage(){
     SCAN.pages.push({blob,url:URL.createObjectURL(blob)});
     drawScanPages();
     $('#scanDone').disabled=false;
-    const st=$('#scanStage');st.style.transition='none';st.style.filter='brightness(2.6)';
-    setTimeout(()=>{st.style.transition='filter .3s';st.style.filter='none'},50);
     if(navigator.vibrate)navigator.vibrate(30);
+    showReview(SCAN.pages.length-1,true);
   }catch(e){toast('הצילום נכשל, נסה שוב')}
   SCAN.last=null;
   setTimeout(()=>{SCAN.busy=false},1200)}
 
+function showReview(i,fresh){
+  const pg=SCAN.pages[i];if(!pg)return;
+  SCAN.paused=true;SCAN.revIdx=i;
+  $('#revImg').src=pg.url;
+  $('#revTitle').textContent='עמוד '+(i+1)+' מתוך '+SCAN.pages.length;
+  $('#revSub').textContent=fresh?'בדוק שהכל קריא':'';
+  $('#revBar').innerHTML = fresh
+    ? `<button class="rre" onclick="retakePage()">צלם מחדש</button>
+       <button class="rmo" onclick="morePage()">עוד עמוד</button>
+       <button class="rok" onclick="finishScan()">שליחה · ${SCAN.pages.length}</button>`
+    : `<button class="rre" onclick="delPage(${i})">מחיקת העמוד</button>
+       <button class="rmo" onclick="closeReview()">חזרה</button>`;
+  $('#scanRev').classList.add('on')}
+
+function closeReview(){
+  $('#scanRev').classList.remove('on');$('#revImg').src='';
+  SCAN.paused=false;SCAN.last=null;SCAN.steady=0;
+  if(!SCAN.stop&&!SCAN.raf)tickScan()}
+
+function retakePage(){
+  const i=SCAN.revIdx;
+  if(SCAN.pages[i]){URL.revokeObjectURL(SCAN.pages[i].url);SCAN.pages.splice(i,1)}
+  drawScanPages();$('#scanDone').disabled=!SCAN.pages.length;
+  closeReview()}
+
+function morePage(){closeReview()}
+
 function drawScanPages(){
   $('#scanPages').innerHTML=SCAN.pages.map((p,i)=>
-    `<div class="del" onclick="delPage(${i})"><img src="${p.url}"><b>✕</b></div>`).join('');
+    `<div class="del" onclick="showReview(${i},false)"><img src="${p.url}"><b>✕</b></div>`).join('');
   $('#scanDone').textContent=SCAN.pages.length?'סיום · '+SCAN.pages.length:'סיום'}
-function delPage(i){URL.revokeObjectURL(SCAN.pages[i].url);SCAN.pages.splice(i,1);
-  drawScanPages();$('#scanDone').disabled=!SCAN.pages.length}
+function delPage(i){
+  if(!SCAN.pages[i])return;
+  URL.revokeObjectURL(SCAN.pages[i].url);SCAN.pages.splice(i,1);
+  drawScanPages();$('#scanDone').disabled=!SCAN.pages.length;
+  closeReview()}
 
 function stopScan(){
   SCAN.stop=true;
   if(SCAN.raf)clearTimeout(SCAN.raf);SCAN.raf=null;
   if(SCAN.stream){SCAN.stream.getTracks().forEach(t=>t.stop());SCAN.stream=null}
   $('#scanVid').srcObject=null}
-function closeScan(){stopScan();$('#scan').classList.remove('on');
+function closeScan(){stopScan();
+  $('#scan').classList.remove('on');$('#scanRev').classList.remove('on');
+  $('#revImg').src='';SCAN.paused=false;
   SCAN.pages.forEach(p=>URL.revokeObjectURL(p.url));SCAN.pages=[]}
 
 async function finishScan(){
   const pages=SCAN.pages.slice();
-  stopScan();$('#scan').classList.remove('on');SCAN.pages=[];
+  stopScan();
+  $('#scan').classList.remove('on');$('#scanRev').classList.remove('on');
+  $('#revImg').src='';SCAN.paused=false;SCAN.pages=[];
   const cb=SCAN.onDone;
   for(let i=0;i<pages.length;i++){
     const f=new File([pages[i].blob],'scan_'+(i+1)+'.jpg',{type:'image/jpeg'});
