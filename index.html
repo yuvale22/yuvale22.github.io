@@ -230,7 +230,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .srch input{margin:0;padding-inline-start:40px}
 .srch svg{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);color:var(--ink3);pointer-events:none}
 .seg{display:flex;background:var(--soft);border-radius:12px;padding:3px;margin-bottom:16px}
-.seg button{flex:1;border:0;background:none;border-radius:10px;padding:9px;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink2);transition:.15s}
+.seg button{flex:1;border:0;background:none;border-radius:10px;padding:9px 4px;font:inherit;font-size:13px;font-weight:700;color:var(--ink2);white-space:nowrap;transition:.15s}
 .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,20,26,.10)}
 .bhead{display:flex;align-items:center;gap:8px;margin:20px 2px 9px}
 .bhead:first-child{margin-top:0}
@@ -381,7 +381,11 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   </div>
   <div class="scroll pad" style="padding-top:18px">
     <input id="sName" placeholder="שם מלא">
+    <input id="sId" placeholder="תעודת זהות" inputmode="numeric" maxlength="9" autocomplete="off">
+    <div style="font-size:12px;font-weight:700;color:var(--ink3);margin:2px 4px 5px">תאריך לידה</div>
+    <input id="sDob" type="date">
     <input id="sPhone" placeholder="טלפון" inputmode="tel">
+    <input id="sAddr" placeholder="כתובת מגורים">
     <input id="sMail" type="email" placeholder="אימייל לתזכורות" inputmode="email" autocapitalize="off" autocomplete="email">
     <select id="sType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
       <option>תאונת דרכים</option><option>תאונת עבודה</option><option>נזקי גוף אחר</option></select>
@@ -430,6 +434,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
     <div class="seg">
       <button id="segT" class="on" onclick="lawView('triage')">לפי דחיפות</button>
       <button id="segA" onclick="lawView('all')">כל התיקים</button>
+      <button id="segU" onclick="lawView('soon')">תורים קרובים</button>
     </div>
     <div id="lawList" class="grid2"></div>
   </div>
@@ -862,6 +867,21 @@ const C=()=>DB.clients.find(c=>c.id===DB.active);
 const colorOf=k=>colorMap[k]||(colorMap[k]=PAL[ci++%PAL.length]);
 
 function daysFrom(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+/* ספרת ביקורת של ת״ז ישראלית */
+function validID(v){
+  v=String(v||'').replace(/\D/g,'');
+  if(v.length<5||v.length>9)return false;
+  v=v.padStart(9,'0');
+  let sum=0;
+  for(let i=0;i<9;i++){let d=+v[i]*((i%2)+1);sum+=d>9?d-9:d}
+  return sum%10===0}
+function ageOf(dob){
+  if(!dob)return null;
+  const b=new Date(dob),n=new Date();
+  let a=n.getFullYear()-b.getFullYear();
+  const m=n.getMonth()-b.getMonth();
+  if(m<0||(m===0&&n.getDate()<b.getDate()))a--;
+  return a>=0&&a<130?a:null}
 function fmtDate(s){if(!s)return'';const d=new Date(s),m=['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ'];
   return d.getDate()+' ב'+m[d.getMonth()]}
 function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/864e5)}
@@ -1077,6 +1097,66 @@ function renderPicker(){
         <div class="why">${inPlan?'כבר בתוכנית':'לחיצה כדי להוסיף'}</div></div>
       ${inPlan?ic('check',18,'#14807A'):ic('plus',18,'#C9BFB2')}</div>`}).join('')
     ||'<div style="text-align:center;color:var(--ink3);padding:30px 0">לא נמצא תחום</div>'}
+/* ═══ תבניות הנחיה — מובנות + של המשרד ═══ */
+const BUILTIN_TPL=[
+{n:'ביקור ראשון אצל מומחה',
+ bring:['סיכום חדר המיון','כל ההדמיות שנעשו עד היום','תעודת זהות','טופס 17 אם נדרש'],
+ rem:'לספר על כל האזורים שנפגעו — גם על מה שכואב פחות. לבקש שיירשמו ממצאי הבדיקה הגופנית ולא רק התלונות, ושיירשם תאריך התאונה בגוף הסיכום.'},
+{n:'ביקור מעקב',
+ bring:['סיכומי הביקורים הקודמים','ההדמיות החדשות','אישורי מחלה שהתקבלו'],
+ rem:'לספר מה השתנה מאז הביקור הקודם — לטובה ולרעה. לציין מה עדיין מגביל בעבודה ובבית, ובאיזו תדירות.'},
+{n:'הדמיה · CT · MRI · רנטגן',
+ bring:['ההפניה','תעודת זהות','התחייבות או טופס 17'],
+ rem:'לוודא שהתשובה הכתובה והדיסק נמסרים לך ביד ולא רק נשלחים למרפאה. אם לא מוסרים — לבקש מספר בדיקה.'},
+{n:'לקראת ועדה רפואית',
+ bring:['כל התיעוד הרפואי שבתיק','אישורי מחלה','אישור המעסיק על ימי היעדרות'],
+ rem:'לתאר יום עבודה טיפוסי ומה כבר לא מצליחים לעשות. לא להגזים ולא להמעיט — לתאר את המצב כפי שהוא.'},
+{n:'טיפול · פיזיותרפיה · שיקום',
+ bring:['ההפניה לטיפול','סיכום הביקור אצל המומחה'],
+ rem:'לבקש שיירשם מספר הטיפולים שבוצעו ומה ההמלצה להמשך. תיעוד רציפות הטיפול חשוב לתיק.'}];
+
+function MY_TPL(){return (DB.firmRow&&DB.firmRow.templates)||[]}
+async function saveTplList(arr){
+  if(!DB.firmRow)return;
+  DB.firmRow.templates=arr;
+  await sb.from('firms').update({templates:arr}).eq('id',DB.firmRow.id)}
+
+function applyTpl(){
+  const sel=$('#eTpl');if(!sel)return;
+  const v=sel.value, del=$('#tplDel');
+  if(del)del.style.display=(v&&v[0]==='m')?'block':'none';
+  if(!v)return;
+  const t=(v[0]==='m'?MY_TPL():BUILTIN_TPL)[+v.slice(1)];
+  if(!t)return;
+  $('#eBring').value=(t.bring||[]).join(', ');
+  $('#eRem').value=t.rem||'';
+  if(t.note&&!$('#pNote').value.trim())$('#pNote').value=t.note;
+  toast('התבנית מולאה — אפשר לערוך לפני שמירה')}
+
+async function saveAsTpl(){
+  const bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const rem=$('#eRem').value.trim();
+  if(!bring.length&&!rem)return toast('אין מה לשמור — מלא קודם את השדות');
+  const a=S.openStep;
+  const nm=(prompt('שם התבנית:', a?a.l:'')||'').trim();
+  if(!nm)return;
+  const arr=MY_TPL().slice();
+  const ex=arr.findIndex(t=>t.n===nm);
+  const rec={n:nm,bring:bring,rem:rem};
+  if(ex>=0){if(!confirm('כבר קיימת תבנית בשם הזה. לעדכן אותה?'))return;arr[ex]=rec}
+  else arr.push(rec);
+  await saveTplList(arr);
+  if(S.planIdx!=null)openPlanItem(S.planIdx);
+  toast('נשמר כתבנית · '+nm)}
+
+async function delTpl(){
+  const sel=$('#eTpl');if(!sel||sel.value[0]!=='m')return;
+  const i=+sel.value.slice(1), arr=MY_TPL().slice(), t=arr[i];
+  if(!t||!confirm('למחוק את התבנית ״'+t.n+'״?'))return;
+  arr.splice(i,1);await saveTplList(arr);
+  if(S.planIdx!=null)openPlanItem(S.planIdx);
+  toast('התבנית נמחקה')}
+
 const STATUSES=[['approved','לא נקבע'],['scheduled','נקבע'],['pending','ממתין לאישור'],['done','הושלם'],['returned','הוחזר']];
 function openPlanItem(i){
   const c=C(),a=c.plan[i];if(!a)return;
@@ -1108,6 +1188,22 @@ function openPlanItem(i){
     </div>`:''}
     ${lab('הערה ללקוח')}
     <textarea id="pNote" placeholder="למשל: לבקש הפניה ל-MRI כבר בביקור הזה">${a.note||''}</textarea>
+    ${lab('תבנית הנחיה')}
+    <select id="eTpl" onchange="applyTpl()" style="width:100%;font:inherit;font-size:14px;background:#fff;
+      border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
+      <option value="">— מילוי מתבנית שמורה —</option>
+      ${MY_TPL().length?`<optgroup label="התבניות שלי">${MY_TPL().map((t,i)=>
+        `<option value="m${i}">${t.n}</option>`).join('')}</optgroup>`:''}
+      <optgroup label="תבניות מובנות">${BUILTIN_TPL.map((t,i)=>
+        `<option value="b${i}">${t.n}</option>`).join('')}</optgroup>
+    </select>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button type="button" onclick="saveAsTpl()" style="flex:1;border:1.5px solid var(--border);background:#fff;
+        border-radius:13px;padding:11px;font:inherit;font-size:12.5px;font-weight:700;color:#17171A;cursor:pointer">
+        שמירת המילוי הנוכחי כתבנית</button>
+      <button type="button" id="tplDel" onclick="delTpl()" style="display:none;flex:0 0 30%;border:1.5px solid #F0CFC8;
+        background:#fff;border-radius:13px;padding:11px;font:inherit;font-size:12.5px;font-weight:700;
+        color:#C24A34;cursor:pointer">מחיקת התבנית</button></div>
     ${lab('לקחת איתך')}
     <input id="eBring" placeholder="מופרד בפסיקים" value="${(a.bring||[]).join(', ')}">
     ${lab('לא לשכוח לספר')}
@@ -1163,8 +1259,15 @@ function openClientEdit(){
   $('#shTitle').textContent='פרטי התיק';$('#shSub').textContent='עדכון פרטים או סגירת התיק';
   $('#shIc').style.background='var(--brand)';$('#shIc').innerHTML=ic('star',23,'#fff');
   $('#shBody').innerHTML=`
-    <input id="cName" placeholder="שם מלא" value="${c.name||''}">
-    <input id="cPhone" placeholder="טלפון" inputmode="tel" value="${c.phone||''}">
+    <div class="fgrid">
+      <input id="cName" placeholder="שם מלא" value="${c.name||''}">
+      <input id="cId" placeholder="תעודת זהות" inputmode="numeric" maxlength="9" value="${c.idn||''}">
+      <label style="display:block"><span style="font-size:11px;font-weight:700;color:var(--ink3);
+        display:block;margin:0 4px 4px">תאריך לידה</span>
+        <input id="cDob" type="date" value="${c.dob||''}" style="margin:0"></label>
+      <input id="cPhone" placeholder="טלפון" inputmode="tel" value="${c.phone||''}">
+    </div>
+    <input id="cAddr" placeholder="כתובת מגורים" value="${(c.addr||'').replace(/"/g,'&quot;')}">
     <input id="cMail" placeholder="אימייל לתזכורות" inputmode="email" value="${c.email||''}">
     <select id="cType" style="width:100%;font:inherit;font-size:14.5px;background:#fff;border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
       ${['תאונת דרכים','תאונת עבודה','נזקי גוף אחר'].map(t=>`<option ${c.type===t?'selected':''}>${t}</option>`).join('')}</select>
@@ -1191,6 +1294,9 @@ function liabBlock(c){
 async function saveClientEdit(){
   const c=C();c.name=$('#cName').value.trim()||c.name;c.phone=$('#cPhone').value.trim();
   c.email=$('#cMail').value.trim();c.type=$('#cType').value;
+  const nid=($('#cId').value||'').replace(/\D/g,'');
+  if(nid&&!validID(nid))return toast('מספר תעודת הזהות לא תקין — לא נשמר');
+  c.idn=nid;c.dob=$('#cDob').value||null;c.addr=$('#cAddr').value.trim();
   closeSheet();drawLawClient();drawLawList();await saveClientRow();toast('נשמר')}
 async function deleteClient(){
   const c=C();
@@ -1241,7 +1347,48 @@ function triage(c){
 function lawView(v){LAWVIEW=v;
   $('#segT').classList.toggle('on',v==='triage');
   $('#segA').classList.toggle('on',v==='all');
+  $('#segU').classList.toggle('on',v==='soon');
+  const q=$('#lawQ');
+  if(q){if(v==='soon')q.value='';q.parentElement.style.display=v==='soon'?'none':''}
   drawLawList()}
+
+/* ── כל התורים הקרובים בכל התיקים ── */
+function upcoming(){
+  const out=[];
+  DB.clients.forEach(c=>(c.plan||[]).forEach(a=>{
+    if(!a.date)return;
+    if(a.status!=='scheduled'&&a.status!=='pending')return;
+    const d=daysTo(a.date);
+    if(d<-14)return;
+    out.push({c:c,a:a,d:d})}));
+  return out.sort((x,y)=>x.d-y.d||(x.a.time||'').localeCompare(y.a.time||''))}
+
+function whenLbl(d){
+  if(d<0) return ['עבר',      '#FBE0DA','#C24A34'];
+  if(d===0)return ['היום',    '#FBE0DA','#C24A34'];
+  if(d===1)return ['מחר',     '#FBEBD1','#8A5B12'];
+  if(d<=7) return ['השבוע',   '#E4F0EE','#0D5F5A'];
+  if(d<=30)return ['החודש',   '#F1EFEC','#7C7A78'];
+  return             ['בהמשך','#F1EFEC','#7C7A78']}
+
+function apptRow(x){
+  const a=x.a, noGuide=!(a.rem||'').trim()&&!(a.bring||[]).length;
+  return `<div class="crow" onclick="openLawAppt('${x.c.id}','${a.id}')">
+    <div class="av" style="background:${a.c};width:38px;height:38px;border-radius:50%;flex:none;
+      display:flex;align-items:center;justify-content:center;color:#fff">${ic(a.i,18)}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:15px;font-weight:700">${x.c.name}</div>
+      <div style="font-size:12px;color:var(--ink2);margin-top:2px;overflow:hidden;
+        text-overflow:ellipsis;white-space:nowrap">${a.l}${a.doctor?' · '+a.doctor:''}${a.place?' · '+a.place:''}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:2px">${fmtDate(a.date)}${a.time?' · '+a.time:''}${
+        a.status==='pending'?' · מסמכים ממתינים לאישורך':''}</div></div>
+    ${noGuide?`<span class="tagp" style="background:#FBEBD1;color:#8A5B12">אין הנחיה</span>`:''}</div>`}
+
+function openLawAppt(cid,aid){
+  DB.active=cid;const c=C();if(!c)return;
+  const i=c.plan.findIndex(a=>a.id===aid);
+  lawGo('client');
+  if(i>=0)requestAnimationFrame(()=>openPlanItem(i))}
 
 function lawRow(c){
   const t=triage(c), meta=BUCKETS.find(b=>b[0]===t.k);
@@ -1265,6 +1412,20 @@ function drawLawList(){
   const star=pool.filter(c=>c.star), rest=pool.filter(c=>!c.star);
   const head=(t,n,bg,fg)=>`<div class="bhead"><b style="color:${fg}">${t}</b><i style="background:${bg};color:${fg}">${n}</i></div>`;
   let h='';
+
+  if(LAWVIEW==='soon'){
+    const U=upcoming();
+    if(!U.length){box.innerHTML='<div class="empty">אין תורים קרובים.<br>תורים יופיעו כאן ברגע שייקבע להם תאריך.</div>';return}
+    const seen={};
+    U.forEach(x=>{const w=whenLbl(x.d);
+      if(!seen[w[0]]){seen[w[0]]=1;
+        const n=U.filter(y=>whenLbl(y.d)[0]===w[0]).length;
+        h+=head(w[0],n,w[1],w[2])}
+      h+=apptRow(x)});
+    const noG=U.filter(x=>!(x.a.rem||'').trim()&&!(x.a.bring||[]).length).length;
+    if(noG)h=`<div class="bhead" style="grid-column:1/-1"><b style="color:#8A5B12">${noG} תורים ללא הנחיה ללקוח</b></div>`+h;
+    box.innerHTML=h;return}
+
   if(star.length) h+=head('מסומנים',star.length,'#FBF0DC','#8A5B12')+star.map(lawRow).join('');
 
   if(LAWVIEW==='all'){
@@ -1284,7 +1445,9 @@ function openLawClient(id){DB.active=id;const c=C();
   if(c.stage==='waiting')return lawGo('plan');
   lawGo('client')}
 function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
-  $('#lcSub').textContent=`${c.type} · ${c.phone||'—'}`;
+  const ag=ageOf(c.dob);
+  $('#lcSub').textContent=[c.type,c.idn?'ת״ז '+c.idn:null,ag!=null?'בן '+ag:null,c.phone||null]
+    .filter(Boolean).join(' · ');
   const pend=c.plan.filter(a=>a.status==='pending');
   let h='';
   if(pend.length)h+=`<div style="font-size:12px;font-weight:700;color:#C24A34;margin-bottom:8px">ממתין לאישורך</div>`+
@@ -1483,6 +1646,12 @@ function copyLink(){navigator.clipboard?.writeText(inviteURL());toast('הקיש�
 async function doSignup(){
   const n=$('#sName').value.trim(),p=$('#sPhone').value.trim(),t=$('#sType').value;
   if(!n)return toast('צריך שם');
+  const idn=($('#sId').value||'').replace(/\D/g,''), dob=$('#sDob').value||null,
+        addr=($('#sAddr').value||'').trim();
+  if(!idn)return toast('צריך תעודת זהות — היא נדרשת בכל פנייה למוסד רפואי');
+  if(!validID(idn))return toast('מספר תעודת הזהות לא תקין — יש ספרת ביקורת שגויה');
+  if(!dob)return toast('צריך תאריך לידה');
+  if(ageOf(dob)===null)return toast('תאריך הלידה לא נראה תקין');
   const em=($('#sMail').value||'').trim();
   if(!em)return toast('צריך אימייל — לשם נשלחות התזכורות');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em))return toast('האימייל לא נראה תקין');
@@ -1499,6 +1668,7 @@ async function doSignup(){
   DB.firmRow=firm;applyBrand();
   const {data,error}=await sb.from('clients').insert({firm_id:firm.id,auth_uid:session.user.id,
     name:n,phone:p,email:em||null,notify_email:$('#sMailOk').checked,
+    id_number:idn,dob:dob,address:addr||null,
     case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
   if(error)return toast('שגיאה: '+error.message);
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
@@ -2097,7 +2267,7 @@ function mapClient(r){
   (r.symptoms||[]).forEach(x=>{(sel[x.part_key]=sel[x.part_key]||[]).push(x.symptom)});
   (r.part_notes||[]).forEach(x=>notes[x.part_key]=x.note);
   return {id:r.id,name:r.name,phone:r.phone||'',type:r.case_type,stage:r.stage,desc:r.description||'',
-    liab:r.liability||{},
+    liab:r.liability||{},idn:r.id_number||'',dob:r.dob||null,addr:r.address||'',
     sel,notes,
     plan:(r.appointments||[]).slice().sort((a,b)=>(a.sort||0)-(b.sort||0)).map(a=>({
       id:a.id,spec:a.spec,l:a.label,c:a.color,i:a.icon,reason:a.reason||[],status:a.status,
@@ -2123,6 +2293,7 @@ async function loadFirmClients(){
 }
 async function saveClientRow(){const c=C();if(!c)return;
   await sb.from('clients').update({name:c.name,phone:c.phone,email:c.email||null,notify_email:c.notifyEmail!==false,
+    id_number:c.idn||null,dob:c.dob||null,address:c.addr||null,
     case_type:c.type,stage:c.stage,description:c.desc,liability:c.liab||{}}).eq('id',c.id)}
 async function syncSymptoms(){const c=C();if(!c)return;
   await sb.from('symptoms').delete().eq('client_id',c.id);
