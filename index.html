@@ -35,6 +35,25 @@ button{font:inherit;cursor:pointer}
 .btn2{width:100%;border:0;background:var(--soft);border-radius:var(--r);padding:16px;font-size:15.5px;font-weight:700;color:var(--ink);transition:background .15s}
 .btn2:active{background:#EDEBE8}
 .ghost{width:100%;background:none;border:0;font-size:14px;color:var(--ink3);padding:14px 0 0}
+
+/* ── מחשב: מסגרת רחבה, שתי עמודות, טיפוגרפיה גדולה יותר ── */
+@media (min-width:900px){
+  body{background:#EDE8E1}
+  .app{max-width:980px;box-shadow:0 0 60px -20px rgba(20,20,26,.18)}
+  .app.wide .top{padding:32px 40px 0}
+  .app.wide .pad{padding:0 40px}
+  .app.wide .foot{padding:18px 40px 24px}
+  .app.wide h1{font-size:32px}
+  .app.wide .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .app.wide .grid2 .crow,.app.wide .grid2 .dr{margin-bottom:0}
+  .app.wide .bhead{grid-column:1/-1;margin-top:24px}
+  .app.wide .srch,.app.wide .seg{max-width:520px}
+  .sheet{max-width:620px;border-radius:24px;bottom:auto;top:50%;transform:translateY(-45%) scale(.97)}
+  .sheet.on{transform:translateY(-50%) scale(1)}
+  .jhead{padding:22px 40px}
+  .tabs{max-width:520px;margin:0 auto;border:0}
+}
+@media (max-width:899px){ .grid2{display:block} }
 .bars{display:flex;gap:6px;margin-bottom:20px}.bar{flex:1;height:4px;border-radius:99px;background:var(--track)}.bar.on{background:#E8654F}
 .foot{padding:14px 20px calc(16px + env(safe-area-inset-bottom));flex:none;background:var(--canvas);
   box-shadow:0 -8px 20px -12px rgba(20,20,26,.14)}
@@ -130,6 +149,33 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .scale button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--chip);background:#fff;font-size:14px;font-weight:600;color:var(--ink2);transition:.16s}
 .scale button.on{color:#fff;border-color:transparent}
 .hist{display:flex;gap:4px;align-items:flex-end;height:56px;margin-top:6px}.hist i{flex:1;border-radius:5px 5px 0 0;background:#E8654F;opacity:.75;display:block}
+/* ═══ סורק מסמכים ═══ */
+.scan{position:fixed;inset:0;z-index:60;background:#0B0B0D;display:none;flex-direction:column}
+.scan.on{display:flex}
+.scanStage{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.scanStage video,.scanStage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scanStage canvas{pointer-events:none}
+.scanHint{position:absolute;top:calc(18px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:3}
+.scanHint span{display:inline-block;background:rgba(11,11,13,.72);backdrop-filter:blur(8px);color:#fff;
+  font-size:14px;font-weight:700;padding:10px 18px;border-radius:99px;transition:.2s}
+.scanHint span.lock{background:#14807A}
+.scanX{position:absolute;top:calc(14px + env(safe-area-inset-top));inset-inline-start:16px;z-index:4;
+  width:38px;height:38px;border-radius:50%;border:0;background:rgba(11,11,13,.6);color:#fff;font-size:19px;line-height:1}
+.scanBar{flex:none;background:#0B0B0D;padding:14px 20px calc(18px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:16px}
+.shutter{width:66px;height:66px;border-radius:50%;border:4px solid rgba(255,255,255,.35);background:#fff;
+  margin:0 auto;transition:.15s;flex:none}
+.shutter:disabled{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.15)}
+.shutter.ready{border-color:#14807A;box-shadow:0 0 0 6px rgba(20,128,122,.25)}
+.scanBar .sbtn{background:none;border:0;color:#fff;font-size:14.5px;font-weight:700;padding:10px 4px;min-width:72px}
+.scanBar .sbtn:disabled{color:rgba(255,255,255,.3)}
+.scanPages{position:absolute;bottom:0;left:0;right:0;display:flex;gap:8px;padding:12px 16px;
+  overflow-x:auto;background:linear-gradient(to top,rgba(11,11,13,.85),transparent);z-index:3}
+.scanPages img{height:58px;border-radius:8px;border:2px solid rgba(255,255,255,.5);flex:none}
+.scanPages .del{position:relative}
+.scanPages .del b{position:absolute;top:-5px;inset-inline-end:-5px;background:#C24A34;color:#fff;
+  width:19px;height:19px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center}
+.scanLoad{color:#fff;text-align:center;font-size:15px;line-height:1.8;padding:0 40px;z-index:5}
 /* lawyer list: search, tabs, buckets, star */
 .srch{position:relative;margin-bottom:12px}
 .srch input{margin:0;padding-inline-start:40px}
@@ -325,7 +371,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
       <button id="segT" class="on" onclick="lawView('triage')">לפי דחיפות</button>
       <button id="segA" onclick="lawView('all')">כל התיקים</button>
     </div>
-    <div id="lawList"></div>
+    <div id="lawList" class="grid2"></div>
   </div>
   <div class="foot"><button class="btn" style="--c:#14807A" onclick="lawGo('invite')">צירוף לקוח חדש</button></div>
 </section>
@@ -348,7 +394,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   <div class="top">
     <div style="background:#EEF4F3;border-radius:99px;padding:6px 13px;font-size:11.5px;font-weight:600;color:#0D5F5A;width:fit-content;margin-bottom:12px">מומלץ להשלים במעמד הפגישה עם הלקוח</div>
     <h1 id="planTitle">מומלץ לקבוע 4 תורים</h1><p class="sub" id="planSub"></p></div>
-  <div class="scroll pad" style="padding-top:14px" id="planList"></div>
+  <div class="scroll pad" style="padding-top:14px"><div id="planList" class="grid2"></div></div>
   <div class="foot"><button class="btn" style="--c:#14807A" onclick="approvePlan()">אישור התוכנית ופתיחת המסלול ללקוח</button>
     <button class="ghost" onclick="openSpecPicker()">הוספת מומחה נוסף</button></div>
 </section>
@@ -365,6 +411,22 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   <div class="foot"><button class="ghost" onclick="lawGo('list')">חזרה לרשימה</button></div>
 </section>
 
+</div>
+
+<div class="scan" id="scan">
+  <div class="scanStage" id="scanStage">
+    <video id="scanVid" playsinline muted autoplay></video>
+    <canvas id="scanOv"></canvas>
+    <div class="scanLoad" id="scanLoad" style="display:none"></div>
+    <button class="scanX" onclick="closeScan()">✕</button>
+    <div class="scanHint"><span id="scanHint">מכין את הסורק…</span></div>
+    <div class="scanPages" id="scanPages"></div>
+  </div>
+  <div class="scanBar">
+    <button class="sbtn" onclick="closeScan()">ביטול</button>
+    <button class="shutter" id="scanShot" disabled onclick="grabPage()"></button>
+    <button class="sbtn" id="scanDone" disabled onclick="finishScan()">סיום</button>
+  </div>
 </div>
 
 <div class="rolesw" id="rolesw"><button class="on" onclick="logout()">יציאה</button></div>
@@ -516,7 +578,9 @@ function fmtDate(s){if(!s)return'';const d=new Date(s),m=['ינו','פבר','מ�
 function daysTo(s){if(!s)return null;return Math.ceil((new Date(s)-new Date())/864e5)}
 
 /* ═══ router ═══ */
-function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on')}
+function setWide(on){const a=document.querySelector('.app');if(a)a.classList.toggle('wide',!!on)}
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on');
+  setWide(id.indexOf('law')===0)}
 function startPicker(){go('picker');requestAnimationFrame(()=>{drawBody();drawPickFoot()})}
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   if(t==='journey'){drawPath();drawNotifBar()}
@@ -640,13 +704,26 @@ function drawPlan(){const c=C();if(!c)return;
   $('#planList').querySelectorAll('button').forEach(b=>b.style.transform='rotate(45deg)');
 }
 function dropSpec(i){const c=C();c.plan.splice(i,1);drawPlan()}
-function addSpec(k){const c=C();
+async function addSpec(k){const c=C();
   if(c.plan.some(a=>a.spec===k))return toast('כבר בתוכנית');
-  c.plan.push({id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),spec:k,
-    l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,reason:['נוסף ידנית על ידי עו״ד'],status:'proposed',
-    date:null,time:'',place:'',doctor:'',note:'',bring:SPECS[k].bring,rem:SPECS[k].rem,
-    tasks:[{l:'הגעתי',done:false}]});
-  drawPlan();renderPicker();toast(SPECS[k].l+' נוסף')}
+  const approved = c.stage==='active';
+  const it={id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),spec:k,
+    l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,reason:['נוסף ידנית על ידי עו״ד'],
+    status:approved?'approved':'proposed',
+    date:null,time:'',place:'',doctor:'',note:'',bring:SPECS[k].bring,rem:SPECS[k].rem,func:[],
+    tasks:[{l:'הגעתי',done:false}]};
+  c.plan.push(it);
+  drawPlan();renderPicker();refreshLawViews();
+  // אם התוכנית כבר אושרה — כותבים מיד לדאטהבייס, אחרת savePlan יכתוב באישור
+  if(approved){
+    const {data,error}=await sb.from('appointments').insert({client_id:c.id,spec:k,label:it.l,
+      color:it.c,icon:it.i,reason:it.reason,status:'approved',bring:it.bring,remember:it.rem,
+      sort:c.plan.length-1}).select().single();
+    if(error){c.plan=c.plan.filter(x=>x!==it);drawPlan();refreshLawViews();
+      return toast('שגיאת שמירה: '+error.message)}
+    it.id=data.id;
+  }
+  toast(SPECS[k].l+' נוסף')}
 function openSpecPicker(){
   S.openPart=null;S.openStep=null;
   $('#shTitle').textContent='הוספת רופא';$('#shSub').textContent='חיפוש לפי תחום';
@@ -700,10 +777,25 @@ function openPlanItem(i){
     <textarea id="eRem" style="min-height:64px">${a.rem||''}</textarea>`;
   $('#shBody').querySelectorAll('#eStat span').forEach(el=>el.onclick=()=>{
     a.status=el.dataset.s;openPlanItem(S.planIdx)});
-  $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
-    <button class="btn" style="--c:${a.c};border-radius:16px;padding:14px;font-size:15px" onclick="savePlanItem()">שמירה</button>
-    <button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;border-color:#F0CFC8;flex:0 0 34%" onclick="removePlanItem()">מחיקה</button></div>`;
+  const prev=PREV_OF[a.status];
+  $('#shFoot').innerHTML=`
+    ${prev?`<button class="btn2" style="padding:13px;font-size:14px;margin-bottom:8px" onclick="stepBack()">
+      ↩ החזרה ל״${STATUSES.find(x=>x[0]===prev)[1]}״</button>`:''}
+    <div style="display:flex;gap:8px">
+    <button class="btn" style="--c:${a.c};padding:14px;font-size:15px" onclick="savePlanItem()">שמירה</button>
+    <button class="btn2" style="padding:14px;font-size:15px;color:#C24A34;flex:0 0 34%" onclick="removePlanItem()">מחיקה</button></div>`;
   openSheet()}
+const PREV_OF={done:'pending',pending:'scheduled',returned:'scheduled',scheduled:'approved'};
+async function stepBack(){
+  const a=S.openStep,prev=PREV_OF[a.status];if(!prev)return;
+  const lbl=STATUSES.find(x=>x[0]===prev)[1];
+  if(!confirm('להחזיר את '+a.l+' לשלב ״'+lbl+'״?'))return;
+  a.status=prev;
+  if(prev==='approved'){a.date=null;a.time='';}
+  if(a.tasks)a.tasks.forEach(t=>t.done=false);
+  closeSheet();refreshLawViews();
+  if(a.id&&a.id.length>20)await saveApptRow(a);
+  toast('הוחזר ל״'+lbl+'״')}
 function refreshLawViews(){
   if($('#s-lawPlan').classList.contains('on'))drawPlan();
   if($('#s-lawClient').classList.contains('on'))drawLawClient();
@@ -1018,7 +1110,7 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
       <div style="font-size:12.5px;color:${DEEP[a.c]};line-height:1.7">${a.reason.join(' · ')}</div></div>
     <div style="font-size:12.5px;font-weight:700;margin-bottom:8px">צילום הזימון</div>
     <div class="up">
-      <div class="upBtn" onclick="pickAppt('camera')">${ic('cam',22,'#17171A')}מצלמה</div>
+      <div class="upBtn" onclick="openScan(drawApptShot)">${ic('cam',22,'#17171A')}סריקה</div>
       <div class="upBtn" onclick="pickAppt()">${ic('file',22,'#17171A')}גלריה</div>
       <div class="upBtn" onclick="pickAppt('pdf')">${ic('file',22,'#17171A')}PDF</div>
     </div>
@@ -1071,13 +1163,15 @@ function renderStep(){const a=S.openStep,b=$('#shBody');
     </div>
     <div style="font-size:12.5px;font-weight:700;margin:16px 0 8px">מסמכים מהתור</div>
     <div class="up">
-      <div class="upBtn" onclick="pickUpload('image/*','camera')">${ic('cam',22,'#17171A')}צילום</div>
+      <div class="upBtn" onclick="openScan(drawApptDocs)">${ic('cam',22,'#17171A')}סריקה</div>
       <div class="upBtn" onclick="pickUpload('image/*')">${ic('file',22,'#17171A')}תמונה</div>
       <div class="upBtn" onclick="pickUpload('application/pdf')">${ic('file',22,'#17171A')}PDF</div>
     </div>
     <div id="apDocs"></div>`);
   drawApptDocs();
-  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c}" onclick="finishUpload()">שליחה לעורך הדין</button>`}
+  const nDocs=(C().docs||[]).filter(d=>d.appt===a.id).length;
+  $('#shFoot').innerHTML=`<button class="btn" style="--c:${a.c}" onclick="finishUpload()"
+    ${nDocs?'':'disabled'}>${nDocs?'שליחה לעורך הדין · '+nDocs+' מסמכים':'צרף מסמך כדי לשלוח'}</button>`}
 const FQ=[
   'מה אתה לא מצליח לעשות היום, שהיית מסוגל לעשות לפני הפגיעה?',
   'כמה ימי עבודה או לימודים פספסת מאז הפגיעה?',
@@ -1096,6 +1190,8 @@ function drawApptDocs(){
     <div style="flex:1"><div style="font-size:13.5px;font-weight:600">${d.n}</div>
       <div style="font-size:11.5px;color:var(--ink3)">${d.d}</div></div>
     ${d.up?ic('check',18,'#14807A'):'<span style="font-size:11.5px;color:var(--ink3)">מעלה…</span>'}</div>`).join('')
+    +`<div style="font-size:11.5px;color:var(--ink3);text-align:center;padding:4px 0 2px">
+       אפשר לצרף עוד מסמכים לפני השליחה</div>`
     :`<div style="text-align:center;color:var(--ink3);font-size:13px;padding:14px 0">עדיין לא צורף מסמך</div>`}
 function pickUpload(accept,cap){
   const inp=document.createElement('input');inp.type='file';inp.accept=accept;
@@ -1106,7 +1202,11 @@ async function uploadFile(file,redraw){
   const c=C(),a=S.openStep;
   redraw = redraw || drawApptDocs;
   const kind=file.type.startsWith('image')?'image':'pdf';
-  const rec={n:file.name,d:'עכשיו',c:a.c,appt:a.id,kind,up:false,url:URL.createObjectURL(file)};
+  const ext=(file.name.match(/\.[a-z0-9]+$/i)||[''])[0];
+  const seq=(c.docs||[]).filter(d=>d.appt===a.id).length+1;
+  const nice=['ביקור '+a.l, a.doctor||null, a.date?fmtDate(a.date):null]
+    .filter(Boolean).join(' · ') + (seq>1?' ('+seq+')':'') + ext;
+  const rec={n:nice,d:'עכשיו',c:a.c,appt:a.id,kind,up:false,url:URL.createObjectURL(file)};
   c.docs.unshift(rec);redraw();
   const safe=file.name.replace(/[^\w.\-]/g,'_');
   const path=c.id+'/'+Date.now()+'_'+safe;
@@ -1115,7 +1215,7 @@ async function uploadFile(file,redraw){
   const ins=await sb.from('documents').insert({client_id:c.id,appointment_id:(a.id&&a.id.length>20)?a.id:null,
     name:file.name,storage_path:path}).select().single();
   rec.up=true;rec.path=path;if(ins.data)rec.id=ins.data.id;
-  redraw();drawDocs();toast('הקובץ נשמר')}
+  redraw();drawDocs();if(S.openStep)renderStep();toast('הקובץ נשמר')}
 async function finishUpload(){
   const c=C(),a=S.openStep;
   if(!(c.docs||[]).some(d=>d.appt===a.id))return toast('צריך לצרף לפחות מסמך אחד');
@@ -1125,6 +1225,176 @@ async function openDoc(path){
   const {data,error}=await sb.storage.from('docs').createSignedUrl(path,120);
   if(error)return toast('לא ניתן לפתוח: '+error.message);
   window.open(data.signedUrl,'_blank')}
+/* ═══════════════ סורק מסמכים ═══════════════ */
+const SCAN={pages:[],stream:null,raf:null,cv:false,steady:0,last:null,busy:false,onDone:null};
+
+function loadOnce(src){return new Promise((ok,bad)=>{
+  if(document.querySelector(`script[src="${src}"]`))return ok();
+  const t=document.createElement('script');t.src=src;t.async=true;
+  t.onload=()=>ok();t.onerror=()=>bad(new Error('load '+src));
+  document.head.appendChild(t)})}
+
+async function ensureCV(){
+  if(SCAN.cv)return true;
+  // jscanify מגיעה עם opencv.js משלה — אותו CDN, פחות נקודות כשל
+  await loadOnce('https://cdn.jsdelivr.net/npm/jscanify@1.4.3/src/opencv.js');
+  await new Promise((ok,bad)=>{const t0=Date.now();
+    const t=setInterval(()=>{
+      if(window.cv&&cv.Mat){clearInterval(t);ok()}
+      else if(Date.now()-t0>25000){clearInterval(t);bad(new Error('opencv timeout'))}},60)});
+  await loadOnce('https://cdn.jsdelivr.net/npm/jscanify@1.4.3/src/jscanify.js');
+  if(!window.jscanify)throw new Error('jscanify');
+  SCAN.scanner=new jscanify();SCAN.cv=true;return true}
+
+async function openScan(onDone){
+  SCAN.pages=[];SCAN.steady=0;SCAN.last=null;SCAN.onDone=onDone||null;SCAN.stop=false;
+  $('#scan').classList.add('on');drawScanPages();
+  $('#scanShot').disabled=true;$('#scanDone').disabled=true;
+  const hint=$('#scanHint'),load=$('#scanLoad');
+  hint.textContent='מכין את הסורק…';hint.classList.remove('lock');
+  try{
+    load.style.display='block';
+    load.innerHTML='טוען את מנוע הסריקה…<br><span style="opacity:.6;font-size:13px">בפעם הראשונה זה לוקח כמה שניות</span>';
+    await ensureCV();
+    load.style.display='none';
+    SCAN.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},
+      width:{ideal:1920},height:{ideal:1080}},audio:false});
+    const v=$('#scanVid');v.srcObject=SCAN.stream;
+    await v.play();
+    hint.textContent='כוון את המסמך למסגרת';
+    tickScan();
+  }catch(e){
+    load.style.display='none';
+    closeScan();
+    toast('הסורק לא נטען — נפתחת מצלמה רגילה');
+    pickUpload('image/*','camera');
+  }}
+
+/* ── לולאת זיהוי ──
+   מזהים על תמונה מוקטנת ל-480px ובקצב של ~9 פריימים בשנייה.
+   זיהוי ברזולוציה מלאה ובכל פריים מקפיא כל טלפון תוך שניות. */
+const DET_W=480;
+function tickScan(){
+  if(SCAN.stop)return;
+  const v=$('#scanVid'),ov=$('#scanOv');
+  if(!v.videoWidth){SCAN.raf=setTimeout(tickScan,120);return}
+  const W=v.videoWidth,H=v.videoHeight,sc=DET_W/W;
+  if(ov.width!==W){ov.width=W;ov.height=H}
+  if(!SCAN.det){SCAN.det=document.createElement('canvas')}
+  SCAN.det.width=DET_W;SCAN.det.height=Math.round(H*sc);
+  SCAN.det.getContext('2d').drawImage(v,0,0,SCAN.det.width,SCAN.det.height);
+
+  let corners=null,src=null,contour=null;
+  try{
+    src=cv.imread(SCAN.det);
+    contour=SCAN.scanner.findPaperContour(src);
+    if(contour&&!contour.isDeleted()){
+      const c=SCAN.scanner.getCornerPoints(contour);
+      if(c&&c.topLeftCorner&&c.topRightCorner&&c.bottomLeftCorner&&c.bottomRightCorner){
+        corners={};
+        for(const k in c)corners[k]={x:c[k].x/sc,y:c[k].y/sc};   // חזרה לרזולוציה מלאה
+      }
+    }
+  }catch(e){}
+  finally{
+    // הספרייה לא משחררת את הקונטור — בלי זה הזיכרון מתפוצץ תוך שניות
+    try{if(contour&&!contour.isDeleted())contour.delete()}catch(e){}
+    try{if(src&&!src.isDeleted())src.delete()}catch(e){}
+  }
+
+  paintScan(corners,W,H);
+  SCAN.raf=setTimeout(tickScan,110);
+}
+
+function paintScan(corners,W,H){
+  const g=$('#scanOv').getContext('2d');g.clearRect(0,0,W,H);
+  const hint=$('#scanHint'),shot=$('#scanShot');
+  if(!corners){
+    SCAN.steady=0;SCAN.last=null;
+    shot.disabled=true;shot.classList.remove('ready');
+    hint.textContent='לא מזוהה מסמך — הנח על רקע כהה';hint.classList.remove('lock');
+    return}
+  const area=quadArea(corners)/(W*H), big=area>0.20;
+  g.beginPath();
+  g.moveTo(corners.topLeftCorner.x,corners.topLeftCorner.y);
+  g.lineTo(corners.topRightCorner.x,corners.topRightCorner.y);
+  g.lineTo(corners.bottomRightCorner.x,corners.bottomRightCorner.y);
+  g.lineTo(corners.bottomLeftCorner.x,corners.bottomLeftCorner.y);
+  g.closePath();
+  g.fillStyle=big?'rgba(20,128,122,.20)':'rgba(255,255,255,.08)';g.fill();
+  g.strokeStyle=big?'#2FBFA8':'rgba(255,255,255,.6)';
+  g.lineWidth=Math.max(4,W/200);g.stroke();
+  corners.pts=[corners.topLeftCorner,corners.topRightCorner,corners.bottomRightCorner,corners.bottomLeftCorner];
+  corners.pts.forEach(pt=>{g.beginPath();g.arc(pt.x,pt.y,Math.max(7,W/130),0,7);
+    g.fillStyle=big?'#2FBFA8':'rgba(255,255,255,.75)';g.fill()});
+
+  SCAN.steady = big && near(corners,SCAN.last,W) ? SCAN.steady+1 : 0;
+  SCAN.last=corners;
+  shot.disabled=!big; shot.classList.toggle('ready',big);
+  if(!big){hint.textContent='קרב את המצלמה למסמך';hint.classList.remove('lock')}
+  else if(SCAN.steady<4){hint.textContent='החזק יציב…';hint.classList.remove('lock')}
+  else{hint.textContent='נעול · מצלם';hint.classList.add('lock');SCAN.steady=0;grabPage()}
+}
+
+function quadArea(c){const p=[c.topLeftCorner,c.topRightCorner,c.bottomRightCorner,c.bottomLeftCorner];
+  let a=0;for(let i=0;i<4;i++){const q=p[i],r=p[(i+1)%4];a+=q.x*r.y-r.x*q.y}return Math.abs(a/2)}
+function near(a,b,W){if(!b)return false;const t=W*0.02;
+  return ['topLeftCorner','topRightCorner','bottomRightCorner','bottomLeftCorner']
+    .every(k=>Math.abs(a[k].x-b[k].x)<t&&Math.abs(a[k].y-b[k].y)<t)}
+
+async function grabPage(){
+  if(SCAN.busy||!SCAN.last)return; SCAN.busy=true;
+  try{
+    const v=$('#scanVid');
+    const full=document.createElement('canvas');
+    full.width=v.videoWidth;full.height=v.videoHeight;
+    full.getContext('2d').drawImage(v,0,0);
+    const cor=SCAN.last;
+    const w=Math.round(Math.max(
+      Math.hypot(cor.topRightCorner.x-cor.topLeftCorner.x,cor.topRightCorner.y-cor.topLeftCorner.y),
+      Math.hypot(cor.bottomRightCorner.x-cor.bottomLeftCorner.x,cor.bottomRightCorner.y-cor.bottomLeftCorner.y)));
+    const h=Math.round(Math.max(
+      Math.hypot(cor.bottomLeftCorner.x-cor.topLeftCorner.x,cor.bottomLeftCorner.y-cor.topLeftCorner.y),
+      Math.hypot(cor.bottomRightCorner.x-cor.topRightCorner.x,cor.bottomRightCorner.y-cor.topRightCorner.y)));
+    let out=full;
+    try{ const r=SCAN.scanner.extractPaper(full,Math.max(w,800),Math.max(h,1000),cor); if(r)out=r; }
+    catch(e){}
+    const blob=await new Promise(r=>out.toBlob(r,'image/jpeg',0.92));
+    SCAN.pages.push({blob,url:URL.createObjectURL(blob)});
+    drawScanPages();
+    $('#scanDone').disabled=false;
+    const st=$('#scanStage');st.style.transition='none';st.style.filter='brightness(2.6)';
+    setTimeout(()=>{st.style.transition='filter .3s';st.style.filter='none'},50);
+    if(navigator.vibrate)navigator.vibrate(30);
+  }catch(e){toast('הצילום נכשל, נסה שוב')}
+  SCAN.last=null;
+  setTimeout(()=>{SCAN.busy=false},1200)}
+
+function drawScanPages(){
+  $('#scanPages').innerHTML=SCAN.pages.map((p,i)=>
+    `<div class="del" onclick="delPage(${i})"><img src="${p.url}"><b>✕</b></div>`).join('');
+  $('#scanDone').textContent=SCAN.pages.length?'סיום · '+SCAN.pages.length:'סיום'}
+function delPage(i){URL.revokeObjectURL(SCAN.pages[i].url);SCAN.pages.splice(i,1);
+  drawScanPages();$('#scanDone').disabled=!SCAN.pages.length}
+
+function stopScan(){
+  SCAN.stop=true;
+  if(SCAN.raf)clearTimeout(SCAN.raf);SCAN.raf=null;
+  if(SCAN.stream){SCAN.stream.getTracks().forEach(t=>t.stop());SCAN.stream=null}
+  $('#scanVid').srcObject=null}
+function closeScan(){stopScan();$('#scan').classList.remove('on');
+  SCAN.pages.forEach(p=>URL.revokeObjectURL(p.url));SCAN.pages=[]}
+
+async function finishScan(){
+  const pages=SCAN.pages.slice();
+  stopScan();$('#scan').classList.remove('on');SCAN.pages=[];
+  const cb=SCAN.onDone;
+  for(let i=0;i<pages.length;i++){
+    const f=new File([pages[i].blob],'scan_'+(i+1)+'.jpg',{type:'image/jpeg'});
+    await uploadFile(f,cb);
+  }
+  toast(pages.length+' עמודים נסרקו')}
+
 function pickAppt(mode){
   const inp=document.createElement('input');inp.type='file';
   inp.accept = mode==='pdf' ? 'application/pdf' : 'image/*';
@@ -1326,8 +1596,8 @@ function subscribeRT(){
   sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},async()=>{
     if(DB.role==='lawyer'){const before=DB.clients.length;await loadFirmClients();
       if(DB.clients.length>before)notify('לקוח חדש נרשם','יש תוכנית שממתינה לאישור');
-      if($('#s-lawList').classList.contains('on'))drawLawList();
-      if($('#s-lawClient').classList.contains('on'))drawLawClient();}
+      refreshLawViews();
+      if($('#s-lawList').classList.contains('on'))drawLawList();}
     else if(DB.role==='client'){const me=await myClient();if(!me)return;
       const wasStage=C()&&C().stage;DB.clients=[me];DB.active=me.id;
       if($('#s-wait').classList.contains('on')&&me.stage==='active'){clientHome();toast('התוכנית אושרה!')}
