@@ -52,7 +52,14 @@ button{font:inherit;cursor:pointer}
   .app.wide .top>*,.app.wide .jhead>*{max-width:1180px;margin-inline:auto;width:100%}
   .app.wide .pad>*,.app.wide .grid2,.app.wide .srch,.app.wide .seg,
   .app.wide #lcBody>*,.app.wide #planList{max-width:1180px;margin-inline:auto}
-  .app.wide .qrbox{max-width:560px}
+  /* מצב ריק — פרוס על כל רוחב הרשת וממורכז */
+  .app.wide .empty{grid-column:1/-1}
+  /* מסך צירוף לקוח — עמודה צרה אחידה לכל האלמנטים */
+  .app.wide #s-lawInvite .pad>*,
+  .app.wide #s-lawInvite .foot>*,
+  .app.wide #s-lawInvite .qrbox,
+  .app.wide #s-lawInvite .foot .btn,
+  .app.wide #s-lawInvite .foot .ghost{max-width:560px;margin-inline:auto}
   .app.wide .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
   .app.wide .grid2 .crow,.app.wide .grid2 .dr{margin-bottom:0}
   .app.wide .bhead{grid-column:1/-1;margin-top:24px}
@@ -232,7 +239,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .bhead i{font-style:normal;font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 8px}
 .star{flex:none;padding:6px;margin:-6px;cursor:pointer;color:var(--dot);line-height:0}
 .star.on{color:#E8A33D}
-.empty{text-align:center;color:var(--ink3);font-size:13.5px;padding:40px 20px;line-height:1.7}
+.empty{text-align:center;color:var(--ink3);font-size:14px;padding:70px 20px;line-height:1.8;width:100%}
 /* notifications, files, privacy */
 .nbar{margin:0 20px 12px;border-radius:var(--r);padding:14px 15px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--sh)}
 .nbar .x{margin-inline-start:auto;opacity:.5;cursor:pointer;flex:none}
