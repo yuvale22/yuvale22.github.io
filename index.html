@@ -298,8 +298,14 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
     height:auto;max-height:86vh;
     border-radius:24px;
     padding:28px 34px 24px;
-    transform:translate(-50%,-46%) scale(.98)}
-  .sheet.on{transform:translate(-50%,-50%) scale(1)}
+    /* ⚠ הכלל הבסיסי מסתיר את החלון עם transform:translateY(103%).
+       כאן דרסנו את ה-transform, ולכן חובה להסתיר בדרך אחרת —
+       אחרת החלון נשאר תקוע פתוח וריק באמצע המסך. */
+    transform:translate(-50%,-46%) scale(.98);
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:transform .32s cubic-bezier(.32,.72,0,1),opacity .22s,visibility .22s}
+  .sheet.on{transform:translate(-50%,-50%) scale(1);
+    opacity:1;visibility:visible;pointer-events:auto}
   .sheet .grab{display:none}
   .sheet .shead{margin-bottom:20px}
   .sheet .shead h2{font-size:24px}
@@ -893,7 +899,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 4';
+const BUILD='12.8.26 · 5';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
