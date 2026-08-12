@@ -448,7 +448,8 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   </div>
   <div class="foot">
     <button class="btn" style="--c:#14807A" id="lMain" onclick="lawLogin()">כניסה</button>
-    <button class="ghost" id="lSwitch" onclick="lawToggle()">פתיחת חשבון חדש</button></div>
+    <button class="ghost" id="lSwitch" onclick="lawToggle()">פתיחת חשבון חדש</button>
+    <div style="text-align:center;font-size:11px;color:var(--ink3);margin-top:10px">גרסה <span id="buildTag"></span></div></div>
 </section>
 
 <!-- ═══ LAWYER ═══ -->
@@ -892,6 +893,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
+const BUILD='12.8.26 · 4';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -2430,6 +2432,7 @@ function openAlerts(){
   $('#shIc').style.background='#17171A';
   $('#shIc').innerHTML='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>';
   const perm=!!(window.Notification&&Notification.permission==='default');
+  try{
   $('#shBody').innerHTML=
     (perm?`<div class="alrow" style="background:#fff;border-color:var(--border)" onclick="askNotif()">
       <div style="flex:1"><div style="font-size:14px;font-weight:700">להפעיל התראות דפדפן?</div>
@@ -2443,6 +2446,11 @@ function openAlerts(){
           <span style="color:${a.f};opacity:.5;font-size:18px">‹</span></div>`).join('')
       : `<div style="text-align:center;color:var(--ink3);font-size:13.5px;line-height:1.8;padding:26px 10px">
           אין פריטים פתוחים.<br>כל המסמכים אושרו וכל התורים מוכנים.</div>`);
+  }catch(e){
+    $('#shBody').innerHTML=`<div style="text-align:center;color:#C24A34;font-size:13px;padding:24px 10px;
+      line-height:1.7">לא ניתן להציג את הרשימה.<br><span style="font-size:11.5px;color:var(--ink3)">${e.message}</span>
+      <br><span style="font-size:11px;color:var(--ink3)">גרסה ${BUILD}</span></div>`;
+  }
   $('#shFoot').innerHTML=al.length
     ? `<button class="btn" style="--c:#17171A" onclick="closeSheet()">סגירה</button>`
     : `<button class="btn2" onclick="closeSheet()">סגירה</button>`;
@@ -2621,6 +2629,7 @@ async function boot(){
   go('lawLogin');
 }
 sb.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_IN'&&!DB.role) boot(); });
+try{const bt=document.getElementById('buildTag');if(bt)bt.textContent=BUILD}catch(e){}
 boot();
 /* גשר לבדיקות אוטומטיות — const אינו נחשף על window מעצמו */
 try{window.__app={get DB(){return DB},C,SPECS,PARTS,LIAB,TRIG,BUILTIN_TPL,STATUSES,FQ,
