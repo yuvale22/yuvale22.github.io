@@ -899,7 +899,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 5';
+const BUILD='12.8.26 · 6';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -1864,7 +1864,7 @@ async function lawSignup(){
   if(!e||p.length<6)return lawErr('צריך מייל וסיסמה של 6 תווים לפחות');
   if(!nm||!fm)return lawErr('צריך שם ושם משרד');
   lawErr('');toast('פותח חשבון…');
-  let {data:{session}}=await sb.auth.getSession();
+  let session=await liveSession();
   if(!session){
     const r=await sb.auth.signUp({email:e,password:p});
     if(r.error)return lawErr(r.error.message);
@@ -1882,7 +1882,11 @@ async function lawSignup(){
     firm=r.data;
   }
   const li=await sb.from('lawyers').insert({id:session.user.id,firm_id:firm.id,name:nm,email:e});
-  if(li.error&&li.error.code!=='23505')return lawErr('לא ניתן לחבר למשרד: '+li.error.message);
+  if(li.error&&li.error.code!=='23505'){
+    if(String(li.error.message).indexOf('_fkey')>-1)
+      return lawErr('החיבור הקודם כבר לא תקף. לחץ "יציאה" למטה, רענן, ונסה שוב.');
+    return lawErr('לא ניתן לחבר למשרד: '+li.error.message);
+  }
   DB.role=null;toast('נפתח חשבון');boot()}
 
 /* ═══ journey ═══ */
@@ -2606,9 +2610,25 @@ function subscribeRT(){
 }
 
 /* ═══ boot ═══ */
+/* הטוקן שמור מקומית וממשיך להיראות תקף גם אם המשתמש נמחק בשרת.
+   הבדיקה הזו פונה לשרת פעם אחת ומנקה סשן מת. */
+async function liveSession(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return null;
+  try{
+    const {data,error}=await sb.auth.getUser();
+    if(error||!data||!data.user)throw new Error('dead');
+  }catch(e){
+    try{await sb.auth.signOut()}catch(_){}
+    try{Object.keys(localStorage).filter(k=>k.indexOf('sb-')===0)
+      .forEach(k=>localStorage.removeItem(k))}catch(_){}
+    return null;
+  }
+  return session;
+}
 async function boot(){
   const joining=location.hash.indexOf('join')>-1;
-  let {data:{session}}=await sb.auth.getSession();
+  let session=await liveSession();
 
   if(joining){
     const m=location.hash.match(/join=([\w-]+)/);
