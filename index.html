@@ -952,7 +952,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 12';
+const BUILD='12.8.26 · 13';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -1158,17 +1158,21 @@ function drawPlan(){const c=C();if(!c)return;
 }
 function dropSpec(i){const c=C();c.plan.splice(i,1);drawPlan()}
 async function addSpec(k){const c=C();
-  if(c.plan.some(a=>a.spec===k))return toast('כבר בתוכנית');
+  const already=c.plan.some(a=>a.spec===k);
+  // מהמסלול מותר להוסיף שוב — זה ביקור חוזר אצל אותו רופא.
+  // מהבורר הרגיל עדיין חוסמים כפילות בטעות.
+  if(already&&!ADD_AFTER)return toast('כבר בתוכנית');
   const approved = c.stage==='active';
   const whyEl=$('#addWhy');
   const why=(whyEl?whyEl.value.trim():'');
   if(whyEl&&!why)return toast('צריך לרשום למה השלב נדרש');
   const it={id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),spec:k,
     after:ADD_AFTER||null,
-    l:SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,
+    l:(already?'ביקור חוזר · ':'')+SPECS[k].l,c:SPECS[k].c,i:SPECS[k].i,
     reason:[why||'נוסף על ידי עורך הדין'],
     noteAt:ADD_AFTER?new Date().toISOString():null,
-    note:ADD_AFTER?('עורך הדין הוסיף לך שלב: '+SPECS[k].l+'. '+why):'',
+    note:ADD_AFTER?((already?'עורך הדין ביקש שתחזור אל ':'עורך הדין הוסיף לך שלב: ')
+      +SPECS[k].l+'. '+why):'',
     status:approved?'approved':'proposed',
     date:null,time:'',place:'',doctor:'',bring:SPECS[k].bring,rem:SPECS[k].rem,func:[],
     tasks:[{l:'הגעתי',done:false}]};
@@ -2118,12 +2122,19 @@ function drawAddList(){
   const c=C(),box=$('#addList');if(!box)return;
   const q=($('#addQ').value||'').trim();
   const list=Object.keys(SPECS).filter(k=>!q||SPECS[k].l.includes(q));
-  box.innerHTML=list.map(k=>{const inPlan=(c.plan||[]).some(a=>a.spec===k);
-    return `<div class="dr" style="${inPlan?'opacity:.45':''}" ${inPlan?'':`onclick="addSpec('${k}')"`}>
+  box.innerHTML=list.map(k=>{
+    const prev=(c.plan||[]).filter(a=>a.spec===k);
+    const seen=prev.length>0;
+    const done=prev.some(a=>a.status==='done');
+    return `<div class="dr" onclick="addSpec('${k}')">
       <div class="av" style="background:${SPECS[k].c}">${ic(SPECS[k].i,20)}</div>
-      <div style="flex:1"><div style="font-size:15px;font-weight:700">${SPECS[k].l}</div>
-        <div class="why">${inPlan?'כבר בתוכנית':'לחיצה כדי להוסיף כאן'}</div></div>
-      ${inPlan?ic('check',18,'#14807A'):ic('plus',18,'#C9BFB2')}</div>`}).join('')
+      <div style="flex:1"><div style="font-size:15px;font-weight:700">${SPECS[k].l}
+        ${seen?`<span style="font-size:10.5px;font-weight:700;color:#0D5F5A;background:#E4F0EE;
+          border-radius:99px;padding:2px 8px;margin-inline-start:6px">ביקור חוזר</span>`:''}</div>
+        <div class="why">${seen
+          ? (done?'כבר היה שם — הוספה כביקור חוזר':'כבר בתוכנית — הוספה כביקור נוסף')
+          : 'לחיצה כדי להוסיף כאן'}</div></div>
+      ${ic('plus',18,'#C9BFB2')}</div>`}).join('')
     ||'<div style="text-align:center;color:var(--ink3);padding:30px 0">לא נמצא תחום</div>'}
 
 /* ═══ step sheet ═══ */
