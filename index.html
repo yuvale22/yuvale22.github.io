@@ -54,17 +54,6 @@ button{font:inherit;cursor:pointer}
   .app.wide .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
   .app.wide .grid2 .crow,.app.wide .grid2 .dr{margin-bottom:0}
   .app.wide .bhead,.app.wide .empty{grid-column:1/-1}
-  /* חלונית עריכה במחשב — גדולה ונוחה, לא גיליון טלפון */
-  .sheet{max-width:820px;width:calc(100% - 80px);border-radius:24px;bottom:auto;top:50%;
-    transform:translateY(-45%) scale(.97);max-height:86dvh;padding:22px 30px 26px}
-  .sheet.on{transform:translateY(-50%) scale(1)}
-  .sheet .grab{display:none}
-  .sheet .shead h2{font-size:23px}
-  .sheet textarea{min-height:96px}
-  .sheet input,.sheet textarea,.sheet select{font-size:16px;padding:15px 16px}
-  #shBody{padding-inline:2px}
-  /* פרטי התור בשתי עמודות במקום אחת ארוכה */
-  #shBody .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
   .jhead{padding-block:22px}
   .tabs{max-width:520px;margin:0 auto;border:0}
 }
@@ -269,6 +258,17 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   border:1.5px solid var(--border);background:#fff;color:#17171A;font-size:14px;font-weight:700;
   border-radius:12px;padding:11px 18px 11px 14px;box-shadow:0 2px 10px rgba(20,20,26,.12);transition:.15s}
 .backBtn.on{display:flex}
+.bell{position:fixed;top:16px;right:16px;z-index:8;display:none;width:46px;height:46px;
+  align-items:center;justify-content:center;background:#fff;border:1.5px solid var(--border);
+  border-radius:14px;box-shadow:0 3px 12px -4px rgba(20,20,26,.20);cursor:pointer}
+.bell.on{display:flex}
+.bell i{position:absolute;top:-6px;right:-6px;min-width:21px;height:21px;padding:0 5px;
+  border-radius:99px;background:#C24A34;color:#fff;font-size:11.5px;font-weight:700;font-style:normal;
+  display:none;align-items:center;justify-content:center;line-height:1}
+.bell i.on{display:flex}
+.alrow{display:flex;gap:11px;align-items:flex-start;border-radius:15px;padding:13px;
+  margin-bottom:8px;cursor:pointer;border:1.5px solid transparent}
+.alrow:active{transform:scale(.99)}
 .backBtn:hover{background:#F7F6F4;border-color:var(--chip)}
 .backBtn:active{transform:scale(.97)}
 .rolesw button{border:1.5px solid var(--border);background:#fff;color:#17171A;font-size:14px;font-weight:700;
@@ -285,6 +285,34 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 @keyframes fall{0%{opacity:1;transform:translateY(-40px) rotate(0)}100%{opacity:0;transform:translateY(190px) rotate(300deg)}}
 .toast{position:fixed;bottom:96px;left:50%;transform:translate(-50%,14px);background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:11px 18px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:40;max-width:88%;text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ══════════════════════════════════════════════════════════
+   מחשב · חלון עריכה אמיתי במרכז המסך.
+   חייב להופיע אחרי כלל .sheet הבסיסי, אחרת הוא נדרס.
+   ══════════════════════════════════════════════════════════ */
+@media (min-width:900px){
+  .scrim{background:rgba(46,42,38,.46);backdrop-filter:blur(2px)}
+  .sheet{
+    top:50%;bottom:auto;left:50%;right:auto;margin:0;
+    width:min(920px,92vw);max-width:none;
+    height:auto;max-height:86vh;
+    border-radius:24px;
+    padding:28px 34px 24px;
+    transform:translate(-50%,-46%) scale(.98)}
+  .sheet.on{transform:translate(-50%,-50%) scale(1)}
+  .sheet .grab{display:none}
+  .sheet .shead{margin-bottom:20px}
+  .sheet .shead h2{font-size:24px}
+  .sheet .shead .ic{width:56px;height:56px}
+  .sheet .sbody{padding-inline:2px}
+  .sheet input,.sheet textarea,.sheet select{font-size:15.5px;padding:14px 16px}
+  .sheet textarea{min-height:92px}
+  .sheet .sfoot{padding-top:18px;border-top:1px solid var(--border);margin-top:4px}
+  /* שדות קצרים זה לצד זה במקום טור אחד ארוך */
+  .sheet .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+  /* רשימות ארוכות בתוך החלון — שתי עמודות */
+  .sheet #specList,.sheet #alList{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+}
 </style>
 </head>
 <body>
@@ -507,6 +535,12 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 <button class="backBtn" id="backBtn" onclick="goBack()">
   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>חזרה</button>
 <div class="rolesw" id="rolesw"><button class="on" onclick="logout()">יציאה</button></div>
+
+<button class="bell" id="bellBtn" onclick="openAlerts()" aria-label="התראות">
+  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#17171A" stroke-width="1.9"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+  <i id="bellN"></i></button>
 
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"><div class="grab"></div>
@@ -905,7 +939,8 @@ function goBack(){
   if(t.law)return lawGo(t.law);
   if(t.go)return go(t.go)}
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on');
-  setWide(id.indexOf('law')===0);setBack(id)}
+  setWide(id.indexOf('law')===0);setBack(id);
+  try{refreshBell()}catch(e){}}
 function goDescribe(){go('describe');requestAnimationFrame(drawLiab)}
 function startPicker(){go('picker');requestAnimationFrame(()=>{drawBody();drawPickFoot()})}
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
@@ -1230,6 +1265,7 @@ async function stepBack(){
   if(a.id&&a.id.length>20)await saveApptRow(a);
   toast('הוחזר ל״'+lbl+'״')}
 function refreshLawViews(){
+  refreshBell();
   if($('#s-lawPlan').classList.contains('on'))drawPlan();
   if($('#s-lawClient').classList.contains('on'))drawLawClient();
   if($('#s-lawPath').classList.contains('on'))drawPath('#lawPath');}
@@ -1489,10 +1525,12 @@ function docArchive(c){
   let h=`<div style="display:flex;align-items:center;justify-content:space-between;margin:26px 0 9px">
     <span style="font-size:12px;font-weight:700;color:var(--ink2)">מסמכי התיק</span>
     <span style="font-size:11.5px;color:var(--ink3)">${docs.length} מסמכים</span></div>`;
-  if(docs.some(d=>d.path))
-    h+=`<button class="btn2" id="zipBtn" style="margin-bottom:12px;display:flex;align-items:center;
-      justify-content:center;gap:8px" onclick="downloadZip()">
-      ${ic('file',18,'#17171A')}הורדת כל התיק · ZIP</button>`;
+  h+=`<div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn2" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px"
+        onclick="openReport()">${ic('file',17,'#17171A')}דוח תיק מסכם</button>
+      ${docs.some(d=>d.path)?`<button class="btn2" id="zipBtn" style="flex:1;display:flex;align-items:center;
+        justify-content:center;gap:7px" onclick="downloadZip()">
+        ${ic('file',17,'#17171A')}מסמכים · ZIP</button>`:''}</div>`;
   if(!docs.length)
     return h+`<div class="empty" style="padding:26px 20px">טרם התקבלו מסמכים בתיק זה.</div>`;
 
@@ -1527,6 +1565,119 @@ function docArchive(c){
 
 /* ── הורדת כל התיק כקובץ ZIP, מסודר בתיקיות לפי ביקור ── */
 function safeName(t){return String(t||'').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim().slice(0,80)}
+
+/* ── בונה מסמך HTML עצמאי עם כל מה שיש בתיק ── */
+function esc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function reportHTML(c){
+  const F=DB.firmRow||{}, today=new Date().toLocaleDateString('he-IL');
+  const ag=ageOf(c.dob);
+  const set=LIAB[c.type]||LIAB[LIAB_DEF], ans=c.liab||{};
+  const liabRows=set.map((x,i)=>({q:x.q,a:(ans[String(i)]||'').trim()}));
+  const P=(c.plan||[]).slice().sort((x,y)=>{
+    if(!x.date&&!y.date)return 0; if(!x.date)return 1; if(!y.date)return -1;
+    return new Date(x.date)-new Date(y.date)});
+  const stName=k=>((STATUSES.find(z=>z[0]===k)||[,k])[1]);
+  const docsOf=id=>(c.docs||[]).filter(d=>d.appt===id);
+
+  const regions=Object.keys(c.sel||{}).filter(k=>(c.sel[k]||[]).length);
+
+  const box=(title,inner)=>inner?`<section><h2>${title}</h2>${inner}</section>`:'';
+
+  return `<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8">
+<title>${esc(c.name)} — דוח תיק</title>
+<style>
+*{box-sizing:border-box}
+body{font:15px/1.7 -apple-system,"Segoe UI",Arial,sans-serif;color:#17171A;background:#F0EDE8;margin:0;padding:28px}
+.page{max-width:820px;margin:0 auto;background:#fff;padding:44px 48px;border-radius:6px;
+  box-shadow:0 2px 20px -8px rgba(0,0,0,.18)}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #17171A;padding-bottom:14px}
+.hd b{font-size:13px;letter-spacing:.5px;color:${esc(F.brand||'#14807A')}}
+h1{font-size:27px;margin:20px 0 3px}
+.meta{color:#6B6864;font-size:13.5px}
+section{margin-top:30px;page-break-inside:avoid}
+h2{font-size:12px;letter-spacing:.7px;text-transform:uppercase;color:#6B6864;
+  border-bottom:1px solid #E3DED7;padding-bottom:6px;margin:0 0 12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+td,th{text-align:right;padding:8px 0;border-bottom:1px solid #EFEBE6;vertical-align:top}
+th{font-size:11.5px;color:#6B6864;font-weight:700}
+.qa{margin-bottom:13px}
+.qa .q{font-size:12px;color:#6B6864}
+.qa .a{font-size:14px;margin-top:2px}
+.qa .none{font-size:13.5px;color:#B0ABA4;font-style:italic;margin-top:2px}
+.quote{background:#F7F6F4;border-inline-start:3px solid ${esc(F.brand||'#14807A')};
+  padding:13px 16px;border-radius:0 8px 8px 0;font-size:14px;white-space:pre-wrap}
+.tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:99px;background:#F1EFEC;color:#6B6864}
+.foot{margin-top:36px;border-top:1px solid #E3DED7;padding-top:14px;font-size:11.5px;color:#8B8781;line-height:1.7}
+.pr{position:fixed;top:18px;left:18px;background:#17171A;color:#fff;border:0;border-radius:11px;
+  padding:12px 20px;font:700 14px/1 inherit;cursor:pointer}
+@media print{body{background:#fff;padding:0}.page{box-shadow:none;padding:0;max-width:none}.pr{display:none}}
+</style>
+<button class="pr" onclick="window.print()">הדפסה · שמירה כ-PDF</button>
+<div class="page">
+  <div class="hd">
+    <b>${esc(F.name||'')}</b>
+    <span class="meta">הופק ${esc(today)}</span></div>
+
+  <h1>${esc(c.name)}</h1>
+  <div class="meta">${[c.type,c.idn?'ת״ז '+esc(c.idn):'',ag!=null?'בן '+ag:'',
+      c.phone?esc(c.phone):'',c.addr?esc(c.addr):''].filter(Boolean).join(' · ')}</div>
+
+  ${box('תיאור האירוע מפי הלקוח', c.desc?`<div class="quote">${esc(c.desc)}</div>`:'')}
+
+  ${box('בירור אחריות', liabRows.map(x=>`<div class="qa"><div class="q">${esc(x.q)}</div>
+     ${x.a?`<div class="a">${esc(x.a)}</div>`:`<div class="none">ללא מענה</div>`}</div>`).join(''))}
+
+  ${box('תלונות לפי אזור', regions.length?`<table><tr><th style="width:150px">אזור</th><th>מה שסומן</th></tr>
+     ${regions.map(k=>`<tr><td><b>${esc((PARTS[k]||{}).l||k)}</b>${
+       (c.notes||{})[k]?`<div style="font-size:12px;color:#6B6864;margin-top:3px">${esc(c.notes[k])}</div>`:''}</td>
+       <td>${(c.sel[k]||[]).map(esc).join(' · ')}</td></tr>`).join('')}</table>`:'')}
+
+  ${box('תוכנית הבדיקות', P.length?`<table>
+     <tr><th style="width:26px">#</th><th>מומחה</th><th style="width:120px">מועד</th>
+         <th style="width:110px">סטטוס</th><th style="width:70px">מסמכים</th></tr>
+     ${P.map((a,i)=>`<tr>
+       <td>${i+1}</td>
+       <td><b>${esc(a.l)}</b>${a.doctor?`<div style="font-size:12px;color:#6B6864">${esc(a.doctor)}</div>`:''}
+         ${a.place?`<div style="font-size:12px;color:#6B6864">${esc(a.place)}</div>`:''}
+         ${(a.reason||[]).length?`<div style="font-size:11.5px;color:#8B8781;margin-top:3px">${esc(a.reason.join(' · '))}</div>`:''}
+         ${a.note?`<div style="font-size:12px;color:#0D5F5A;margin-top:4px">הערה: ${esc(a.note)}</div>`:''}</td>
+       <td>${a.date?esc(fmtDate(a.date)):'—'}${a.time?'<br>'+esc(a.time):''}</td>
+       <td><span class="tag">${esc(stName(a.status))}</span></td>
+       <td>${docsOf(a.id).length||'—'}</td></tr>`).join('')}</table>`:'')}
+
+  ${box('דיווח תפקודי', P.filter(a=>(a.func||[]).some(Boolean)).map(a=>`
+     <div style="margin-bottom:14px"><b style="font-size:13.5px">${esc(a.l)}</b>
+     ${FQ.map((q,i)=>(a.func||[])[i]?`<div class="qa" style="margin:6px 0 0">
+       <div class="q">${esc(q)}</div><div class="a">${esc(a.func[i])}</div></div>`:'').join('')}</div>`).join(''))}
+
+  ${box('מסמכים בתיק', (c.docs||[]).length?`<table>
+     <tr><th>שם הקובץ</th><th style="width:170px">שויך לביקור</th><th style="width:100px">התקבל</th></tr>
+     ${(c.docs||[]).map(d=>{const a=(c.plan||[]).find(x=>x.id===d.appt);
+       return `<tr><td>${esc(d.n)}</td><td>${a?esc(a.l):'כללי'}</td><td>${esc(d.d||'')}</td></tr>`}).join('')}
+     </table>`:'<div class="none" style="color:#B0ABA4">טרם התקבלו מסמכים.</div>')}
+
+  <div class="foot">
+    דוח זה הופק אוטומטית מתוך המידע שהוזן במערכת. תיאור האירוע ותשובות בירור האחריות
+    הם ציטוט ישיר מדברי הלקוח כפי שנרשמו על ידו, ולא נוסחו על ידי המשרד.<br>
+    המסמך מכיל מידע רפואי רגיש — לשימוש פנימי בלבד.
+  </div>
+</div></html>`}
+
+function openReport(){
+  const c=C();if(!c)return;
+  const w=window.open('','_blank');
+  if(!w)return toast('הדפדפן חסם את החלון — אשר חלונות קופצים');
+  w.document.write(reportHTML(c));w.document.close()}
+
+function downloadReport(){
+  const c=C();if(!c)return;
+  const blob=new Blob([reportHTML(c)],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob),l=document.createElement('a');
+  l.href=url;l.download=safeName(c.name)+' - דוח תיק - '+
+    new Date().toLocaleDateString('he-IL').replace(/\./g,'-')+'.html';
+  document.body.appendChild(l);l.click();l.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  toast('הדוח הורד')}
 
 async function downloadZip(){
   const c=C(),btn=$('#zipBtn');if(!c||!btn)return;
@@ -1567,6 +1718,7 @@ async function downloadZip(){
       done++;
       set('מוריד… '+done+'/'+docs.length);
     }
+    try{zip.file('00 - דוח תיק מסכם.html',reportHTML(c))}catch(e){}
     if(!Object.keys(zip.files).length)throw new Error('empty');
 
     set('דוחס…');
@@ -1583,7 +1735,7 @@ async function downloadZip(){
     toast('ההורדה נכשלה — נסה שוב');
   }
   btn.disabled=false;
-  btn.innerHTML=ic('file',18,'#17171A')+'הורדת כל התיק · ZIP'}
+  btn.innerHTML=ic('file',17,'#17171A')+'מסמכים · ZIP'}
 
 function docRow(d){
   return `<div class="docRow" ${d.path?`onclick="openDoc('${d.path}')"`:''}>
@@ -2206,6 +2358,100 @@ function drawNotifBar(){
   al.forEach(a=>{const k=notifKey(a.t);
     if(!localStorage.getItem(k)){localStorage.setItem(k,'1');notify(a.t,a.b)}})}
 
+/* ═══ התראות בצד עורך הדין ═══ */
+/* כל התראה מקבלת מפתח יציב, כדי לדעת מה כבר נראה */
+function lawAlerts(){
+  const out=[];
+  (DB.clients||[]).forEach(c=>{
+    const P=c.plan||[];
+
+    if(c.stage==='waiting'||(c.stage!=='waiting'&&!P.length))
+      out.push({k:'plan:'+c.id,t:'ממתין להרכבת תוכנית',b:c.name,
+        c:'#FBE0DA',f:'#C24A34',cid:c.id,pr:0});
+
+    P.forEach(a=>{
+      if(a.status==='pending'){
+        const n=(c.docs||[]).filter(d=>d.appt===a.id).length;
+        out.push({k:'doc:'+a.id,t:'מסמכים ממתינים לאישורך',
+          b:c.name+' · '+a.l+(n?' · '+n+' קבצים':''),
+          c:'#FBE0DA',f:'#C24A34',cid:c.id,aid:a.id,pr:0});
+      }
+      if(a.date&&a.status==='scheduled'){
+        const d=daysTo(a.date);
+        const noGuide=!(a.rem||'').trim()&&!(a.bring||[]).length;
+        if(d===0)out.push({k:'d0:'+a.id,t:'תור היום',b:c.name+' · '+a.l+(a.time?' · '+a.time:''),
+          c:'#FBEBD1',f:'#8A5B12',cid:c.id,aid:a.id,pr:1});
+        else if(d===1)out.push({k:'d1:'+a.id,
+          t:noGuide?'תור מחר — אין הנחיה ללקוח':'תור מחר',
+          b:c.name+' · '+a.l+(a.time?' · '+a.time:''),
+          c:noGuide?'#FBEBD1':'#E4F0EE',f:noGuide?'#8A5B12':'#0D5F5A',cid:c.id,aid:a.id,pr:1});
+        else if(d<-1)out.push({k:'late:'+a.id,t:'התור עבר ולא התקבל מסמך',
+          b:c.name+' · '+a.l+' · '+fmtDate(a.date),
+          c:'#F1EFEC',f:'#7C7A78',cid:c.id,aid:a.id,pr:2});
+      }
+    });
+  });
+  return out.sort((x,y)=>x.pr-y.pr)}
+
+function seenKeys(){try{return JSON.parse(localStorage.getItem('seenAl')||'[]')}catch(e){return[]}}
+function markSeen(ks){
+  const all=Array.from(new Set(seenKeys().concat(ks))).slice(-400);
+  try{localStorage.setItem('seenAl',JSON.stringify(all))}catch(e){}}
+
+function refreshBell(){
+  const bell=$('#bellBtn'),badge=$('#bellN');
+  if(!bell)return;
+  const on=DB.role==='lawyer';
+  bell.classList.toggle('on',on);
+  if(!on){document.title='לצידך';return}
+  const al=lawAlerts(), seen=seenKeys();
+  const fresh=al.filter(a=>seen.indexOf(a.k)<0);
+  badge.textContent=al.length>99?'99+':al.length;
+  badge.classList.toggle('on',al.length>0);
+  document.title=(al.length?'('+al.length+') ':'')+'לצידך';
+  // התראת דפדפן רק על מה שחדש, ורק כשהלשונית ברקע
+  if(fresh.length&&document.hidden){
+    const top=fresh[0];
+    notify(fresh.length===1?top.t:fresh.length+' עדכונים חדשים',
+           fresh.length===1?top.b:top.t+' · '+top.b);
+    markSeen(fresh.map(a=>a.k));
+  }
+  return al}
+
+function openAlerts(){
+  const al=lawAlerts();
+  S.openPart=null;S.openStep=null;S.noteAppt=null;
+  $('#shTitle').textContent='מה מחכה לך';
+  $('#shSub').textContent=al.length?al.length+' פריטים':'הכל מטופל';
+  $('#shIc').style.background='#17171A';
+  $('#shIc').innerHTML='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>';
+  const perm=('Notification' in window)&&Notification.permission==='default';
+  $('#shBody').innerHTML=
+    (perm?`<div class="alrow" style="background:#fff;border-color:var(--border)" onclick="askNotif()">
+      <div style="flex:1"><div style="font-size:14px;font-weight:700">להפעיל התראות דפדפן?</div>
+      <div style="font-size:12.5px;color:var(--ink2);margin-top:3px;line-height:1.55">
+        כשמסמך חדש נכנס תקבל התראה גם אם הלשונית ברקע. ההתראה לא מכילה פרטים רפואיים.</div></div></div>`:'')
+    +(al.length
+      ? al.map(a=>`<div class="alrow" style="background:${a.c}"
+          onclick="${a.aid?`openLawAppt('${a.cid}','${a.aid}')`:`gotoClient('${a.cid}')`}">
+          <div style="flex:1"><div style="font-size:14px;font-weight:700;color:${a.f}">${a.t}</div>
+          <div style="font-size:12.5px;color:${a.f};opacity:.85;margin-top:3px;line-height:1.5">${a.b}</div></div>
+          <span style="color:${a.f};opacity:.5;font-size:18px">‹</span></div>`).join('')
+      : `<div style="text-align:center;color:var(--ink3);font-size:13.5px;line-height:1.8;padding:26px 10px">
+          אין פריטים פתוחים.<br>כל המסמכים אושרו וכל התורים מוכנים.</div>`);
+  $('#shFoot').innerHTML=al.length
+    ? `<button class="btn" style="--c:#17171A" onclick="closeSheet()">סגירה</button>`
+    : `<button class="btn2" onclick="closeSheet()">סגירה</button>`;
+  markSeen(al.map(a=>a.k));
+  refreshBell();
+  openSheet()}
+
+function gotoClient(id){DB.active=id;const c=C();closeSheet();
+  if(c&&c.stage==='waiting')return lawGo('plan');
+  lawGo('client')}
+
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshBell()});
+
 /* ═══ privacy ═══ */
 function drawPrivacy(){
   const c=C();if(!c)return;
@@ -2325,7 +2571,7 @@ function subscribeRT(){
   sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},async()=>{
     if(DB.role==='lawyer'){const before=DB.clients.length;await loadFirmClients();
       if(DB.clients.length>before)notify('לקוח חדש נרשם','יש תוכנית שממתינה לאישור');
-      refreshLawViews();
+      refreshLawViews();refreshBell();
       if($('#s-lawList').classList.contains('on'))drawLawList();}
     else if(DB.role==='client'){const me=await myClient();if(!me)return;
       const wasStage=C()&&C().stage;DB.clients=[me];DB.active=me.id;
