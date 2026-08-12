@@ -946,7 +946,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 10';
+const BUILD='12.8.26 · 11';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -1359,7 +1359,9 @@ async function savePlanItem(){
   a.date=$('#eDate').value||null;
   a.time=$('#eTime').value.trim();
   a.place=$('#ePlace').value.trim();
+  const wasNote=(a.note||'').trim();
   a.note=$('#pNote').value.trim();
+  if(a.note&&a.note!==wasNote)a.noteAt=new Date().toISOString();
   a.bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
   a.rem=$('#eRem').value.trim();
   if(!a.date&&a.status==='scheduled')a.status='approved';
@@ -1369,6 +1371,7 @@ async function savePlanItem(){
   toast('נשמר')}
 async function removePlanItem(){
   const c=C(),a=c.plan[S.planIdx];
+  if(a)await purgeFiles((c.docs||[]).filter(d=>d.appt===a.id).map(d=>d.path));
   if(!confirm('להסיר את '+a.l+' מתוכנית הבדיקות?'))return;
   c.plan.splice(S.planIdx,1);closeSheet();refreshLawViews();
   if(a.id&&a.id.length>20)await sb.from('appointments').delete().eq('id',a.id);
@@ -1419,12 +1422,24 @@ async function saveClientEdit(){
   if(nid&&!validID(nid))return toast('מספר תעודת הזהות לא תקין — לא נשמר');
   c.idn=nid;c.dob=$('#cDob').value||null;c.addr=$('#cAddr').value.trim();
   closeSheet();drawLawClient();drawLawList();await saveClientRow();toast('נשמר')}
+/* מוחק קבצים מהאחסון. שורות בדאטהבייס נמחקות בשרשור,
+   אבל הקבצים עצמם נשארים יתומים לנצח אם לא מוחקים אותם כאן. */
+async function purgeFiles(paths){
+  const list=(paths||[]).filter(Boolean);
+  if(!list.length)return 0;
+  try{
+    const {error}=await sb.storage.from('docs').remove(list);
+    if(error){console.warn('purge',error.message);return 0}
+    return list.length;
+  }catch(e){return 0}}
+
 async function deleteClient(){
   const c=C();
   if(!confirm('למחוק לצמיתות את התיק של '+c.name+'? כל התורים והמסמכים יימחקו.'))return;
+  const n=await purgeFiles((c.docs||[]).map(d=>d.path));
   await sb.from('clients').delete().eq('id',c.id);
   DB.clients=DB.clients.filter(x=>x.id!==c.id);DB.active=null;
-  closeSheet();lawGo('list');toast('התיק נמחק')}
+  closeSheet();lawGo('list');toast(n?('התיק נמחק · '+n+' קבצים הוסרו'):'התיק נמחק')}
 async function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
   c.plan.forEach(a=>a.status='approved');c.stage='active';
   BUSY++;
@@ -1883,7 +1898,9 @@ function openDocNote(id){
   openSheet()}
 async function saveDocNote(){
   const a=S.noteAppt;if(!a)return;
+  const was=(a.note||'').trim();
   a.note=$('#dNote').value.trim();
+  if(a.note&&a.note!==was)a.noteAt=new Date().toISOString();  // מסמן הנחיה חדשה
   closeSheet();refreshLawViews();
   if(a.id&&a.id.length>20)await saveApptRow(a);
   toast(a.note?'ההערה נשמרה · הלקוח יראה אותה':'ההערה נמחקה')}
@@ -2030,6 +2047,7 @@ function openStep(id){const c=C();
   const idx=c.plan.findIndex(x=>x.id===id);const a=c.plan[idx];if(!a)return;
   if(DB.role==='lawyer')return openPlanItem(idx);
   S.openStep=a;S.openPart=null;
+  if((a.note||'').trim()&&a.noteAt)markSeen(['note:'+a.id+':'+a.noteAt]);
   $('#shTitle').textContent=a.l;$('#shSub').textContent=a.doctor?`${a.doctor} · ${a.place||''}`:'עוד לא נקבע תור';
   $('#shIc').style.background=a.c;$('#shIc').innerHTML=ic(a.i,24,'#fff');
   renderStep();openSheet()}
@@ -2513,6 +2531,9 @@ function pendingAlerts(){
   const c=C();if(!c)return[];
   const out=[];
   (c.plan||[]).forEach(a=>{
+    if((a.note||'').trim()&&a.noteAt&&seenKeys().indexOf('note:'+a.id+':'+a.noteAt)<0)
+      out.push({k:'note:'+a.id+':'+a.noteAt,t:'הנחיה מעורך הדין',
+        b:a.l+' — '+a.note,c:'#EAF3F1',f:'#0D5F5A',go:a.id});
     if(a.status==='returned')out.push({t:'עורך הדין ביקש להשלים',b:a.l+' — '+(a.note||''),c:'#FDF0ED',f:'#C24A34',go:a.id});
     else if(a.date&&a.status==='scheduled'){
       const d=daysTo(a.date);
@@ -2706,6 +2727,7 @@ function mapClient(r){
       id:a.id,spec:a.spec,l:a.label,c:a.color,i:a.icon,reason:a.reason||[],status:a.status,
       date:a.appt_date,time:a.appt_time||'',place:a.place||'',doctor:a.doctor||'',
       bring:a.bring||[],rem:a.remember||'',func:a.func||[],note:a.lawyer_note||'',
+      noteAt:a.note_at||null,
       tasks:[{l:'הגעתי',done:!!a.arrived}]})),
     email:r.email||'',notifyEmail:r.notify_email!==false,star:!!r.starred,
     docs:(r.documents||[]).map(d=>({id:d.id,n:d.name,d:new Date(d.created_at).toLocaleDateString('he-IL'),
@@ -2751,7 +2773,7 @@ async function savePlan(c0){const c=c0||C();if(!c)return;
 }
 async function saveApptRow(a){
   await sb.from('appointments').update({status:a.status,appt_date:a.date,appt_time:a.time||null,
-    place:a.place||null,doctor:a.doctor||null,lawyer_note:a.note||null,
+    place:a.place||null,doctor:a.doctor||null,lawyer_note:a.note||null,note_at:a.noteAt||null,
     bring:a.bring||[],remember:a.rem||null,func:a.func||[],
     arrived:!!(a.tasks&&a.tasks[0].done)}).eq('id',a.id)}
 async function refreshMe(){const me=await myClient();
