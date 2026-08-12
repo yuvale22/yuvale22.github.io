@@ -266,6 +266,8 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   border-radius:99px;background:#C24A34;color:#fff;font-size:11.5px;font-weight:700;font-style:normal;
   display:none;align-items:center;justify-content:center;line-height:1}
 .bell i.on{display:flex}
+.bell u{position:absolute;bottom:-3px;left:-3px;width:9px;height:9px;border-radius:50%;
+  background:#D9A441;border:2px solid #fff;text-decoration:none}
 .alrow{display:flex;gap:11px;align-items:flex-start;border-radius:15px;padding:13px;
   margin-bottom:8px;cursor:pointer;border:1.5px solid transparent}
 .alrow:active{transform:scale(.99)}
@@ -319,6 +321,31 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   /* רשימות ארוכות בתוך החלון — שתי עמודות */
   .sheet #specList,.sheet #alList{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 }
+
+/* ══ מציג מסמכים ══ */
+.viewer{position:fixed;inset:0;z-index:60;background:#0B0B0D;display:none;flex-direction:column}
+.viewer.on{display:flex}
+.vTop{flex:none;display:flex;align-items:center;gap:13px;color:#fff;
+  padding:calc(14px + env(safe-area-inset-top)) 18px 12px}
+.vTop b{display:block;font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vTop span{font-size:12.5px;color:rgba(255,255,255,.55)}
+#vCount{flex:none;font-size:12.5px;color:rgba(255,255,255,.55)}
+.vX{flex:none;width:38px;height:38px;border-radius:12px;border:0;background:rgba(255,255,255,.12);
+  color:#fff;font-size:17px;cursor:pointer}
+.vStage{flex:1;position:relative;overflow:auto;display:flex;align-items:center;justify-content:center;padding:0 14px}
+.vStage img{max-width:100%;max-height:100%;border-radius:10px;background:#fff;
+  box-shadow:0 10px 50px rgba(0,0,0,.6)}
+.vStage iframe{width:100%;height:100%;border:0;border-radius:10px;background:#fff}
+.vLoad{color:rgba(255,255,255,.6);font-size:14px}
+.vNav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;
+  border:0;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer;display:none}
+.vNav.on{display:block}
+.vNav.prev{right:10px}
+.vNav.next{left:10px}
+.vBar{flex:none;display:flex;gap:9px;padding:14px 18px calc(18px + env(safe-area-inset-bottom))}
+.vBar .btn,.vBar .btn2{flex:1;padding:14px;font-size:15px}
+.vBar .btn2{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.22);color:#fff}
+@media (min-width:900px){ .vStage{padding:0 70px} }
 </style>
 </head>
 <body>
@@ -547,7 +574,7 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#17171A" stroke-width="1.9"
     stroke-linecap="round" stroke-linejoin="round">
     <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-  <i id="bellN"></i></button>
+  <i id="bellN"></i><u id="liveDot" title=""></u></button>
 
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"><div class="grab"></div>
@@ -556,6 +583,26 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 
 <div class="cel" id="cel"><div class="pop" id="celPop"></div><h2 id="celTitle"></h2><p id="celText"></p>
   <button class="btn" style="max-width:250px;margin-top:28px" onclick="closeCel()">יופי, ממשיכים</button></div>
+<div class="viewer" id="viewer">
+  <div class="vTop">
+    <button class="vX" onclick="closeViewer()" aria-label="סגירה">✕</button>
+    <div style="flex:1;min-width:0">
+      <b id="vName"></b>
+      <span id="vMeta"></span></div>
+    <span id="vCount"></span>
+  </div>
+  <div class="vStage" id="vStage">
+    <div class="vLoad" id="vLoad">טוען…</div>
+    <img id="vImg" alt="" style="display:none">
+    <iframe id="vPdf" style="display:none"></iframe>
+    <button class="vNav prev" onclick="viewStep(-1)" aria-label="הקודם">›</button>
+    <button class="vNav next" onclick="viewStep(1)" aria-label="הבא">‹</button>
+  </div>
+  <div class="vBar">
+    <button class="btn" style="--c:#14807A" onclick="viewDownload()">הורדה</button>
+    <button class="btn2" onclick="viewTab()">פתיחה בלשונית</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -899,7 +946,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 6';
+const BUILD='12.8.26 · 10';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -1144,21 +1191,26 @@ function renderPicker(){
     ||'<div style="text-align:center;color:var(--ink3);padding:30px 0">לא נמצא תחום</div>'}
 /* ═══ תבניות הנחיה — מובנות + של המשרד ═══ */
 const BUILTIN_TPL=[
-{n:'ביקור ראשון אצל מומחה',
- bring:['סיכום חדר המיון','כל ההדמיות שנעשו עד היום','תעודת זהות','טופס 17 אם נדרש'],
- rem:'לספר על כל האזורים שנפגעו — גם על מה שכואב פחות. לבקש שיירשמו ממצאי הבדיקה הגופנית ולא רק התלונות, ושיירשם תאריך התאונה בגוף הסיכום.'},
-{n:'ביקור מעקב',
- bring:['סיכומי הביקורים הקודמים','ההדמיות החדשות','אישורי מחלה שהתקבלו'],
- rem:'לספר מה השתנה מאז הביקור הקודם — לטובה ולרעה. לציין מה עדיין מגביל בעבודה ובבית, ובאיזו תדירות.'},
-{n:'הדמיה · CT · MRI · רנטגן',
- bring:['ההפניה','תעודת זהות','התחייבות או טופס 17'],
- rem:'לוודא שהתשובה הכתובה והדיסק נמסרים לך ביד ולא רק נשלחים למרפאה. אם לא מוסרים — לבקש מספר בדיקה.'},
-{n:'לקראת ועדה רפואית',
- bring:['כל התיעוד הרפואי שבתיק','אישורי מחלה','אישור המעסיק על ימי היעדרות'],
- rem:'לתאר יום עבודה טיפוסי ומה כבר לא מצליחים לעשות. לא להגזים ולא להמעיט — לתאר את המצב כפי שהוא.'},
-{n:'טיפול · פיזיותרפיה · שיקום',
- bring:['ההפניה לטיפול','סיכום הביקור אצל המומחה'],
- rem:'לבקש שיירשם מספר הטיפולים שבוצעו ומה ההמלצה להמשך. תיעוד רציפות הטיפול חשוב לתיק.'}];
+{n:'כאב מקרין · נימול · חולשה',
+ t:'לתאר לאן בדיוק הכאב מקרין, מתי מופיע נימול או חולשה, ובאיזו יד או רגל. לציין אם זה קבוע או מופיע בתנוחות מסוימות.'},
+{n:'הגבלת תנועה',
+ t:'להדגים בפועל מה אי אפשר לעשות, ולבקש שטווחי התנועה יירשמו במעלות ולא כ״הגבלה קלה״.'},
+{n:'השפעה על העבודה',
+ t:'לציין כמה ימי עבודה הפסדת, אילו מטלות אי אפשר לבצע היום, והאם נדרשה התאמה או שינוי תפקיד.'},
+{n:'השפעה על הבית והמשפחה',
+ t:'לתאר במה נעזרים באחרים — נהיגה, קניות, הרמת משקל, טיפול בילדים.'},
+{n:'שינה ועייפות',
+ t:'לציין אם הכאב מעיר משינה, כמה פעמים בלילה, ומתי זה התחיל.'},
+{n:'מה השתנה מאז',
+ t:'לתאר מה השתנה מאז הביקור הקודם ומאז התאונה — גם לטובה וגם לרעה.'},
+{n:'טיפולים ותרופות',
+ t:'לפרט אילו תרופות נלקחו וכמה זמן, ואילו טיפולים כבר נוסו ולא עזרו.'},
+{n:'המצב לפני התאונה',
+ t:'לומר במפורש אם האזור הזה היה תקין לפני התאונה. אם היו בעיות קודמות — לפרט אותן. הסתרה מתגלה תמיד בתיק הרפואי ופוגעת באמינות.'},
+{n:'כל האזורים שנפגעו',
+ t:'לספר על כל אזור שכואב, גם אם הוא לא סיבת ההפניה. אזור שלא נרשם בביקור הראשון קשה מאוד לקשור לתאונה בהמשך.'},
+{n:'מה לבקש שיירשם בסיכום',
+ t:'לבקש סיכום מודפס לפני היציאה, שכולל את תאריך התאונה, את ממצאי הבדיקה הגופנית ואת ההמלצות להמשך.'}];
 
 function MY_TPL(){return (DB.firmRow&&DB.firmRow.templates)||[]}
 async function saveTplList(arr){
@@ -1171,12 +1223,31 @@ function applyTpl(){
   const v=sel.value, del=$('#tplDel');
   if(del)del.style.display=(v&&v[0]==='m')?'block':'none';
   if(!v)return;
-  const t=(v[0]==='m'?MY_TPL():BUILTIN_TPL)[+v.slice(1)];
-  if(!t)return;
-  $('#eBring').value=(t.bring||[]).join(', ');
-  $('#eRem').value=t.rem||'';
-  if(t.note&&!$('#pNote').value.trim())$('#pNote').value=t.note;
-  toast('התבנית מולאה — אפשר לערוך לפני שמירה')}
+  const rem=$('#eRem');
+
+  if(v==='d'){                                   // ברירת המחדל של התחום
+    const a=S.openStep, sp=a&&SPECS[a.spec];
+    if(!sp)return;
+    rem.value=sp.rem||'';
+    $('#eBring').value=(sp.bring||[]).join(', ');
+    toast('הוחזר לנוסח ברירת המחדל');
+  }
+  else if(v[0]==='b'){                           // נושא — מתווסף, לא דורס
+    const t=BUILTIN_TPL[+v.slice(1)];if(!t)return;
+    const cur=rem.value.trim();
+    if(cur.indexOf(t.t)>-1){toast('הנוסח הזה כבר קיים');sel.value='';return}
+    rem.value = cur ? cur.replace(/[.\s]*$/,'') + '. ' + t.t : t.t;
+    toast('נוסף · '+t.n);
+  }
+  else{                                          // תבנית שמורה של המשרד
+    const t=MY_TPL()[+v.slice(1)];if(!t)return;
+    rem.value=t.rem||'';
+    $('#eBring').value=(t.bring||[]).join(', ');
+    toast('התבנית מולאה — אפשר לערוך');
+  }
+  if(v[0]!=='m')sel.value='';
+  rem.style.height='auto';rem.style.height=Math.min(rem.scrollHeight,260)+'px';
+}
 
 async function saveAsTpl(){
   const bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
@@ -1233,14 +1304,17 @@ function openPlanItem(i){
     </div>`:''}
     ${lab('הערה ללקוח')}
     <textarea id="pNote" placeholder="למשל: לבקש הפניה ל-MRI כבר בביקור הזה">${a.note||''}</textarea>
-    ${lab('תבנית הנחיה')}
+    ${lab('לא לשכוח לספר')}
+    <div style="font-size:11.5px;color:var(--ink3);line-height:1.6;margin:-2px 0 7px">
+      בחירת נושא מוסיפה משפט לטקסט שלמטה. אפשר לצרף כמה נושאים ואז לערוך.</div>
     <select id="eTpl" onchange="applyTpl()" style="width:100%;font:inherit;font-size:14px;background:#fff;
       border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
-      <option value="">— מילוי מתבנית שמורה —</option>
+      <option value="">— הוספת נושא —</option>
+      <optgroup label="נושאים">${BUILTIN_TPL.map((t,i)=>
+        `<option value="b${i}">${t.n}</option>`).join('')}</optgroup>
       ${MY_TPL().length?`<optgroup label="התבניות שלי">${MY_TPL().map((t,i)=>
         `<option value="m${i}">${t.n}</option>`).join('')}</optgroup>`:''}
-      <optgroup label="תבניות מובנות">${BUILTIN_TPL.map((t,i)=>
-        `<option value="b${i}">${t.n}</option>`).join('')}</optgroup>
+      <optgroup label="איפוס"><option value="d">חזרה לנוסח ברירת המחדל של ${a.l}</option></optgroup>
     </select>
     <div style="display:flex;gap:8px;margin-bottom:4px">
       <button type="button" onclick="saveAsTpl()" style="flex:1;border:1.5px solid var(--border);background:#fff;
@@ -1249,10 +1323,10 @@ function openPlanItem(i){
       <button type="button" id="tplDel" onclick="delTpl()" style="display:none;flex:0 0 30%;border:1.5px solid #F0CFC8;
         background:#fff;border-radius:13px;padding:11px;font:inherit;font-size:12.5px;font-weight:700;
         color:#C24A34;cursor:pointer">מחיקת התבנית</button></div>
+    <textarea id="eRem" style="min-height:96px"
+      placeholder="מה שהלקוח צריך לזכור לספר לרופא">${a.rem||''}</textarea>
     ${lab('לקחת איתך')}
-    <input id="eBring" placeholder="מופרד בפסיקים" value="${(a.bring||[]).join(', ')}">
-    ${lab('לא לשכוח לספר')}
-    <textarea id="eRem" style="min-height:64px">${a.rem||''}</textarea>`;
+    <input id="eBring" placeholder="מופרד בפסיקים" value="${(a.bring||[]).join(', ')}">`;
   $('#shBody').querySelectorAll('#eStat span').forEach(el=>el.onclick=()=>{
     a.status=el.dataset.s;openPlanItem(S.planIdx)});
   const prev=PREV_OF[a.status];
@@ -1529,7 +1603,26 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
       <span class="tagp" style="background:${a.status==='done'?'#DDEFE2':a.status==='pending'?'#FDF3E2':'#F0EDE8'};color:${a.status==='done'?'#256B3A':a.status==='pending'?'#8A5B12':'#8C837A'}">
         ${a.status==='done'?'הושלם':a.status==='pending'?'ממתין':a.date?'נקבע':'לא נקבע'}</span></div>`}).join('');
   h+=docArchive(c);
-  $('#lcBody').innerHTML=h}
+  $('#lcBody').innerHTML=h;
+  hydrateThumbs()}
+
+/* ממלא את התמונות הממוזערות בקישורים חתומים, בבקשה אחת לכל הקבצים */
+async function hydrateThumbs(){
+  const els=Array.from(document.querySelectorAll('img[data-thumb]'))
+    .filter(e=>e.dataset.thumb&&!e.src);
+  if(!els.length)return;
+  const paths=Array.from(new Set(els.map(e=>e.dataset.thumb)));
+  try{
+    const {data}=await sb.storage.from('docs').createSignedUrls(paths,600);
+    const map={};(data||[]).forEach(x=>{if(x.signedUrl)map[x.path]=x.signedUrl});
+    const c=C();
+    els.forEach(e=>{const u=map[e.dataset.thumb];
+      if(!u)return;
+      e.src=u;
+      // שומרים גם על האובייקט כדי שהמציג לא יטען שוב
+      if(c&&c.docs){const d=c.docs.find(x=>x.path===e.dataset.thumb);if(d&&!d.url)d.url=u}
+    });
+  }catch(e){}}
 
 /* ── כל מסמכי התיק, מקובצים לפי הביקור שאליו שייכים ── */
 function docArchive(c){
@@ -1750,10 +1843,13 @@ async function downloadZip(){
   btn.innerHTML=ic('file',17,'#17171A')+'מסמכים · ZIP'}
 
 function docRow(d){
+  const isPdf=(d.kind==='pdf')||/\.pdf$/i.test(d.n||'');
   return `<div class="docRow" ${d.path?`onclick="openDoc('${d.path}')"`:''}>
-    ${d.url&&d.kind==='image'
+    ${d.url&&!isPdf
       ? `<img class="thumb" style="width:38px;height:38px" src="${d.url}">`
-      : `<div class="thumb" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--ink2)">${ic('file',18)}</div>`}
+      : isPdf
+        ? `<div class="thumb" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--ink2)">${ic('file',18)}</div>`
+        : `<img class="thumb" style="width:38px;height:38px;background:var(--soft)" data-thumb="${d.path||''}" alt="">`}
     <div style="flex:1;min-width:0"><div class="dn">${d.n}</div><div class="dd">${d.d||''}</div></div>
     ${d.path?'<span class="go">פתיחה</span>':''}</div>`}
 async function lawApprove(id){const c=C(),a=c.plan.find(x=>x.id===id);a.status='done';
@@ -2055,10 +2151,79 @@ async function finishUpload(){
   if(!(c.docs||[]).some(d=>d.appt===a.id))return toast('צריך לצרף לפחות מסמך אחד');
   a.status='pending';renderStep();drawPath();await saveApptRow(a);
   notify('נשלח לעורך הדין','המסמכים מ'+a.l+' התקבלו');toast('נשלח לעורך הדין')}
-async function openDoc(path){
-  const {data,error}=await sb.storage.from('docs').createSignedUrl(path,120);
-  if(error)return toast('לא ניתן לפתוח: '+error.message);
-  window.open(data.signedUrl,'_blank')}
+/* ── מציג מסמכים בתוך האפליקציה ──
+   פתיחה בלשונית חדשה נחסמת ע"י חוסמי חלונות ונראית כאילו כלום לא קרה. */
+var VIEW={list:[],i:0,url:null};
+
+function docsInOrder(){
+  const c=C();if(!c)return[];
+  const docs=(c.docs||[]).filter(d=>d.path);
+  const plan=c.plan||[];
+  const rank=d=>{const k=plan.findIndex(a=>a.id===d.appt);return k<0?999:k};
+  return docs.slice().sort((x,y)=>rank(x)-rank(y))}
+
+function openDoc(path){
+  VIEW.list=docsInOrder();
+  const i=VIEW.list.findIndex(d=>d.path===path);
+  if(i<0){VIEW.list=[{path:path,n:'מסמך',kind:'image'}];VIEW.i=0}
+  else VIEW.i=i;
+  $('#viewer').classList.add('on');
+  showDoc()}
+
+function closeViewer(){
+  $('#viewer').classList.remove('on');
+  $('#vImg').style.display='none';$('#vImg').src='';
+  $('#vPdf').style.display='none';$('#vPdf').src='about:blank';
+  VIEW.url=null}
+
+function viewStep(d){
+  const n=VIEW.list.length;if(n<2)return;
+  VIEW.i=(VIEW.i+d+n)%n;showDoc()}
+
+async function showDoc(){
+  const c=C(), d=VIEW.list[VIEW.i];if(!d)return;
+  const a=(c&&c.plan||[]).find(x=>x.id===d.appt);
+  $('#vName').textContent=d.n||'מסמך';
+  $('#vMeta').textContent=[a?a.l:'כללי', a&&a.doctor?a.doctor:null, d.d||null]
+    .filter(Boolean).join(' · ');
+  $('#vCount').textContent=VIEW.list.length>1?(VIEW.i+1)+' מתוך '+VIEW.list.length:'';
+  const multi=VIEW.list.length>1;
+  $('#vStage').querySelectorAll('.vNav').forEach(b=>b.classList.toggle('on',multi));
+
+  const img=$('#vImg'), pdf=$('#vPdf'), load=$('#vLoad');
+  img.style.display='none';pdf.style.display='none';load.style.display='block';
+  load.textContent='טוען…';
+
+  const {data,error}=await sb.storage.from('docs').createSignedUrl(d.path,300);
+  if(error||!data){load.textContent='לא ניתן לטעון את הקובץ';return}
+  VIEW.url=data.signedUrl;
+
+  const isPdf = (d.kind==='pdf') || /\.pdf($|\?)/i.test(d.n||'') || /\.pdf($|\?)/i.test(d.path||'');
+  if(isPdf){
+    pdf.src=VIEW.url;pdf.style.display='block';load.style.display='none';
+  }else{
+    img.onload=()=>{load.style.display='none';img.style.display='block'};
+    img.onerror=()=>{load.textContent='לא ניתן להציג — נסה "פתיחה בלשונית"'};
+    img.src=VIEW.url;
+  }}
+
+function viewTab(){ if(VIEW.url)window.open(VIEW.url,'_blank') }
+async function viewDownload(){
+  const d=VIEW.list[VIEW.i];if(!d||!VIEW.url)return;
+  try{
+    const r=await fetch(VIEW.url);const b=await r.blob();
+    const u=URL.createObjectURL(b),l=document.createElement('a');
+    l.href=u;l.download=safeName(d.n||'מסמך');
+    document.body.appendChild(l);l.click();l.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),4000);
+  }catch(e){ viewTab() }}
+
+document.addEventListener('keydown',e=>{
+  if(!$('#viewer').classList.contains('on'))return;
+  if(e.key==='Escape')closeViewer();
+  if(e.key==='ArrowRight')viewStep(-1);   // ימין = אחורה ב-RTL
+  if(e.key==='ArrowLeft') viewStep(1);
+});
 /* ═══════════════ סורק מסמכים ═══════════════ */
 const SCAN={pages:[],stream:null,raf:null,cv:false,steady:0,last:null,busy:false,onDone:null};
 
@@ -2595,19 +2760,69 @@ async function refreshMe(){const me=await myClient();
 /* ═══ realtime ═══ */
 /* בזמן רצף שמירות אסור ל-Realtime להחליף את האובייקט מתחת לידיים */
 var BUSY=0;
-function subscribeRT(){
-  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},async()=>{
-    if(BUSY)return;
-    if(DB.role==='lawyer'){const before=DB.clients.length;await loadFirmClients();
+var RT=null, RT_OK=false, RT_RETRY=null, PULL_T=null, POLL_T=null, PULLING=false;
+
+/* משיכת המצב מהשרת וציור מחדש. אותה פונקציה משמשת
+   גם את ההאזנה החיה, גם את הסקר התקופתי וגם חזרה ללשונית. */
+async function pull(){
+  if(BUSY||PULLING||!DB.role)return;
+  PULLING=true;
+  try{
+    if(DB.role==='lawyer'){
+      const before=DB.clients.length;
+      await loadFirmClients();
       if(DB.clients.length>before)notify('לקוח חדש נרשם','יש תוכנית שממתינה לאישור');
       refreshLawViews();refreshBell();
-      if($('#s-lawList').classList.contains('on'))drawLawList();}
-    else if(DB.role==='client'){const me=await myClient();if(!me)return;
-      const wasStage=C()&&C().stage;DB.clients=[me];DB.active=me.id;
+      if($('#s-lawList').classList.contains('on'))drawLawList();
+    }else if(DB.role==='client'){
+      const me=await myClient();if(!me)return;
+      DB.clients=[me];DB.active=me.id;
       if($('#s-wait').classList.contains('on')&&me.stage==='active'){clientHome();toast('התוכנית אושרה!')}
-      else if($('#s-journey').classList.contains('on')){drawPath();drawNotifBar()}}
-  }).subscribe();
+      else if($('#s-journey').classList.contains('on')){drawPath();drawNotifBar()}
+    }
+  }catch(e){}
+  finally{ PULLING=false }
 }
+/* התפרצות של כמה שינויים ברצף = משיכה אחת */
+function schedulePull(){clearTimeout(PULL_T);PULL_T=setTimeout(pull,300)}
+
+function setLive(on){
+  const d=$('#liveDot');if(!d)return;
+  d.style.background = on ? '#14807A' : '#D9A441';
+  d.title = on ? 'מעודכן בזמן אמת' : 'מתעדכן כל 20 שניות';
+}
+
+function subscribeRT(){
+  // סוגרים ערוץ קודם לפני שפותחים חדש, אחרת נוצרים כפילים מתים
+  try{ if(RT){ sb.removeChannel(RT); } }catch(e){}
+  RT=null;RT_OK=false;setLive(false);
+  clearTimeout(RT_RETRY);
+
+  RT = sb.channel('rt-'+Date.now().toString(36))
+    .on('postgres_changes',{event:'*',schema:'public'},schedulePull)
+    .subscribe(st=>{
+      RT_OK = (st==='SUBSCRIBED');
+      setLive(RT_OK);
+      if(RT_OK){ pull(); return }
+      if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){
+        clearTimeout(RT_RETRY);
+        RT_RETRY=setTimeout(subscribeRT,5000);   // ניסיון חוזר
+      }
+    });
+
+  // רשת ביטחון: גם אם ההאזנה לא עובדת, המסך לא נשאר תקוע
+  clearInterval(POLL_T);
+  POLL_T=setInterval(()=>{
+    if(document.hidden)return;
+    if(RT_OK)return;          // כשההאזנה עובדת אין צורך לסקור
+    pull();
+  },20000);
+}
+
+/* חזרה ללשונית מרעננת מיד — הכי נפוץ בשימוש אמיתי */
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden)pull() });
+window.addEventListener('focus',()=>pull());
+window.addEventListener('online',()=>subscribeRT());
 
 /* ═══ boot ═══ */
 /* הטוקן שמור מקומית וממשיך להיראות תקף גם אם המשתמש נמחק בשרת.
