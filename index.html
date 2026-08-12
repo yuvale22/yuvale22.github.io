@@ -1064,7 +1064,9 @@ function drawLiab(){
 
 async function submitSymptoms(){const c=C();c.desc=$('#desc').value;c.plan=buildPlan(c.sel);c.stage='waiting';
   go('wait');toast('שומר…');
-  await syncSymptoms();await saveClientRow();await savePlan();
+  BUSY++;
+  try{ await syncSymptoms(c); await saveClientRow(c); await savePlan(c); }
+  finally{ BUSY--; }
   toast('נשלח לעורך הדין')}
 
 /* ═══ lawyer: plan ═══ */
@@ -1279,6 +1281,7 @@ async function savePlanItem(){
   a.bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
   a.rem=$('#eRem').value.trim();
   if(!a.date&&a.status==='scheduled')a.status='approved';
+  else if(a.date&&(a.status==='approved'||a.status==='proposed'))a.status='scheduled';
   closeSheet();refreshLawViews();
   if(a.id&&a.id.length>20)await saveApptRow(a);
   toast('נשמר')}
@@ -1342,7 +1345,8 @@ async function deleteClient(){
   closeSheet();lawGo('list');toast('התיק נמחק')}
 async function approvePlan(){const c=C();if(!c.plan.length)return toast('אין מה לאשר');
   c.plan.forEach(a=>a.status='approved');c.stage='active';
-  await savePlan();await saveClientRow();
+  BUSY++;
+  try{ await savePlan(c);await saveClientRow(c); } finally{ BUSY--; }
   toast('התוכנית אושרה · המסלול נפתח ללקוח');lawGo('list')}
 
 /* ═══ lawyer: list + client ═══ */
@@ -1443,7 +1447,7 @@ function drawLawList(){
   const box=$('#lawList');if(!box)return;
   const q=(($('#lawQ')||{}).value||'').trim();
   const pool=DB.clients.filter(c=>!q||(c.name||'').includes(q));
-  if(!pool.length){box.innerHTML=`<div class="empty">${q?'לא נמצא תיק תואם':'טרם נפתחו תיקים.<br>שליחת הקישור ללקוח תפתח את התיק הראשון.'}</div>`;return}
+  if(LAWVIEW!=='soon'&&!pool.length){box.innerHTML=`<div class="empty">${q?'לא נמצא תיק תואם':'טרם נפתחו תיקים.<br>שליחת הקישור ללקוח תפתח את התיק הראשון.'}</div>`;return}
 
   const star=pool.filter(c=>c.star), rest=pool.filter(c=>!c.star);
   const head=(t,n,bg,fg)=>`<div class="bhead"><b style="color:${fg}">${t}</b><i style="background:${bg};color:${fg}">${n}</i></div>`;
@@ -2031,7 +2035,7 @@ async function uploadFile(file,redraw){
   const {error}=await sb.storage.from('docs').upload(path,file,{upsert:false});
   if(error){toast('שגיאת העלאה: '+error.message);c.docs=c.docs.filter(x=>x!==rec);redraw();return}
   const ins=await sb.from('documents').insert({client_id:c.id,appointment_id:(a.id&&a.id.length>20)?a.id:null,
-    name:file.name,storage_path:path}).select().single();
+    name:nice,storage_path:path}).select().single();
   rec.up=true;rec.path=path;if(ins.data)rec.id=ins.data.id;
   redraw();drawDocs();if(S.openStep)renderStep();toast('הקובץ נשמר')}
 async function finishUpload(){
@@ -2319,12 +2323,12 @@ function drawDocs(){const c=C(),l=$('#docsList');
 function notifKey(k){return 'n_'+(C()?C().id:'x')+'_'+k+'_'+new Date().toDateString()}
 function notify(title,body){
   try{
-    if(!('Notification' in window))return;
+    if(!window.Notification)return;
     if(Notification.permission==='granted')new Notification(title,{body,icon:''});
   }catch(e){}
 }
 async function askNotif(){
-  if(!('Notification' in window))return toast('הדפדפן לא תומך בהתראות');
+  if(!window.Notification)return toast('הדפדפן לא תומך בהתראות');
   const r=await Notification.requestPermission();
   drawNotifBar();
   toast(r==='granted'?'התראות הופעלו':'ההתראות נשארו כבויות')}
@@ -2346,7 +2350,7 @@ function drawNotifBar(){
   const box=$('#notifBar');if(!box)return;
   const al=pendingAlerts();
   let h='';
-  if('Notification' in window && Notification.permission==='default')
+  if(window.Notification && Notification.permission==='default')
     h+=`<div class="nbar" style="background:#fff" onclick="askNotif()">
       <div style="width:38px;height:38px;border-radius:11px;background:var(--soft);display:flex;align-items:center;justify-content:center;flex:none">${ic('clock',19,'#17171A')}</div>
       <div style="flex:1"><div style="font-size:14px;font-weight:700">להפעיל תזכורות?</div>
@@ -2425,7 +2429,7 @@ function openAlerts(){
   $('#shSub').textContent=al.length?al.length+' פריטים':'הכל מטופל';
   $('#shIc').style.background='#17171A';
   $('#shIc').innerHTML='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>';
-  const perm=('Notification' in window)&&Notification.permission==='default';
+  const perm=!!(window.Notification&&Notification.permission==='default');
   $('#shBody').innerHTML=
     (perm?`<div class="alrow" style="background:#fff;border-color:var(--border)" onclick="askNotif()">
       <div style="flex:1"><div style="font-size:14px;font-weight:700">להפעיל התראות דפדפן?</div>
@@ -2527,28 +2531,32 @@ function mapClient(r){
     };
 }
 async function myClient(){
-  const {data}=await sb.from('clients').select(SEL).limit(1);
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return null;
+  const {data}=await sb.from('clients').select(SEL).eq('auth_uid',session.user.id).limit(1);
   if(!data||!data.length)return null;
   const m=mapClient(data[0]);applyBrand();return m;
 }
 async function loadFirmClients(){
-  const {data}=await sb.from('clients').select(SEL).order('created_at',{ascending:false});
+  if(!DB.firm)return;
+  const {data}=await sb.from('clients').select(SEL).eq('firm_id',DB.firm)
+    .order('created_at',{ascending:false});
   DB.clients=(data||[]).map(mapClient);
   if(!DB.firmRow&&DB.firm){const {data:f}=await sb.from('firms').select('*').eq('id',DB.firm).maybeSingle();DB.firmRow=f}
   applyBrand();
 }
-async function saveClientRow(){const c=C();if(!c)return;
+async function saveClientRow(c0){const c=c0||C();if(!c)return;
   await sb.from('clients').update({name:c.name,phone:c.phone,email:c.email||null,notify_email:c.notifyEmail!==false,
     id_number:c.idn||null,dob:c.dob||null,address:c.addr||null,
     case_type:c.type,stage:c.stage,description:c.desc,liability:c.liab||{}}).eq('id',c.id)}
-async function syncSymptoms(){const c=C();if(!c)return;
+async function syncSymptoms(c0){const c=c0||C();if(!c)return;
   await sb.from('symptoms').delete().eq('client_id',c.id);
   const rows=[];Object.keys(c.sel).forEach(k=>(c.sel[k]||[]).forEach(x=>rows.push({client_id:c.id,part_key:k,symptom:x})));
   if(rows.length)await sb.from('symptoms').insert(rows);
   const nr=Object.keys(c.notes).filter(k=>c.notes[k]).map(k=>({client_id:c.id,part_key:k,note:c.notes[k]}));
   if(nr.length)await sb.from('part_notes').upsert(nr,{onConflict:'client_id,part_key'});
 }
-async function savePlan(){const c=C();if(!c)return;
+async function savePlan(c0){const c=c0||C();if(!c)return;
   await sb.from('appointments').delete().eq('client_id',c.id);
   if(!c.plan.length)return;
   const rows=c.plan.map((a,i)=>({client_id:c.id,spec:a.spec,label:a.l,color:a.c,icon:a.i,reason:a.reason,
@@ -2567,8 +2575,11 @@ async function refreshMe(){const me=await myClient();
   if(!me)return;DB.clients=[me];DB.active=me.id;clientHome();toast('עודכן')}
 
 /* ═══ realtime ═══ */
+/* בזמן רצף שמירות אסור ל-Realtime להחליף את האובייקט מתחת לידיים */
+var BUSY=0;
 function subscribeRT(){
   sb.channel('rt').on('postgres_changes',{event:'*',schema:'public'},async()=>{
+    if(BUSY)return;
     if(DB.role==='lawyer'){const before=DB.clients.length;await loadFirmClients();
       if(DB.clients.length>before)notify('לקוח חדש נרשם','יש תוכנית שממתינה לאישור');
       refreshLawViews();refreshBell();
@@ -2611,6 +2622,9 @@ async function boot(){
 }
 sb.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_IN'&&!DB.role) boot(); });
 boot();
+/* גשר לבדיקות אוטומטיות — const אינו נחשף על window מעצמו */
+try{window.__app={get DB(){return DB},C,SPECS,PARTS,LIAB,TRIG,BUILTIN_TPL,STATUSES,FQ,
+  get LAWVIEW(){return LAWVIEW}}}catch(e){}
 </script>
 </body>
 </html>
