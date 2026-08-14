@@ -952,7 +952,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 13';
+const BUILD='12.8.26 · 14';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -2386,7 +2386,116 @@ async function openScan(onDone){
 /* ── לולאת זיהוי ──
    מזהים על תמונה מוקטנת ל-480px ובקצב של ~9 פריימים בשנייה.
    זיהוי ברזולוציה מלאה ובכל פריים מקפיא כל טלפון תוך שניות. */
-const DET_W=480;
+const DET_W=640;          // 480 היה נמוך מדי — קצוות דקים של דף נעלמו
+
+/* ── עזרי גאומטריה (טהורים, ניתנים לבדיקה) ── */
+function orderQuad(pts){
+  const s=pts.map(p=>p.x+p.y), d=pts.map(p=>p.y-p.x);
+  const tl=pts[s.indexOf(Math.min(...s))], br=pts[s.indexOf(Math.max(...s))];
+  const tr=pts[d.indexOf(Math.min(...d))], bl=pts[d.indexOf(Math.max(...d))];
+  return {topLeftCorner:tl,topRightCorner:tr,bottomRightCorner:br,bottomLeftCorner:bl}}
+
+function polyArea(p){let a=0;for(let i=0;i<p.length;i++){
+  const q=p[i],r=p[(i+1)%p.length];a+=q.x*r.y-r.x*q.y}return Math.abs(a/2)}
+
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+/* זווית בין שתי צלעות היוצאות מאותה פינה, במעלות */
+function cornerAngle(prev,cur,next){
+  const v1={x:prev.x-cur.x,y:prev.y-cur.y}, v2={x:next.x-cur.x,y:next.y-cur.y};
+  const n1=Math.hypot(v1.x,v1.y), n2=Math.hypot(v2.x,v2.y);
+  if(!n1||!n2)return 0;
+  let c=(v1.x*v2.x+v1.y*v2.y)/(n1*n2);
+  c=Math.max(-1,Math.min(1,c));
+  return Math.acos(c)*180/Math.PI}
+
+/* ציון למרובע. 0 = נפסל.
+   פוסל: קטן מדי, גדול מדי (כנראה מסגרת התמונה),
+   צלעות לא פרופורציוניות, וזוויות רחוקות מדי מ-90°. */
+function scoreQuad(pts,imgArea){
+  if(!pts||pts.length!==4)return 0;
+  const a=polyArea(pts), r=a/imgArea;
+  if(r<0.10||r>0.97)return 0;
+  const q=[pts[0],pts[1],pts[2],pts[3]];
+  const sides=[dist(q[0],q[1]),dist(q[1],q[2]),dist(q[2],q[3]),dist(q[3],q[0])];
+  const mn=Math.min(...sides), mx=Math.max(...sides);
+  if(mx<=0||mn/mx<0.22)return 0;                  // רצועה צרה, לא דף
+  let worst=0;
+  for(let i=0;i<4;i++){
+    const ang=cornerAngle(q[(i+3)%4],q[i],q[(i+1)%4]);
+    worst=Math.max(worst,Math.abs(90-ang));
+  }
+  if(worst>48)return 0;                            // מעוות מדי
+  // עדיפות לשטח גדול ולזוויות ישרות
+  return r*100 + (48-worst)*0.6 + (mn/mx)*10}
+
+/* ── שלושה מסלולי זיהוי, בוחרים את הטוב ביותר ── */
+function bestQuadIn(bin,imgArea){
+  const cnts=new cv.MatVector(), hier=new cv.Mat();
+  let best=null;
+  try{
+    cv.findContours(bin,cnts,hier,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);
+    const n=cnts.size();
+    for(let i=0;i<n;i++){
+      let c=null,ap=null;
+      try{
+        c=cnts.get(i);
+        if(cv.contourArea(c)<imgArea*0.08)continue;
+        const peri=cv.arcLength(c,true);
+        ap=new cv.Mat();
+        // שני רמות דיוק — דף עם פינה מעוגלת לא תמיד מתקרב ל-4 נקודות
+        for(const eps of [0.02,0.04]){
+          cv.approxPolyDP(c,ap,eps*peri,true);
+          if(ap.rows===4&&cv.isContourConvex(ap))break;
+        }
+        if(ap.rows!==4||!cv.isContourConvex(ap))continue;
+        const pts=[];
+        for(let j=0;j<4;j++)pts.push({x:ap.data32S[j*2],y:ap.data32S[j*2+1]});
+        const sc=scoreQuad(pts,imgArea);
+        if(sc>0&&(!best||sc>best.score))best={pts:pts,score:sc};
+      }catch(e){}
+      finally{
+        try{if(ap&&!ap.isDeleted())ap.delete()}catch(e){}
+        try{if(c&&!c.isDeleted())c.delete()}catch(e){}
+      }
+    }
+  }catch(e){}
+  finally{
+    try{cnts.delete()}catch(e){}
+    try{hier.delete()}catch(e){}
+  }
+  return best}
+
+function detectQuad(src){
+  const imgArea=src.cols*src.rows;
+  const gray=new cv.Mat(), blur=new cv.Mat(), tmp=new cv.Mat(), k=
+    cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(5,5));
+  let best=null;
+  try{
+    cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray,blur,new cv.Size(5,5),0,0,cv.BORDER_DEFAULT);
+
+    // 1 · קצוות — עובד גם כשהדף והרקע באותו גוון
+    cv.Canny(blur,tmp,40,110,3,false);
+    cv.morphologyEx(tmp,tmp,cv.MORPH_CLOSE,k);
+    cv.dilate(tmp,tmp,k);
+    let c1=bestQuadIn(tmp,imgArea);
+    if(c1&&(!best||c1.score>best.score))best=c1;
+
+    // 2 · סף אוטומטי — דף בהיר על רקע כהה
+    cv.threshold(blur,tmp,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU);
+    let c2=bestQuadIn(tmp,imgArea);
+    if(c2&&(!best||c2.score>best.score))best=c2;
+
+    // 3 · סף הפוך — דף כהה או מסמך על רקע בהיר
+    cv.threshold(blur,tmp,0,255,cv.THRESH_BINARY_INV+cv.THRESH_OTSU);
+    let c3=bestQuadIn(tmp,imgArea);
+    if(c3&&(!best||c3.score>best.score))best=c3;
+  }catch(e){}
+  finally{
+    [gray,blur,tmp,k].forEach(m=>{try{if(m&&!m.isDeleted())m.delete()}catch(e){}});
+  }
+  return best}
 function tickScan(){
   if(SCAN.stop)return;
   if(SCAN.paused){SCAN.raf=null;return}
@@ -2398,37 +2507,33 @@ function tickScan(){
   SCAN.det.width=DET_W;SCAN.det.height=Math.round(H*sc);
   SCAN.det.getContext('2d').drawImage(v,0,0,SCAN.det.width,SCAN.det.height);
 
-  let corners=null,src=null,contour=null;
+  let corners=null,src=null;
   try{
     src=cv.imread(SCAN.det);
-    contour=SCAN.scanner.findPaperContour(src);
-    if(contour&&!contour.isDeleted()){
-      const c=SCAN.scanner.getCornerPoints(contour);
-      if(c&&c.topLeftCorner&&c.topRightCorner&&c.bottomLeftCorner&&c.bottomRightCorner){
-        corners={};
-        for(const k in c)corners[k]={x:c[k].x/sc,y:c[k].y/sc};   // חזרה לרזולוציה מלאה
-      }
+    const q=detectQuad(src);
+    if(q){
+      const o=orderQuad(q.pts);
+      corners={};
+      for(const k in o)corners[k]={x:o[k].x/sc,y:o[k].y/sc};   // חזרה לרזולוציה מלאה
     }
   }catch(e){}
-  finally{
-    // הספרייה לא משחררת את הקונטור — בלי זה הזיכרון מתפוצץ תוך שניות
-    try{if(contour&&!contour.isDeleted())contour.delete()}catch(e){}
-    try{if(src&&!src.isDeleted())src.delete()}catch(e){}
-  }
+  finally{ try{if(src&&!src.isDeleted())src.delete()}catch(e){} }
 
   paintScan(corners,W,H);
-  SCAN.raf=setTimeout(tickScan,110);
+  SCAN.raf=setTimeout(tickScan,130);
 }
 
 function paintScan(corners,W,H){
   const g=$('#scanOv').getContext('2d');g.clearRect(0,0,W,H);
   const hint=$('#scanHint'),shot=$('#scanShot');
   if(!corners){
-    SCAN.steady=0;SCAN.last=null;
-    shot.disabled=true;shot.classList.remove('ready');
-    hint.textContent='לא מזוהה מסמך — הנח על רקע כהה';hint.classList.remove('lock');
+    SCAN.steady=0;SCAN.last=null;SCAN.q=null;
+    // הכפתור נשאר פעיל — אם הזיהוי נכשל עדיין אפשר לצלם את הפריים המלא
+    shot.disabled=false;shot.classList.remove('ready');
+    hint.textContent='לא מזוהה מסמך — אפשר לצלם ידנית';hint.classList.remove('lock');
     return}
-  const area=quadArea(corners)/(W*H), big=area>0.20;
+  SCAN.q=corners;
+  const area=quadArea(corners)/(W*H), big=area>0.14;
   g.beginPath();
   g.moveTo(corners.topLeftCorner.x,corners.topLeftCorner.y);
   g.lineTo(corners.topRightCorner.x,corners.topRightCorner.y);
@@ -2444,7 +2549,8 @@ function paintScan(corners,W,H){
 
   SCAN.steady = big && near(corners,SCAN.last,W) ? SCAN.steady+1 : 0;
   SCAN.last=corners;
-  shot.disabled=!big; shot.classList.toggle('ready',big);
+  // הכפתור תמיד פעיל — נעילה אוטומטית רק כשהמסמך גדול ויציב
+  shot.disabled=false; shot.classList.toggle('ready',big);
   if(!big){hint.textContent='קרב את המצלמה למסמך';hint.classList.remove('lock')}
   else if(SCAN.steady<4){hint.textContent='החזק יציב…';hint.classList.remove('lock')}
   else{hint.textContent='נעול · מצלם';hint.classList.add('lock');SCAN.steady=0;grabPage()}
@@ -2457,22 +2563,29 @@ function near(a,b,W){if(!b)return false;const t=W*0.02;
     .every(k=>Math.abs(a[k].x-b[k].x)<t&&Math.abs(a[k].y-b[k].y)<t)}
 
 async function grabPage(){
-  if(SCAN.busy||!SCAN.last)return; SCAN.busy=true;
+  if(SCAN.busy)return; SCAN.busy=true;
   try{
     const v=$('#scanVid');
     const full=document.createElement('canvas');
     full.width=v.videoWidth;full.height=v.videoHeight;
     full.getContext('2d').drawImage(v,0,0);
-    const cor=SCAN.last;
-    const w=Math.round(Math.max(
-      Math.hypot(cor.topRightCorner.x-cor.topLeftCorner.x,cor.topRightCorner.y-cor.topLeftCorner.y),
-      Math.hypot(cor.bottomRightCorner.x-cor.bottomLeftCorner.x,cor.bottomRightCorner.y-cor.bottomLeftCorner.y)));
-    const h=Math.round(Math.max(
-      Math.hypot(cor.bottomLeftCorner.x-cor.topLeftCorner.x,cor.bottomLeftCorner.y-cor.topLeftCorner.y),
-      Math.hypot(cor.bottomRightCorner.x-cor.topRightCorner.x,cor.bottomRightCorner.y-cor.topRightCorner.y)));
+    // צילום ידני בלי זיהוי — שומרים את הפריים המלא, בלי יישור
+    const cor=SCAN.last||SCAN.q||null;
     let out=full;
-    try{ const r=SCAN.scanner.extractPaper(full,Math.max(w,800),Math.max(h,1000),cor); if(r)out=r; }
-    catch(e){}
+    if(cor){
+      const w=Math.round(Math.max(
+        Math.hypot(cor.topRightCorner.x-cor.topLeftCorner.x,cor.topRightCorner.y-cor.topLeftCorner.y),
+        Math.hypot(cor.bottomRightCorner.x-cor.bottomLeftCorner.x,cor.bottomRightCorner.y-cor.bottomLeftCorner.y)));
+      const h=Math.round(Math.max(
+        Math.hypot(cor.bottomLeftCorner.x-cor.topLeftCorner.x,cor.bottomLeftCorner.y-cor.topLeftCorner.y),
+        Math.hypot(cor.bottomRightCorner.x-cor.topRightCorner.x,cor.bottomRightCorner.y-cor.topRightCorner.y)));
+      // הגדלה לרזולוציה קריאה תוך שמירה על יחס הצדדים —
+      // מתיחה לגודל קבוע עיוותה טקסט בדפים שאינם A4
+      const scale=Math.max(1,1600/Math.max(w,h,1));
+      const OW=Math.round(w*scale), OH=Math.round(h*scale);
+      try{ const r=SCAN.scanner.extractPaper(full,OW,OH,cor); if(r)out=r; }
+      catch(e){}
+    }
     const blob=await new Promise(r=>out.toBlob(r,'image/jpeg',0.92));
     SCAN.pages.push({blob,url:URL.createObjectURL(blob)});
     drawScanPages();
