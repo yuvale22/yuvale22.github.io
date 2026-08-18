@@ -952,7 +952,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='12.8.26 · 14';
+const BUILD='12.8.26 · 16';
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
@@ -1174,7 +1174,11 @@ async function addSpec(k){const c=C();
     note:ADD_AFTER?((already?'עורך הדין ביקש שתחזור אל ':'עורך הדין הוסיף לך שלב: ')
       +SPECS[k].l+'. '+why):'',
     status:approved?'approved':'proposed',
-    date:null,time:'',place:'',doctor:'',bring:SPECS[k].bring,rem:SPECS[k].rem,func:[],
+    date:null,time:'',place:'',doctor:'',
+    // אם עורך הדין שמר הצעה קבועה לתחום הזה — היא נכנסת מיד
+    bring:(specTpl(k)&&specTpl(k).bring)||SPECS[k].bring,
+    rem:(specTpl(k)&&specTpl(k).rem)||SPECS[k].rem,
+    func:[],
     tasks:[{l:'הגעתי',done:false}]};
   c.plan.push(it);
   drawPlan();if($('#specList'))renderPicker();refreshLawViews();
@@ -1240,8 +1244,9 @@ async function saveTplList(arr){
 
 function applyTpl(){
   const sel=$('#eTpl');if(!sel)return;
-  const v=sel.value, del=$('#tplDel');
-  if(del)del.style.display=(v&&v[0]==='m')?'block':'none';
+  const v=sel.value, box=$('#tplEdit');
+  // תבנית שמורה שנבחרה — נפתחות אפשרויות עריכה ומחיקה שלה עצמה
+  if(box)box.style.display=(v&&v[0]==='m')?'flex':'none';
   if(!v)return;
   const rem=$('#eRem');
 
@@ -1285,6 +1290,47 @@ async function saveAsTpl(){
   if(S.planIdx!=null)openPlanItem(S.planIdx);
   toast('נשמר כתבנית · '+nm)}
 
+/* ══ הצעה קבועה לתחום ══
+   מה שעורך הדין כותב על תור אצל אורתופד יכול להישמר
+   ולחזור אוטומטית בפעם הבאה שיש תור אצל אורתופד —
+   בכל תיק, אצל כל לקוח. */
+function specTpl(spec){ return MY_TPL().find(t=>t.spec===spec)||null }
+
+async function saveSpecTpl(){
+  const a=S.openStep;if(!a)return;
+  const bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const rem=$('#eRem').value.trim();
+  if(!bring.length&&!rem)return toast('אין מה לשמור — מלא קודם את השדות');
+  const base=SPECS[a.spec]?SPECS[a.spec].l:a.l;
+  const arr=MY_TPL().slice();
+  const i=arr.findIndex(t=>t.spec===a.spec);
+  const rec={n:'ההצעה שלי · '+base,spec:a.spec,bring:bring,rem:rem};
+  if(i>=0){
+    if(!confirm('כבר יש לך הצעה שמורה ל'+base+'. להחליף אותה?'))return;
+    arr[i]=rec;
+  } else arr.push(rec);
+  await saveTplList(arr);
+  if(S.planIdx!=null)openPlanItem(S.planIdx);
+  toast('נשמר · יופיע אוטומטית בכל תור אצל '+base)}
+
+function applySpecTpl(){
+  const a=S.openStep;if(!a)return;
+  const t=specTpl(a.spec);if(!t)return;
+  $('#eRem').value=t.rem||'';
+  $('#eBring').value=(t.bring||[]).join(', ');
+  const bar=$('#specBar');if(bar)bar.style.display='none';
+  const rem=$('#eRem');rem.style.height='auto';
+  rem.style.height=Math.min(rem.scrollHeight,260)+'px';
+  toast('ההצעה שלך מולאה — אפשר לערוך')}
+
+async function dropSpecTpl(){
+  const a=S.openStep;if(!a)return;
+  const base=SPECS[a.spec]?SPECS[a.spec].l:a.l;
+  if(!confirm('למחוק את ההצעה השמורה ל'+base+'?'))return;
+  await saveTplList(MY_TPL().filter(t=>t.spec!==a.spec));
+  if(S.planIdx!=null)openPlanItem(S.planIdx);
+  toast('ההצעה נמחקה')}
+
 async function delTpl(){
   const sel=$('#eTpl');if(!sel||sel.value[0]!=='m')return;
   const i=+sel.value.slice(1), arr=MY_TPL().slice(), t=arr[i];
@@ -1292,6 +1338,22 @@ async function delTpl(){
   arr.splice(i,1);await saveTplList(arr);
   if(S.planIdx!=null)openPlanItem(S.planIdx);
   toast('התבנית נמחקה')}
+
+/* עריכת תבנית שמורה: מה שכתוב עכשיו בשדות נכנס במקום
+   התוכן הישן. אפשר גם לשנות את שם התבנית. */
+async function updateTpl(){
+  const sel=$('#eTpl');if(!sel||sel.value[0]!=='m')return;
+  const i=+sel.value.slice(1), arr=MY_TPL().slice(), t=arr[i];
+  if(!t)return;
+  const rem=$('#eRem').value.trim();
+  const bring=$('#eBring').value.split(',').map(x=>x.trim()).filter(Boolean);
+  if(!rem&&!bring.length)return toast('השדות ריקים — אין מה לשמור');
+  const nm=(prompt('שם התבנית:', t.n)||'').trim();
+  if(!nm)return;
+  arr[i]=Object.assign({},t,{n:nm,rem:rem,bring:bring});
+  await saveTplList(arr);
+  if(S.planIdx!=null)openPlanItem(S.planIdx);
+  toast('התבנית עודכנה · '+nm)}
 
 const STATUSES=[['approved','לא נקבע'],['scheduled','נקבע'],['pending','ממתין לאישור'],['done','הושלם'],['returned','הוחזר']];
 function openPlanItem(i){
@@ -1325,6 +1387,24 @@ function openPlanItem(i){
     ${lab('הערה ללקוח')}
     <textarea id="pNote" placeholder="למשל: לבקש הפניה ל-MRI כבר בביקור הזה">${a.note||''}</textarea>
     ${lab('לא לשכוח לספר')}
+    ${(()=>{const st=specTpl(a.spec);
+      if(!st)return '';
+      const same=(st.rem||'').trim()===(a.rem||'').trim();
+      if(same)return `<div style="background:#E4F0EE;border-radius:13px;padding:10px 12px;margin-bottom:8px;
+        display:flex;align-items:center;gap:9px">
+        <span style="font-size:12.5px;color:#0D5F5A;flex:1">ההצעה הקבועה שלך ל${SPECS[a.spec]?SPECS[a.spec].l:a.l} כבר מולאה כאן.</span>
+        <button type="button" onclick="dropSpecTpl()" style="border:0;background:none;font:inherit;
+          font-size:12px;font-weight:700;color:#C24A34;cursor:pointer;padding:0">מחיקה</button></div>`;
+      return `<div id="specBar" style="background:#E4F0EE;border-radius:13px;padding:11px 12px;margin-bottom:8px">
+        <div style="font-size:12.5px;color:#0D5F5A;line-height:1.6;margin-bottom:8px">
+          יש לך הצעה קבועה שמורה ל${SPECS[a.spec]?SPECS[a.spec].l:a.l}.</div>
+        <div style="display:flex;gap:8px">
+          <button type="button" onclick="applySpecTpl()" style="flex:1;border:0;background:#14807A;color:#fff;
+            border-radius:11px;padding:10px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer">
+            מילוי ההצעה</button>
+          <button type="button" onclick="dropSpecTpl()" style="flex:0 0 30%;border:1.5px solid #F0CFC8;
+            background:#fff;border-radius:11px;padding:10px;font:inherit;font-size:12.5px;font-weight:700;
+            color:#C24A34;cursor:pointer">מחיקה</button></div></div>`})()}
     <div style="font-size:11.5px;color:var(--ink3);line-height:1.6;margin:-2px 0 7px">
       בחירת נושא מוסיפה משפט לטקסט שלמטה. אפשר לצרף כמה נושאים ואז לערוך.</div>
     <select id="eTpl" onchange="applyTpl()" style="width:100%;font:inherit;font-size:14px;background:#fff;
@@ -1336,17 +1416,26 @@ function openPlanItem(i){
         `<option value="m${i}">${t.n}</option>`).join('')}</optgroup>`:''}
       <optgroup label="איפוס"><option value="d">חזרה לנוסח ברירת המחדל של ${a.l}</option></optgroup>
     </select>
-    <div style="display:flex;gap:8px;margin-bottom:4px">
-      <button type="button" onclick="saveAsTpl()" style="flex:1;border:1.5px solid var(--border);background:#fff;
-        border-radius:13px;padding:11px;font:inherit;font-size:12.5px;font-weight:700;color:#17171A;cursor:pointer">
-        שמירת המילוי הנוכחי כתבנית</button>
-      <button type="button" id="tplDel" onclick="delTpl()" style="display:none;flex:0 0 30%;border:1.5px solid #F0CFC8;
+    <div id="tplEdit" style="display:none;gap:8px;margin-bottom:8px">
+      <button type="button" onclick="updateTpl()" style="flex:1;border:1.5px solid #14807A;background:#fff;
+        border-radius:13px;padding:11px;font:inherit;font-size:12.5px;font-weight:700;color:#14807A;cursor:pointer">
+        עדכון התבנית מהטקסט שלמטה</button>
+      <button type="button" onclick="delTpl()" style="flex:0 0 28%;border:1.5px solid #F0CFC8;
         background:#fff;border-radius:13px;padding:11px;font:inherit;font-size:12.5px;font-weight:700;
-        color:#C24A34;cursor:pointer">מחיקת התבנית</button></div>
+        color:#C24A34;cursor:pointer">מחיקה</button></div>
+    <button type="button" onclick="saveAsTpl()" style="width:100%;border:1.5px solid var(--border);background:#fff;
+      border-radius:13px;padding:11px;margin-bottom:4px;font:inherit;font-size:12.5px;font-weight:700;
+      color:#17171A;cursor:pointer">שמירת הטקסט שלמטה כתבנית חדשה</button>
     <textarea id="eRem" style="min-height:96px"
       placeholder="מה שהלקוח צריך לזכור לספר לרופא">${a.rem||''}</textarea>
     ${lab('לקחת איתך')}
-    <input id="eBring" placeholder="מופרד בפסיקים" value="${(a.bring||[]).join(', ')}">`;
+    <input id="eBring" placeholder="מופרד בפסיקים" value="${(a.bring||[]).join(', ')}">
+    <button type="button" onclick="saveSpecTpl()" style="width:100%;border:1.5px solid #14807A;
+      background:#fff;border-radius:13px;padding:12px;margin-top:10px;font:inherit;font-size:13px;
+      font-weight:700;color:#14807A;cursor:pointer">
+      ${specTpl(a.spec)?'עדכון ההצעה הקבועה ל':'שמירה כהצעה קבועה ל'}${SPECS[a.spec]?SPECS[a.spec].l:a.l}</button>
+    <div style="font-size:11.5px;color:var(--ink3);line-height:1.6;margin-top:6px">
+      יופיע אוטומטית בכל תור אצל ${SPECS[a.spec]?SPECS[a.spec].l:a.l}, בכל התיקים. ניתן לערוך בכל פעם.</div>`;
   $('#shBody').querySelectorAll('#eStat span').forEach(el=>el.onclick=()=>{
     a.status=el.dataset.s;openPlanItem(S.planIdx)});
   const prev=PREV_OF[a.status];
