@@ -381,10 +381,48 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 .istep span{font-size:13.5px;line-height:1.6;color:var(--ink)}
 .istep i{font-style:normal;font-weight:700}
 .instlNote{font-size:12px;color:var(--ink3);line-height:1.65;margin-top:12px;text-align:right}
+
+/* ══ מסך פתיחה ══
+   מכסה את הרגע שבין טעינת הדף לבין הידיעה לאן ללכת.
+   נעלם ברגע ש-boot הכריע, ולכן אין הבזק של מסך שגוי. */
+.splash{position:absolute;inset:0;z-index:90;background:var(--canvas);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .34s ease}
+.splash.off{opacity:0;pointer-events:none}
+.splashRing{width:74px;height:74px;border-radius:50%;background:var(--brand,#14807A);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 12px #D5EAE7}
+.splashName{font-size:13.5px;font-weight:700;color:var(--ink2);margin-top:18px;min-height:19px}
+.splashDots{display:flex;gap:6px;margin-top:22px}
+.splashDots i{width:6px;height:6px;border-radius:50%;background:var(--chip);
+  animation:sdot 1.1s infinite ease-in-out}
+.splashDots i:nth-child(2){animation-delay:.15s}
+.splashDots i:nth-child(3){animation-delay:.3s}
+@keyframes sdot{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.splash.stuck .splashDots{display:none}
+.splashMsg{font-size:13px;color:var(--ink2);line-height:1.7;text-align:center;
+  padding:0 34px;margin-top:16px}
+@media (prefers-reduced-motion:reduce){.splashDots i{animation:none;opacity:.6}}
+
+/* ══ שחזור תיק ══ */
+#claim input{width:100%;font:inherit;font-size:15px;background:#fff;
+  border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:10px;
+  color:var(--ink);text-align:right}
+#claim .clNote{font-size:12px;color:var(--ink3);line-height:1.65;margin-top:12px;text-align:right}
 </style>
 </head>
 <body>
 <div class="app" id="app">
+
+<div class="splash" id="splash">
+  <div class="splashRing" id="splashRing">
+    <svg width="56" height="49" viewBox="8.5 9.5 49 43" fill="none" aria-hidden="true">
+      <circle cx="25" cy="36" r="13" stroke="#fff" stroke-opacity=".5" stroke-width="7"/>
+      <circle cx="41" cy="26" r="13" stroke="#fff" stroke-width="7"/></svg></div>
+  <div class="splashName" id="splashName"></div>
+  <div class="splashDots"><i></i><i></i><i></i></div>
+  <div class="splashMsg" id="splashMsg"></div>
+</div>
+
 
 <!-- ═══ CLIENT ═══ -->
 <section class="screen on" id="s-welcome">
@@ -492,7 +530,8 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
       <input type="checkbox" id="sMailOk" checked style="width:19px;height:19px;margin:2px 0 0;flex:none;accent-color:#14807A">
       <span style="font-size:12.5px;color:var(--ink2);line-height:1.6">שלחו לי תזכורת במייל לפני כל תור. המייל לא יכיל פרטים רפואיים — רק תזכורת וקישור.</span></label>
   </div>
-  <div class="foot"><button class="btn" onclick="doSignup()">התחלה</button></div>
+  <div class="foot"><button class="btn" onclick="doSignup()">התחלה</button>
+    <button class="ghost" onclick="openClaim()">כבר יש לי תיק — שחזור דרך המייל</button></div>
 </section>
 
 <section class="screen" id="s-lawLogin">
@@ -618,6 +657,27 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
 
 <div class="cel" id="cel"><div class="pop" id="celPop"></div><h2 id="celTitle"></h2><p id="celText"></p>
   <button class="btn" style="max-width:250px;margin-top:28px" onclick="closeCel()">יופי, ממשיכים</button></div>
+<div class="instl" id="claim">
+  <div class="instlCard">
+    <button class="instlX" onclick="closeClaim()" aria-label="סגירה">✕</button>
+    <div class="instlIco"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M3 7l9 6 9-6"/></svg></div>
+    <h2 id="clTitle">שחזור התיק</h2>
+    <p id="clSub">נשלח קוד בן שש ספרות לכתובת המייל שרשומה בתיק שלך.</p>
+    <div id="clMsg" style="display:none"></div>
+    <div id="clStep1"><input id="clMail" type="email" placeholder="כתובת המייל שבתיק"
+      inputmode="email" autocapitalize="off" autocomplete="email"></div>
+    <div id="clStep2" style="display:none"><input id="clCode" inputmode="numeric" maxlength="6"
+      placeholder="קוד בן 6 ספרות" autocomplete="one-time-code"
+      style="text-align:center;letter-spacing:7px;font-size:21px;font-weight:700"></div>
+    <button class="btn" style="--c:#14807A" id="clGo" onclick="claimSend()">שליחת קוד</button>
+    <button class="ghost" onclick="closeClaim()">ביטול</button>
+    <div class="clNote">השחזור מעביר את התיק למכשיר הזה. אם התיק היה פתוח
+      במכשיר אחר, תידרש שם כניסה מחדש.</div>
+  </div>
+</div>
+
 <div class="instl" id="instl">
   <div class="instlCard">
     <button class="instlX" onclick="closeInstall()" aria-label="סגירה">✕</button>
@@ -995,8 +1055,12 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='18.8.26 · 18';
-const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const BUILD='18.8.26 · 19';
+/* persistSession ו-autoRefreshToken הם ברירת המחדל, אבל הם
+   לב הכניסה האוטומטית ולכן כתובים כאן במפורש.
+   ⚠ אין לשנות storageKey — שינוי שלו מנתק את כל המשתמשים הקיימים. */
+const sb=window.supabase.createClient(SB_URL,SB_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const DB={role:null,clients:[],active:null,firm:null,firmRow:null};
 const S={view:'front',openPart:null,openStep:null};
 const colorMap={};let ci=0;
@@ -1050,7 +1114,7 @@ function startPicker(){go('picker');requestAnimationFrame(()=>{drawBody();drawPi
 function tab(t){go(t);document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   if(t==='journey'){drawPath();drawNotifBar()}
   if(t==='docs')drawDocs();if(t==='privacy')drawPrivacy()}
-function logout(){sb.auth.signOut().then(()=>location.href=location.pathname)}
+function logout(){hardSignOut().then(()=>location.href=location.pathname)}
 function applyBrand(){
   const f=DB.firmRow;if(!f)return;
   document.querySelectorAll('.logo').forEach(e=>{e.style.background=f.brand||'#14807A'});
@@ -2251,6 +2315,7 @@ async function doSignup(){
     case_type:t,stage:'signed_up',consent_at:new Date().toISOString()}).select().single();
   if(error)return toast('שגיאה: '+error.message);
   DB.role='client';DB.clients=[mapClient(data)];DB.active=data.id;
+  cacheSet('lz.role','client');cacheBrand(firm);
   drawBody();drawPickFoot();$('#wName').textContent='שלום, '+n.split(' ')[0];go('welcome')}
 
 function lawErr(m){const e=$('#lMsg');e.textContent=m||'';e.style.display=m?'block':'none'}
@@ -3462,57 +3527,240 @@ function subscribeRT(){
   },20000);
 }
 
-/* חזרה ללשונית מרעננת מיד — הכי נפוץ בשימוש אמיתי */
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden)pull() });
-window.addEventListener('focus',()=>pull());
-window.addEventListener('online',()=>subscribeRT());
+/* חזרה ללשונית מרעננת מיד — הכי נפוץ בשימוש אמיתי.
+   getSession מחדש את הטוקן אם הוא קרוב לפוג, ולכן השאילתה
+   הראשונה אחרי חזרה מרקע לא נופלת על 401. */
+var RESUMED=0;
+async function onResume(){
+  const t=Date.now();if(t-RESUMED<2500)return;RESUMED=t;
+  try{ await sb.auth.getSession() }catch(e){}
+  pull()}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden)onResume() });
+window.addEventListener('focus',()=>onResume());
+window.addEventListener('online',()=>{
+  const sp=$('#splash');
+  if(sp&&sp.classList.contains('stuck'))return location.reload();
+  subscribeRT()});
+
+/* ═══ סשן ═══
+
+   שלושה כללים שנקבעו אחרי באג אמיתי:
+
+   1. סשן נמחק רק כשהשרת אומר במפורש שהמשתמש אינו קיים.
+      הגרסה הקודמת עשתה signOut בכל שגיאה שנתפסה, כולל
+      "אין רשת". ללקוח אנונימי אין סיסמה — הטוקן הוא כל
+      הזהות שלו — ולכן רגע אחד בלי קליטה מחק לו את התיק.
+
+   2. האימות מול השרת רץ ברקע ולא חוסם את הציור.
+
+   3. חזרה מרקע מרעננת טוקן לפני השאילתה הראשונה, כי
+      טיימר החידוש מושהה כשהאפליקציה אינה בחזית.
+*/
+function cacheGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function cacheSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function cacheDel(k){try{localStorage.removeItem(k)}catch(e){}}
+
+/* המיתוג נשמר מקומית כדי שהספלאש כבר יופיע בצבע ובשם הנכונים */
+function cacheBrand(f){
+  if(!f)return;
+  if(f.slug)cacheSet('lz.firm',f.slug);
+  cacheSet('lz.brand',f.brand||'#14807A');
+  cacheSet('lz.fname',f.name||'')}
+
+function paintCachedBrand(){
+  const b=cacheGet('lz.brand'), n=cacheGet('lz.fname');
+  if(b)document.documentElement.style.setProperty('--brand',b);
+  const sn=$('#splashName');if(sn&&n)sn.textContent=n}
+
+/* localStorage.length + key(i) הוא ה-API הרשמי.
+   Object.keys עובד בדפדפן אבל לא על כל מימוש. */
+function lsKeys(){
+  const out=[];
+  try{
+    const n=localStorage.length;
+    if(typeof n==='number'&&localStorage.key)
+      { for(let i=0;i<n;i++){const k=localStorage.key(i);if(k)out.push(k)} return out }
+    return Object.keys(localStorage);
+  }catch(e){ return out }}
+
+function hasStoredToken(){
+  return lsKeys().some(k=>k.indexOf('sb-')===0&&k.indexOf('auth-token')>-1)}
+
+function forgetLocal(){
+  lsKeys().filter(k=>k.indexOf('sb-')===0).forEach(cacheDel);
+  ['lz.role','lz.firm','lz.brand','lz.fname'].forEach(cacheDel)}
+
+async function hardSignOut(){
+  try{await sb.auth.signOut()}catch(e){}
+  forgetLocal()}
+
+/* נשאר עבור lawSignup — קורא את הסשן המקומי בלי לפנות לשרת */
+async function liveSession(){
+  try{ return (await sb.auth.getSession()).data.session||null }catch(e){ return null }}
+
+/* האם השרת אמר במפורש "המשתמש הזה לא קיים"?
+   זו השאלה היחידה שמצדיקה מחיקת סשן. הכל אחרת — כשל רשת,
+   תקלת שרת, timeout — משאיר את הלקוח מחובר. */
+function deadUserErr(e){
+  if(!e)return false;
+  if(e.name==='AuthRetryableFetchError')return false;   // כשל רשת
+  const st=e.status;
+  if(st===0)return false;
+  if(st>=500)return false;                              // תקלה בצד השרת
+  const code=String(e.code||'');
+  if(['user_not_found','session_not_found','bad_jwt','session_expired',
+      'refresh_token_not_found','no_authorization'].indexOf(code)>-1)return true;
+  if(st===401||st===403)return true;
+  return /sub claim|does not exist|user not found|invalid (jwt|token)|jwt expired/i
+         .test(String(e.message||''))}
+
+/* אימות מול השרת. רץ אחרי הציור, ולכן אינו מאט את הפתיחה. */
+async function verifySession(){
+  let r=null;
+  // בלי סשן אין מה לאמת. בלי הבדיקה הזו getUser היה מחזיר
+  // AuthSessionMissingError ומציג "החיבור פג" למי שרק נכנס לאתר.
+  let cur=null;
+  try{ cur=(await sb.auth.getSession()).data.session }catch(e){ return }
+  if(!cur)return;
+  try{ r=await sb.auth.getUser() }catch(e){ return }
+  if(!r||!r.error||!deadUserErr(r.error))return;
+  await hardSignOut();
+  DB.role=null;DB.clients=[];DB.active=null;DB.firm=null;DB.firmRow=null;
+  try{toast('החיבור פג. יש להיכנס מחדש.')}catch(e){}
+  try{go('lawLogin')}catch(e){}}
+
+/* ═══ ספלאש ═══ */
+function hideSplash(){
+  const el=$('#splash');if(!el||el.classList.contains('stuck'))return;
+  el.classList.add('off');
+  setTimeout(()=>{try{el.style.display='none'}catch(e){}},400)}
+
+function splashStuck(html){
+  const el=$('#splash');if(!el)return;
+  el.classList.add('stuck');
+  const m=$('#splashMsg');if(m)m.innerHTML=html}
+
+/* ═══ כניסה לתפקיד ═══ */
+async function enterLawyer(law){
+  DB.role='lawyer';DB.firm=law.firm_id;cacheSet('lz.role','lawyer');
+  const {data:f}=await sb.from('firms').select('*').eq('id',law.firm_id).maybeSingle();
+  if(f){DB.firmRow=f;cacheBrand(f)}
+  applyBrand();await loadFirmClients();lawGo('list');subscribeRT()}
+
+function enterClient(me){
+  DB.role='client';DB.clients=[me];DB.active=me.id;cacheSet('lz.role','client');
+  cacheBrand(DB.firmRow);
+  drawBody();drawPickFoot();clientHome();subscribeRT()}
 
 /* ═══ boot ═══ */
-/* הטוקן שמור מקומית וממשיך להיראות תקף גם אם המשתמש נמחק בשרת.
-   הבדיקה הזו פונה לשרת פעם אחת ומנקה סשן מת. */
-async function liveSession(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session)return null;
-  try{
-    const {data,error}=await sb.auth.getUser();
-    if(error||!data||!data.user)throw new Error('dead');
-  }catch(e){
-    try{await sb.auth.signOut()}catch(_){}
-    try{Object.keys(localStorage).filter(k=>k.indexOf('sb-')===0)
-      .forEach(k=>localStorage.removeItem(k))}catch(_){}
-    return null;
-  }
-  return session;
-}
 async function boot(){
-  const joining=location.hash.indexOf('join')>-1;
-  let session=await liveSession();
+  try{ await bootInner() }
+  catch(e){ try{go('lawLogin')}catch(_){} }
+  finally{ hideSplash() }
+  // האימות רץ רק אחרי שהמסך כבר מצויר, ולכן אינו נראה למשתמש
+  // ואינו מתחרה עם bootInner על המסך.
+  verifySession()}
 
-  if(joining){
-    const m=location.hash.match(/join=([\w-]+)/);
-    if(m&&m[1]){const r=await sb.from('firms').select('*').eq('slug',m[1]).maybeSingle();
-      if(r.data){DB.firmRow=r.data;applyBrand()}}
-    if(!session){const r=await sb.auth.signInAnonymously();
-      if(r.error){toast('שגיאת כניסה: '+r.error.message);return}
-      session=r.data.session}
-    const me=await myClient();
-    if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawBody();drawPickFoot();clientHome();subscribeRT();return}
-    DB.role='client';return go('signup');
-  }
-  if(!session){go('lawLogin');
+async function bootInner(){
+  paintCachedBrand();
+  const joining=location.hash.indexOf('join')>-1;
+  const m=location.hash.match(/join=([\w-]+)/);
+  // הקישור של המשרד נשמר, כי start_url של אפליקציה מותקנת
+  // מגיע בלי ה-hash והמיתוג היה נעלם בפתיחה השנייה
+  const slug=(m&&m[1])||cacheGet('lz.firm');
+
+  let session=null;
+  try{ session=(await sb.auth.getSession()).data.session }catch(e){}
+
+  // אופליין עם טוקן שמור — לא זורקים למסך כניסה, רק מחכים לרשת
+  if(!session&&hasStoredToken()&&navigator.onLine===false)
+    return splashStuck('אין חיבור לאינטרנט כרגע.<br>התיק שלך שמור. ננסה שוב ברגע שתהיה רשת.');
+
+  if(slug){
+    const r=await sb.from('firms').select('*').eq('slug',slug).maybeSingle();
+    if(r.data){DB.firmRow=r.data;applyBrand();cacheBrand(r.data)}}
+
+  if(joining&&!session){
+    const r=await sb.auth.signInAnonymously();
+    if(r.error){toast('שגיאת כניסה: '+r.error.message);return go('lawLogin')}
+    session=r.data.session}
+
+  if(!session){
+    go('lawLogin');
     if(location.hash.indexOf('signup')>-1&&!signupMode)lawToggle();
     return}
 
-  const {data:law}=await sb.from('lawyers').select('*').eq('id',session.user.id).maybeSingle();
-  if(law){DB.role='lawyer';DB.firm=law.firm_id;
-    const {data:f}=await sb.from('firms').select('*').eq('id',law.firm_id).maybeSingle();
-    DB.firmRow=f;applyBrand();await loadFirmClients();lawGo('list');subscribeRT();return}
+  // התפקיד הזכור חוסך סבב רשת: פונים ישר לטבלה הנכונה
+  const was=cacheGet('lz.role');
+  if(was!=='client'){
+    const {data:law}=await sb.from('lawyers').select('*').eq('id',session.user.id).maybeSingle();
+    if(law)return enterLawyer(law)}
 
   const me=await myClient();
-  if(me){DB.role='client';DB.clients=[me];DB.active=me.id;drawBody();drawPickFoot();clientHome();subscribeRT();return}
-  go('lawLogin');
-}
+  if(me)return enterClient(me);
+
+  if(was==='client'){
+    const {data:law}=await sb.from('lawyers').select('*').eq('id',session.user.id).maybeSingle();
+    if(law)return enterLawyer(law)}
+
+  // סשן תקף אבל אין תיק מקושר
+  if(joining||was==='client'){DB.role='client';cacheDel('lz.role');return go('signup')}
+  go('lawLogin')}
+
 sb.auth.onAuthStateChange((ev)=>{ if(ev==='SIGNED_IN'&&!DB.role) boot(); });
+
+/* ═══ שחזור תיק ═══ */
+var CLAIM_MAIL='';
+function openClaim(){
+  CLAIM_MAIL='';
+  $('#clStep1').style.display='block';$('#clStep2').style.display='none';
+  $('#clTitle').textContent='שחזור התיק';
+  $('#clSub').textContent='נשלח קוד בן שש ספרות לכתובת המייל שרשומה בתיק שלך.';
+  $('#clGo').textContent='שליחת קוד';$('#clGo').setAttribute('onclick','claimSend()');
+  $('#clGo').disabled=false;$('#clCode').value='';
+  claimMsg('');$('#claim').classList.add('on')}
+
+function closeClaim(){$('#claim').classList.remove('on')}
+
+function claimMsg(t,bad){
+  const e=$('#clMsg');if(!e)return;
+  e.textContent=t||'';e.style.display=t?'block':'none';
+  e.style.background=bad?'#FDF0ED':'#E9F3F1';
+  e.style.color=bad?'#C24A34':'#0D5F5A';
+  e.style.borderRadius='14px';e.style.padding='11px';e.style.fontSize='12.5px';
+  e.style.lineHeight='1.6';e.style.marginBottom='12px';e.style.textAlign='right'}
+
+async function claimSend(){
+  const em=($('#clMail').value||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em))return claimMsg('כתובת המייל לא נראית תקינה',1);
+  $('#clGo').disabled=true;claimMsg('שולח…');
+  const {error}=await sb.rpc('request_claim_code',{p_email:em});
+  $('#clGo').disabled=false;
+  if(error)return claimMsg('לא הצלחנו לשלוח כרגע. נסה שוב בעוד רגע.',1);
+  CLAIM_MAIL=em;
+  $('#clStep1').style.display='none';$('#clStep2').style.display='block';
+  $('#clTitle').textContent='הקוד נשלח';
+  // ⚠ בכוונה לא מגלים אם הכתובת קיימת. אחרת זו דרך לבדוק מי לקוח.
+  $('#clSub').textContent='אם רשום תיק לכתובת הזו, הקוד בדרך. הוא תקף לחמש עשרה דקות.';
+  $('#clGo').textContent='כניסה לתיק';$('#clGo').setAttribute('onclick','claimVerify()');
+  claimMsg('');try{$('#clCode').focus()}catch(e){}}
+
+async function claimVerify(){
+  const code=($('#clCode').value||'').replace(/\D/g,'');
+  if(code.length!==6)return claimMsg('צריך קוד בן שש ספרות',1);
+  $('#clGo').disabled=true;claimMsg('בודק…');
+  let session=null;
+  try{ session=(await sb.auth.getSession()).data.session }catch(e){}
+  if(!session){
+    const r=await sb.auth.signInAnonymously();
+    if(r.error){$('#clGo').disabled=false;return claimMsg('שגיאת חיבור: '+r.error.message,1)}}
+  const {data,error}=await sb.rpc('claim_case',{p_email:CLAIM_MAIL,p_code:code});
+  $('#clGo').disabled=false;
+  if(error)return claimMsg('לא הצלחנו לאמת כרגע. נסה שוב.',1);
+  if(!data)return claimMsg('הקוד שגוי או שפג תוקפו.',1);
+  const me=await myClient();
+  if(!me)return claimMsg('התיק שוחזר. רענן את הדף.',0);
+  closeClaim();enterClient(me);toast('התיק שלך חזר')}
 try{const bt=document.getElementById('buildTag');if(bt)bt.textContent=BUILD}catch(e){}
 /* Service Worker — נדרש להתקנה במסך הבית ולהתראות ברמת האפליקציה */
 if('serviceWorker' in navigator){
