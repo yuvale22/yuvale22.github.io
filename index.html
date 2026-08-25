@@ -1055,7 +1055,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
 const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='18.8.26 · 19';
+const BUILD='18.8.26 · 20';
 /* persistSession ו-autoRefreshToken הם ברירת המחדל, אבל הם
    לב הכניסה האוטומטית ולכן כתובים כאן במפורש.
    ⚠ אין לשנות storageKey — שינוי שלו מנתק את כל המשתמשים הקיימים. */
@@ -1671,7 +1671,58 @@ function statusOf(c){
   if(un)return{t:`${un} תורים לא נקבעו`,b:'#EAF3F1',f:'#0D5F5A'};
   return{t:'הכל בסדר',b:'#DDEFE2',f:'#256B3A'}}
 let LAWVIEW='triage';
+/* ═══ ועדה ═══
+
+   מועד הוועדה הוא נקודת השיא של התיק, ולכן הוא גובר על כל
+   שאר הסטטוסים ברשימה.
+
+   ⚠ ההזנה היא של עורך הדין בלבד — ראה wave5.sql, שם ההרשאה
+     אסימטרית בכוונה. תאריך שגוי מייצר ספירה לאחור שקרית. */
+
+const COMM_KINDS=['ועדה רפואית','ועדת ערר','ועדה מחוזית','ועדת רשות'];
+const COMM_C='#5B3FA8', COMM_BG='#EDE6FA', COMM_DEEP='#3D2A70';
+
+function commsOf(c){return ((c&&c.comm)||[]).filter(x=>x.status!=='canceled')}
+
+function nextComm(c){
+  return commsOf(c).filter(x=>x.status==='scheduled'&&daysTo(x.at)>=0)
+    .sort((a,b)=>a.at<b.at?-1:1)[0]||null}
+
+/* ועדה שמועדה חלף ואיש לא סימן שהתקיימה */
+function pastComm(c){
+  return commsOf(c).filter(x=>x.status==='scheduled'&&daysTo(x.at)<0)
+    .sort((a,b)=>a.at<b.at?1:-1)[0]||null}
+
+/* ⚠ אין OCR — אי אפשר לדעת מה כתוב בתוך קובץ.
+   מה שכן ידוע בוודאות: כל מסמך מקושר לתור שממנו הגיע.
+   לכן הפער היחיד שאפשר לגזור באמת הוא "ביקור שכבר קרה
+   ולא הגיע ממנו כלום". זו גם הרשימה שבאמת מסכנת ועדה.
+   הלוגיקה כאן זהה ל-committee_gaps() ב-wave5.sql. */
+function commGaps(c){
+  const out=[], D=(c&&c.docs)||[];
+  ((c&&c.plan)||[]).forEach(a=>{
+    if(a.status==='pending')return out.push({l:a.l,d:a.date,r:'ממתין לאישורך',id:a.id});
+    if(!a.date)return out.push({l:a.l,d:null,r:'טרם נקבע מועד',id:a.id});
+    if(daysTo(a.date)<0&&!D.some(x=>x.appt===a.id))
+      out.push({l:a.l,d:a.date,r:'עבר ללא מסמך',id:a.id});
+  });
+  return out}
+
+function dLbl(d){return d<0?'עבר':d===0?'היום':d===1?'מחר':'בעוד '+d+' ימים'}
+
+/* מתרגם ועדה לצורת תור, כדי לעשות שימוש חוזר בפונקציות היומן */
+function commAsAppt(x){
+  return {id:x.id,date:x.at,time:x.time||'',l:x.kind,doctor:'',
+          place:x.place||'',bring:[],rem:'',note:x.note||''}}
+function commToIcs(id){
+  const x=commsOf(C()).find(y=>y.id===id);if(!x)return;
+  icsFor([commAsAppt(x)],x.kind)}
+function commToGoogle(id){
+  const x=commsOf(C()).find(y=>y.id===id);if(!x)return;
+  const u=gcalUrl(commAsAppt(x));if(u)window.open(u,'_blank')}
+
 const BUCKETS=[
+  ['comm','ועדה בקרוב','#EDE6FA','#5B3FA8'],
   ['pend','ממתין לטיפולך','#FBE0DA','#C24A34'],
   ['act' ,'טעון השלמה','#FBEBD1','#8A5B12'],
   ['soon','תורים קרובים','#EAF3F1','#0D5F5A'],
@@ -1680,6 +1731,12 @@ const BUCKETS=[
 function triage(c){
   const P=c.plan||[], D=c.docs||[];
   if(c.stage==='waiting'||!P.length) return {k:'pend',r:'טרם נקבעה תוכנית בדיקות'};
+  // ועדה בשלושת השבועות הקרובים גוברת על כל השאר
+  const nc=nextComm(c);
+  if(nc&&daysTo(nc.at)<=21){
+    const g=commGaps(c).length;
+    return {k:'comm',r:nc.kind+' '+dLbl(daysTo(nc.at))+
+      (g?' · '+g+' פערים בחומר':' · החומר שלם')}}
   const pend=P.filter(a=>a.status==='pending').length;
   if(pend) return {k:'pend',r:pend===1?'מסמך אחד ממתין לאישורך':pend+' מסמכים ממתינים לאישורך'};
   const ret  =P.filter(a=>a.status==='returned').length;
@@ -1714,7 +1771,28 @@ function upcoming(){
     const d=daysTo(a.date);
     if(d<-14)return;
     out.push({c:c,a:a,d:d})}));
-  return out.sort((x,y)=>x.d-y.d||(x.a.time||'').localeCompare(y.a.time||''))}
+  // ועדות נכנסות לאותה רשימה, ומקבלות שורה משלהן
+  DB.clients.forEach(c=>commsOf(c).forEach(x=>{
+    if(x.status!=='scheduled')return;
+    const d=daysTo(x.at);
+    if(d<-14)return;
+    out.push({c:c,comm:x,d:d})}));
+  const tm=x=>(x.comm?x.comm.time:x.a.time)||'';
+  return out.sort((x,y)=>x.d-y.d||tm(x).localeCompare(tm(y)))}
+
+function commRow(x){
+  const g=commGaps(x.c).length;
+  return `<div class="crow" onclick="openLawClient('${x.c.id}')">
+    <div class="av" style="background:${COMM_C};width:38px;height:38px;border-radius:50%;flex:none;
+      display:flex;align-items:center;justify-content:center;color:#fff">${ic('gavel',18)}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:15px;font-weight:700">${x.c.name}</div>
+      <div style="font-size:12px;color:${COMM_C};font-weight:700;margin-top:2px;overflow:hidden;
+        text-overflow:ellipsis;white-space:nowrap">${x.comm.kind}${x.comm.place?' · '+x.comm.place:''}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:2px">${fmtDate(x.comm.at)}${
+        x.comm.time?' · '+x.comm.time:''}</div></div>
+    ${g?`<span class="tagp" style="background:#FBEBD1;color:#8A5B12">${g} פערים</span>`
+       :`<span class="tagp" style="background:#DDEFE2;color:#256B3A">מוכן</span>`}</div>`}
 
 function whenLbl(d){
   if(d<0) return ['עבר',      '#FBE0DA','#C24A34'];
@@ -1774,8 +1852,8 @@ function drawLawList(){
       if(!seen[w[0]]){seen[w[0]]=1;
         const n=U.filter(y=>whenLbl(y.d)[0]===w[0]).length;
         h+=head(w[0],n,w[1],w[2])}
-      h+=apptRow(x)});
-    const noG=U.filter(x=>!(x.a.rem||'').trim()&&!(x.a.bring||[]).length).length;
+      h+=(x.comm?commRow(x):apptRow(x))});
+    const noG=U.filter(x=>x.a&&!(x.a.rem||'').trim()&&!(x.a.bring||[]).length).length;
     if(noG)h=`<div class="bhead" style="grid-column:1/-1"><b style="color:#8A5B12">${noG} תורים ללא הנחיה ללקוח</b></div>`+h;
     box.innerHTML=h;return}
 
@@ -1819,6 +1897,7 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
       <div style="display:flex;gap:8px">
         <button class="btn" style="--c:#14807A;border-radius:14px;padding:12px;font-size:14px" onclick="lawApprove('${a.id}')">אישור</button>
         <button class="btn2" style="border-radius:14px;padding:12px;font-size:14px" onclick="openDocNote('${a.id}')">${a.note?'עריכת ההערה':'הערות'}</button></div></div>`).join('');
+  h+=commCard(c);
   h+=`<div style="display:flex;gap:8px;margin-bottom:14px">
     <button class="btn2" style="flex:1" onclick="lawGo('path')">מסלול הבדיקות</button>
     <button class="btn2" style="flex:1" onclick="openClientEdit()">פרטי התיק</button></div>
@@ -1838,6 +1917,127 @@ function drawLawClient(){const c=C();$('#lcName').textContent=c.name;
   h+=docArchive(c);
   $('#lcBody').innerHTML=h;
   hydrateThumbs()}
+
+/* ── כרטיס הוועדה בכרטיס הלקוח ── */
+function commCard(c){
+  const n=nextComm(c);
+  if(!n){
+    const p=pastComm(c);
+    if(p)return `<div class="card" style="border-color:#E0D6F2;background:#FAF8FE;margin-bottom:14px">
+      <div style="font-size:12.5px;font-weight:700;color:${COMM_DEEP}">${p.kind} · ${fmtDate(p.at)}</div>
+      <div style="font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.6">
+        המועד חלף. לסמן שהתקיימה, כדי שהיא תרד מהרשימות?</div>
+      <div style="display:flex;gap:8px;margin-top:11px">
+        <button class="btn" style="--c:${COMM_C};border-radius:14px;padding:11px;font-size:13.5px"
+          onclick="commDone('${p.id}')">התקיימה</button>
+        <button class="btn2" style="border-radius:14px;padding:11px;font-size:13.5px"
+          onclick="openComm('${p.id}')">עריכה</button></div></div>`;
+    return `<button class="btn2" style="width:100%;margin-bottom:14px;padding:12px;font-size:13.5px;
+      display:flex;align-items:center;justify-content:center;gap:7px"
+      onclick="openComm()">${ic('gavel',17,'#17171A')}הוספת מועד ועדה</button>`;
+  }
+  const d=daysTo(n.at), g=commGaps(c), hot=d<=14;
+  return `<div class="card" style="margin-bottom:14px;border-color:${hot?'#D8C9F0':'var(--chip)'};
+      background:${hot?'#FAF8FE':'#fff'}">
+    <div style="display:flex;align-items:center;gap:11px">
+      <div style="width:48px;height:48px;border-radius:14px;background:${COMM_C};color:#fff;flex:none;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1">
+        <b style="font-size:18px">${d}</b>
+        <span style="font-size:8.5px;opacity:.85;margin-top:2px">${d===1?'יום':'ימים'}</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700">${n.kind}</div>
+        <div style="font-size:12.5px;color:var(--ink2);margin-top:2px">${fmtDate(n.at)}${
+          n.time?' · '+n.time:''}</div>
+        ${n.place?`<div style="font-size:11.5px;color:var(--ink3);margin-top:2px">${n.place}</div>`:''}</div></div>
+    <div style="background:${g.length?'#FBEBD1':'#DDEFE2'};border-radius:12px;padding:10px 12px;margin-top:12px">
+      <div style="font-size:12.5px;font-weight:700;color:${g.length?'#8A5B12':'#256B3A'}">
+        ${g.length?g.length+' פערים בחומר':'החומר שלם — מכל ביקור שחלף התקבל מסמך'}</div>
+      ${g.length?`<div style="font-size:11.5px;color:#8A5B12;line-height:1.75;margin-top:5px">
+        ${g.slice(0,5).map(x=>x.l+' — '+x.r).join('<br>')}${
+          g.length>5?'<br>ועוד '+(g.length-5):''}</div>`:''}</div>
+    ${n.note?`<div style="background:#F1EDFB;border-radius:12px;padding:10px 12px;margin-top:9px">
+      <div style="font-size:11px;font-weight:700;color:${COMM_DEEP};margin-bottom:3px">ההנחיה שלך ללקוח</div>
+      <div style="font-size:12.5px;color:${COMM_DEEP};line-height:1.6">${n.note}</div></div>`:''}
+    <div style="display:flex;gap:8px;margin-top:11px">
+      <button class="btn2" style="border-radius:14px;padding:11px;font-size:13.5px"
+        onclick="openComm('${n.id}')">עריכה</button>
+      <button class="btn2" style="border-radius:14px;padding:11px;font-size:13.5px"
+        onclick="commToIcs('${n.id}')">ליומן</button></div></div>`}
+
+/* ── הזנת המועד ── */
+var COMM_ED=null;
+function openComm(id){
+  const c=C();if(!c)return;
+  COMM_ED=id||null;
+  const x=id?commsOf(c).find(y=>y.id===id):null;
+  S.openPart=null;S.openStep=null;
+  const lbl=t=>`<span style="font-size:11px;font-weight:700;color:var(--ink3);display:block;margin:0 4px 4px">${t}</span>`;
+  $('#shTitle').textContent=x?'עריכת מועד הוועדה':'מועד ועדה';
+  $('#shSub').textContent='הלקוח יראה את המועד ואת ההנחיה, ולא יוכל לשנות אותם.';
+  $('#shIc').style.background=COMM_C;$('#shIc').innerHTML=ic('gavel',23,'#fff');
+  $('#shBody').innerHTML=`
+    <select id="cmKind" style="width:100%;font:inherit;font-size:14.5px;background:#fff;
+      border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:8px;color:var(--ink)">
+      ${COMM_KINDS.map(k=>`<option ${x&&x.kind===k?'selected':''}>${k}</option>`).join('')}</select>
+    <div class="fgrid">
+      <label style="display:block">${lbl('תאריך')}
+        <input id="cmAt" type="date" value="${x?x.at:''}" style="margin:0"></label>
+      <label style="display:block">${lbl('שעה')}
+        <input id="cmTime" placeholder="09:30" value="${x?x.time:''}" style="margin:0"></label>
+    </div>
+    <input id="cmPlace" placeholder="מקום הוועדה" value="${((x&&x.place)||'').replace(/"/g,'&quot;')}">
+    <textarea id="cmNote" placeholder="מה חשוב שהלקוח יידע לקראת הוועדה">${(x&&x.note)||''}</textarea>
+    <div style="background:var(--soft);border-radius:14px;padding:12px;font-size:12px;
+      color:var(--ink2);line-height:1.7;margin-top:4px">
+      הלקוח יראה ספירה לאחור בראש המסך. מייל עם המועד, השעה והמקום
+      יישלח לו שבוע לפני ויום לפני. ההנחיה שכתבת כאן נשארת באפליקציה בלבד.</div>`;
+  $('#shFoot').innerHTML=`<div style="display:flex;gap:8px">
+    <button class="btn" style="--c:${COMM_C};border-radius:16px;padding:14px;font-size:15px"
+      onclick="saveComm()">שמירה</button>
+    ${x?`<button class="btn2" style="border-radius:16px;padding:14px;font-size:15px;color:#C24A34;
+      border-color:#F0CFC8;flex:0 0 34%" onclick="commDel('${x.id}')">ביטול הוועדה</button>`:''}</div>`;
+  openSheet()}
+
+function commPut(c,row){
+  const m={id:row.id,kind:row.kind,at:row.at,time:row.at_time||'',
+           place:row.place||'',note:row.note||'',status:row.status||'scheduled'};
+  c.comm=c.comm||[];
+  const i=c.comm.findIndex(y=>y.id===m.id);
+  if(i>=0)c.comm[i]=m; else c.comm.push(m);
+  c.comm.sort((a,b)=>a.at<b.at?-1:1);
+  return m}
+
+async function saveComm(){
+  const c=C();if(!c)return;
+  const at=$('#cmAt').value;
+  if(!at)return toast('צריך תאריך לוועדה');
+  const row={client_id:c.id,kind:$('#cmKind').value,at:at,
+    at_time:($('#cmTime').value||'').trim()||null,
+    place:($('#cmPlace').value||'').trim()||null,
+    note:($('#cmNote').value||'').trim()||null,
+    status:'scheduled'};
+  const q=COMM_ED
+    ? sb.from('committees').update(row).eq('id',COMM_ED).select().single()
+    : sb.from('committees').insert(row).select().single();
+  const {data,error}=await q;
+  if(error)return toast('שגיאה: '+error.message);
+  commPut(c,data);
+  closeSheet();drawLawClient();drawLawList();refreshBell();toast('נשמר')}
+
+async function commDone(id){
+  const c=C();if(!c)return;
+  const {error}=await sb.from('committees').update({status:'done'}).eq('id',id);
+  if(error)return toast('שגיאה: '+error.message);
+  const x=(c.comm||[]).find(y=>y.id===id);if(x)x.status='done';
+  drawLawClient();drawLawList();refreshBell();toast('סומן כהתקיימה')}
+
+async function commDel(id){
+  if(!confirm('לבטל את מועד הוועדה?'))return;
+  const c=C();if(!c)return;
+  const {error}=await sb.from('committees').update({status:'canceled'}).eq('id',id);
+  if(error)return toast('שגיאה: '+error.message);
+  c.comm=(c.comm||[]).filter(y=>y.id!==id);
+  closeSheet();drawLawClient();drawLawList();refreshBell();toast('בוטל')}
 
 /* ממלא את התמונות הממוזערות בקישורים חתומים, בבקשה אחת לכל הקבצים */
 async function hydrateThumbs(){
@@ -1959,6 +2159,16 @@ th{font-size:11.5px;color:#6B6864;font-weight:700}
   <h1>${esc(c.name)}</h1>
   <div class="meta">${[c.type,c.idn?'ת״ז '+esc(c.idn):'',ag!=null?'בן '+ag:'',
       c.phone?esc(c.phone):'',c.addr?esc(c.addr):''].filter(Boolean).join(' · ')}</div>
+
+  ${box('ועדות', commsOf(c).length?`<table>
+     <tr><th>סוג</th><th style="width:120px">מועד</th><th style="width:200px">מקום</th>
+         <th style="width:90px">סטטוס</th></tr>
+     ${commsOf(c).map(x=>`<tr><td><b>${esc(x.kind)}</b>${
+       x.note?`<div style="font-size:12px;color:#6B6864;margin-top:3px">${esc(x.note)}</div>`:''}</td>
+       <td>${esc(fmtDate(x.at))}${x.time?'<br>'+esc(x.time):''}</td>
+       <td>${esc(x.place||'—')}</td>
+       <td><span class="tag">${x.status==='done'?'התקיימה':'נקבעה'}</span></td></tr>`).join('')}
+     </table>`:'')}
 
   ${box('תיאור האירוע מפי הלקוח', c.desc?`<div class="quote">${esc(c.desc)}</div>`:'')}
 
@@ -3213,11 +3423,46 @@ function pendingAlerts(){
   });
   const unset=(c.plan||[]).filter(a=>!a.date).length;
   if(unset)out.push({t:unset+' תורים עוד לא נקבעו',b:'כדאי לקבוע בהקדם — פער בטיפולים פוגע בתיק',c:'#EAF3F1',f:'#0D5F5A'});
+  // הכרטיס עצמו כבר מוצג למעלה. זו רק ההתראה למכשיר.
+  const nc=nextComm(c);
+  if(nc){const d=daysTo(nc.at);
+    if(d===0||d===1||d===3||d===7)
+      out.unshift({t:nc.kind+' '+dLbl(d),
+        b:fmtDate(nc.at)+(nc.time?' · '+nc.time:'')+(nc.place?' · '+nc.place:''),
+        c:'#EDE6FA',f:'#3D2A70'})}
   return out}
+/* ── ספירה לאחור בראש מסך הלקוח ──
+   ⚠ הלקוח רואה ולא עורך. מקור המועד הוא הזימון הרשמי,
+     ועורך הדין הוא היחיד שראה אותו. */
+function commClientCard(){
+  const c=C();if(!c)return '';
+  const n=nextComm(c);if(!n)return '';
+  const d=daysTo(n.at), hot=d<=7;
+  const fg=hot?'#fff':COMM_DEEP;
+  return `<div class="nbar" style="background:${hot?COMM_C:COMM_BG};flex-direction:column;
+      align-items:stretch;gap:0;cursor:default">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:52px;height:52px;border-radius:15px;flex:none;color:#fff;
+        background:${hot?'rgba(255,255,255,.2)':COMM_C};
+        display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1">
+        <b style="font-size:19px">${d}</b>
+        <span style="font-size:9px;opacity:.85;margin-top:2px">${d===1?'יום':'ימים'}</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:700;color:${fg}">${n.kind}</div>
+        <div style="font-size:12.5px;color:${fg};opacity:.9;margin-top:2px">${fmtDate(n.at)}${
+          n.time?' · '+n.time:''}</div>
+        ${n.place?`<div style="font-size:11.5px;color:${fg};opacity:.75;margin-top:2px">${n.place}</div>`:''}
+      </div></div>
+    ${n.note?`<div style="background:${hot?'rgba(255,255,255,.15)':'#fff'};border-radius:12px;
+      padding:10px 12px;margin-top:11px;font-size:12.5px;line-height:1.65;color:${fg}">${n.note}</div>`:''}
+    <button class="btn2" style="margin-top:11px;border-radius:12px;padding:10px;font-size:12.5px;
+      border-color:transparent;background:${hot?'rgba(255,255,255,.18)':'#fff'};color:${fg}"
+      onclick="commToIcs('${n.id}')">הוספה ליומן</button></div>`}
+
 function drawNotifBar(){
   const box=$('#notifBar');if(!box)return;
   const al=pendingAlerts();
-  let h=installRow();
+  let h=commClientCard()+installRow();
   if(window.Notification && Notification.permission==='default')
     h+=`<div class="nbar" style="background:#fff" onclick="askNotif()">
       <div style="width:38px;height:38px;border-radius:11px;background:var(--soft);display:flex;align-items:center;justify-content:center;flex:none">${ic('clock',19,'#17171A')}</div>
@@ -3236,6 +3481,19 @@ function lawAlerts(){
   const out=[];
   (DB.clients||[]).forEach(c=>{
     const P=c.plan||[];
+
+    const nc=nextComm(c);
+    if(nc){
+      const d=daysTo(nc.at), g=commGaps(c).length;
+      if(d<=21)out.push({k:'comm:'+nc.id+':'+(d<=7?'w':'m'),
+        t:nc.kind+' '+dLbl(d)+(g?' · '+g+' פערים':''),
+        b:c.name+' · '+fmtDate(nc.at)+(nc.place?' · '+nc.place:''),
+        c:'#EDE6FA',f:'#3D2A70',cid:c.id,pr:g?0:1});
+    }
+    const pc=pastComm(c);
+    if(pc)out.push({k:'commdone:'+pc.id,t:'ועדה שמועדה חלף',
+      b:c.name+' · '+pc.kind+' · '+fmtDate(pc.at),
+      c:'#F1EFEC',f:'#7C7A78',cid:c.id,pr:2});
 
     if(c.stage==='waiting'||(c.stage!=='waiting'&&!P.length))
       out.push({k:'plan:'+c.id,t:'ממתין להרכבת תוכנית',b:c.name,
@@ -3397,7 +3655,7 @@ let tt;function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on
 window.addEventListener('resize',()=>{if($('#s-journey').classList.contains('on'))drawPath()});
 
 /* ═══ persistence ═══ */
-const SEL='*, firms(*), symptoms(*), part_notes(*), appointments(*), documents(*)';
+const SEL='*, firms(*), symptoms(*), part_notes(*), appointments(*), documents(*), committees(*)';
 function mapClient(r){
   if(r.firms)DB.firmRow=r.firms;
   const sel={},notes={};
@@ -3412,6 +3670,9 @@ function mapClient(r){
       bring:a.bring||[],rem:a.remember||'',func:a.func||[],note:a.lawyer_note||'',
       noteAt:a.note_at||null,after:a.after_id||null,
       tasks:[{l:'הגעתי',done:!!a.arrived}]})),
+    comm:(r.committees||[]).map(x=>({id:x.id,kind:x.kind,at:x.at,time:x.at_time||'',
+      place:x.place||'',note:x.note||'',status:x.status||'scheduled'}))
+      .sort((a,b)=>a.at<b.at?-1:1),
     email:r.email||'',notifyEmail:r.notify_email!==false,star:!!r.starred,
     docs:(r.documents||[]).map(d=>({id:d.id,n:d.name,d:new Date(d.created_at).toLocaleDateString('he-IL'),
       c:'#2F6FD0',appt:d.appointment_id,path:d.storage_path,up:true,
