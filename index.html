@@ -15,6 +15,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--canvas:#F7F6F4;--surface:#fff;--border:#ECEAE6;--chip:#E4E1DC;--skin:#F0E3D6;--skinLine:#E0CDB9;--skinHi:#E9D8C7;
 --ink:#17171A;--ink2:#7C7A78;--ink3:#A5A3A0;--soft:#F4F3F1;--track:#E9E7E3;--dot:#D6D3CE;--lock:#EBE9EE;--lockFg:#A5A3AA;--brand:#14807A;
@@ -408,6 +411,236 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
   border:1.5px solid var(--chip);border-radius:15px;padding:13px 14px;margin-bottom:10px;
   color:var(--ink);text-align:right}
 #claim .clNote{font-size:12px;color:var(--ink3);line-height:1.65;margin-top:12px;text-align:right}
+
+/* ══════════════════════════════════════════════════════════════
+   שכבת הגימור · טיפוגרפיה, עומק, תנועה
+   ══════════════════════════════════════════════════════════════ */
+
+:root{
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease-out:cubic-bezier(.22,.61,.36,1);
+  --sh0:0 1px 2px rgba(20,20,26,.05);
+  --sh1:0 1px 2px rgba(20,20,26,.05),0 3px 10px rgba(20,20,26,.05);
+  --sh2:0 2px 4px rgba(20,20,26,.05),0 10px 26px rgba(20,20,26,.08);
+  --sh3:0 4px 8px rgba(20,20,26,.06),0 20px 50px rgba(20,20,26,.13);
+  --ring:0 0 0 3px rgba(20,128,122,.14);
+}
+
+*{font-synthesis-weight:none;-webkit-font-synthesis:none}
+body{font-family:'Noto Sans Hebrew',system-ui,sans-serif;
+  background:#DED6CB;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+.app{
+  box-shadow:0 0 0 1px rgba(20,20,26,.05),0 30px 90px rgba(20,20,26,.14);
+}
+
+/* ── טיפוגרפיה חדה ── */
+h1{font-weight:800;letter-spacing:-.033em;line-height:1.12}
+h2{font-weight:800;letter-spacing:-.028em}
+.sub{color:var(--ink2);font-weight:400}
+.btn{font-weight:700;letter-spacing:-.012em}
+.pill{font-weight:700;letter-spacing:-.01em}
+.tab{font-weight:700;letter-spacing:-.005em}
+
+/* ══════════════════════════════════════════════════════════════
+   מעברים בין מסכים
+   ⚠ עד כה: display:none ← flex. קפיצה מיידית, 14 מסכים,
+     אפס תנועה. זה היה הפער הגדול ביותר בתחושת הזרימה.
+     המסך הנכנס מקבל .on מיד (כדי שפונקציות הציור ימצאו DOM),
+     והאנימציה רצה מעליו.
+   ══════════════════════════════════════════════════════════════ */
+
+@keyframes scrIn{
+  from{opacity:0;transform:translate3d(-18px,0,0) scale(.985)}
+  to  {opacity:1;transform:none}
+}
+@keyframes scrInBack{
+  from{opacity:0;transform:translate3d(18px,0,0) scale(.985)}
+  to  {opacity:1;transform:none}
+}
+@keyframes scrOut{
+  from{opacity:1;transform:none}
+  to  {opacity:0;transform:translate3d(14px,0,0) scale(.99)}
+}
+.screen.on{animation:scrIn .42s var(--ease) both}
+.screen.on.back{animation:scrInBack .42s var(--ease) both}
+.screen.leaving{
+  display:flex!important;pointer-events:none;z-index:0;
+  animation:scrOut .26s var(--ease-out) both;
+}
+.screen.on{z-index:1}
+
+/* ── תוכן נכנס בהדרגה, לא הכל יחד ── */
+@keyframes riseIn{
+  from{opacity:0;transform:translate3d(0,14px,0)}
+  to  {opacity:1;transform:none}
+}
+.screen.on .top{animation:riseIn .46s var(--ease) .03s backwards}
+.screen.on .scroll>*{animation:riseIn .48s var(--ease) backwards}
+.screen.on .scroll>*:nth-child(1){animation-delay:.05s}
+.screen.on .scroll>*:nth-child(2){animation-delay:.09s}
+.screen.on .scroll>*:nth-child(3){animation-delay:.12s}
+.screen.on .scroll>*:nth-child(4){animation-delay:.15s}
+.screen.on .scroll>*:nth-child(n+5){animation-delay:.17s}
+.screen.on .foot{animation:riseIn .46s var(--ease) .12s backwards}
+
+/* ── כרטיסים · עומק אמיתי ── */
+.card{
+  box-shadow:var(--sh1);
+  transition:box-shadow .3s var(--ease),transform .3s var(--ease);
+}
+.card:active{transform:scale(.993);box-shadow:var(--sh0)}
+.acc{box-shadow:var(--sh1);transition:box-shadow .3s var(--ease),background .25s}
+.acc.open{box-shadow:var(--sh2)}
+
+/* ── כפתורים ── */
+.btn{
+  transition:transform .18s var(--ease),box-shadow .25s var(--ease),filter .2s;
+  box-shadow:0 2px 6px -2px rgba(20,20,26,.28),0 10px 24px -12px rgba(20,20,26,.5);
+}
+.btn:active{transform:scale(.975);box-shadow:0 1px 3px -1px rgba(20,20,26,.3)}
+.btn:focus-visible{outline:0;box-shadow:var(--ring),0 2px 6px -2px rgba(20,20,26,.28)}
+.btn2{transition:background .2s,transform .18s var(--ease)}
+.btn2:active{transform:scale(.985)}
+
+/* ── סרגל התחתית ── */
+.tabs{background:rgba(255,255,255,.88);backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border-top:1px solid rgba(20,20,26,.07)}
+.tab{position:relative;transition:color .28s var(--ease)}
+.tab svg,.tab span{transition:transform .34s var(--ease)}
+.tab.on svg{transform:translateY(-1px) scale(1.08)}
+.tab::after{
+  content:'';position:absolute;inset-block-start:-9px;inset-inline-start:50%;
+  width:0;height:2.5px;border-radius:0 0 3px 3px;background:var(--brand);
+  transform:translateX(-50%);transition:width .38s var(--ease);
+}
+.tab.on::after{width:34px}
+.tab:active{transform:scale(.94)}
+
+/* ── גיליון תחתון ── */
+.sheet{
+  box-shadow:0 -1px 0 rgba(20,20,26,.05),0 -20px 60px rgba(20,20,26,.16);
+  transition:transform .46s var(--ease);
+}
+.scrim{transition:opacity .36s var(--ease);backdrop-filter:blur(2px)}
+
+/* ── שדות ── */
+input,textarea,select{
+  transition:box-shadow .25s var(--ease),background .2s;
+}
+input:focus,textarea:focus,select:focus{outline:0;box-shadow:var(--ring)}
+
+/* ── גלילה ── */
+.scroll{overscroll-behavior-y:contain;scroll-behavior:smooth}
+
+/* ── כבוד להעדפת תנועה מופחתת ── */
+@media(prefers-reduced-motion:reduce){
+  .screen.on,.screen.on.back,.screen.leaving,
+  .screen.on .top,.screen.on .scroll>*,.screen.on .foot{animation:none!important}
+  *{transition-duration:.01ms!important}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ליטוש · משטחים, מצבים, ופרטים
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── משטחים · הבדל עדין בין רמות ── */
+.card{
+  background:linear-gradient(180deg,#fff 0%,#FDFCFB 100%);
+  box-shadow:inset 0 0 0 1px rgba(20,20,26,.045),var(--sh1);
+}
+.acc{background:linear-gradient(180deg,#fff,#FDFCFB);
+  box-shadow:inset 0 0 0 1px rgba(20,20,26,.045),var(--sh1)}
+.acc.open{background:var(--soft);
+  box-shadow:inset 0 0 0 1px rgba(20,128,122,.18),var(--sh2)}
+
+/* ── כפתור ראשי · עומק במקום שטוח ── */
+.btn{
+  /* ⚠ כאן היה color-mix עם 112% — ערך לא חוקי שהפיל את כל
+     הצהרת הרקע, והכפתור יצא לבן עם טקסט לבן. */
+  background:var(--c,#E8654F);
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(0,0,0,.06));
+  pointer-events:none;
+}
+.btn[disabled]{background:#E9E7E3;box-shadow:none}
+.btn[disabled]::after{display:none}
+
+/* ── הלוגו והכותרת ── */
+.logo{box-shadow:0 4px 14px -4px rgba(20,128,122,.45)}
+
+/* ── גלולות ומצבים ── */
+.pill{transition:background .25s var(--ease),color .25s var(--ease),transform .25s var(--ease)}
+.chipRow .pill:active{transform:scale(.94)}
+
+/* ── שורות רשימה · משוב למגע ── */
+.acc .accH{transition:background .2s}
+.acc .accH:active{background:rgba(20,20,26,.03)}
+
+/* ── פס התקדמות · זרימה ── */
+.track,.bar{transition:width .7s var(--ease)}
+
+/* ── מצב ריק ── */
+.empty{animation:riseIn .55s var(--ease) .08s backwards}
+
+/* ── טוסט ── */
+@keyframes toastIn{
+  from{opacity:0;transform:translate3d(-50%,16px,0) scale(.96)}
+  to  {opacity:1;transform:translate3d(-50%,0,0) scale(1)}
+}
+.toast{animation:toastIn .38s var(--ease) backwards;
+  box-shadow:0 4px 12px rgba(20,20,26,.18),0 16px 44px rgba(20,20,26,.22)}
+
+/* ── גיליון · התוכן נכנס אחרי הגיליון ── */
+.sheet.on .sbody>*{animation:riseIn .44s var(--ease) backwards}
+.sheet.on .sbody>*:nth-child(1){animation-delay:.1s}
+.sheet.on .sbody>*:nth-child(2){animation-delay:.15s}
+.sheet.on .sbody>*:nth-child(3){animation-delay:.19s}
+.sheet.on .sbody>*:nth-child(n+4){animation-delay:.22s}
+.sheet.on .sfoot{animation:riseIn .44s var(--ease) .18s backwards}
+
+/* ── מסך הפתיחה ── */
+@keyframes splashPulse{
+  0%,100%{transform:scale(1);opacity:1}
+  50%    {transform:scale(1.045);opacity:.9}
+}
+#splash .logo,.splash .logo{animation:splashPulse 2.2s var(--ease) infinite}
+
+/* ── טעינה · במקום קפיצה ── */
+@keyframes shimmer{
+  from{background-position:-320px 0}
+  to  {background-position:320px 0}
+}
+.skel{
+  background:linear-gradient(90deg,#EFEDEA 0%,#F7F6F4 50%,#EFEDEA 100%);
+  background-size:640px 100%;animation:shimmer 1.4s linear infinite;
+  border-radius:10px;
+}
+
+/* ── מיקוד נגיש בכל מקום ── */
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{
+  outline:0;box-shadow:var(--ring)}
+
+/* ── דקויות RTL ── */
+.scroll{scrollbar-width:thin;scrollbar-color:rgba(20,20,26,.16) transparent}
+.scroll::-webkit-scrollbar{width:6px}
+.scroll::-webkit-scrollbar-thumb{background:rgba(20,20,26,.16);border-radius:99px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+
+@media(prefers-reduced-motion:reduce){
+  .toast,.empty,.sheet.on .sbody>*,.sheet.on .sfoot,
+  #splash .logo,.splash .logo,.skel{animation:none!important}
+}
+
+/* ⚠ רשת ביטחון: אם אנימציית כניסה נקטעת באמצע — למשל כי
+   go() נקרא שוב — האלמנט חייב להישאר גלוי. */
+.screen.on .top,.screen.on .scroll>*,.screen.on .foot,
+.sheet.on .sbody>*,.sheet.on .sfoot{opacity:1}
 </style>
 </head>
 <body>
@@ -1074,7 +1307,7 @@ const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mil
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
 const SB_URL='https://uokbavvlmxkmxdnxpnek.supabase.co';
 const SB_KEY='sb_publishable_aSrvmwuDw_kcLnzPTjljcQ_tPQKTHoK';
-const BUILD='28.9.26 · 22';
+const BUILD='28.9.26 · 25';
 /* persistSession ו-autoRefreshToken הם ברירת המחדל, אבל הם
    לב הכניסה האוטומטית ולכן כתובים כאן במפורש.
    ⚠ אין לשנות storageKey — שינוי שלו מנתק את כל המשתמשים הקיימים. */
@@ -1125,7 +1358,42 @@ function goBack(){
   if(t.fn)return t.fn();
   if(t.law)return lawGo(t.law);
   if(t.go)return go(t.go)}
-function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('#s-'+id).classList.add('on');
+/* ⚠ מעברים בין מסכים.
+   קודם: הסרת .on מכולם והוספה לחדש — קפיצה מיידית.
+   עכשיו: המסך היוצא מקבל .leaving ומונפש החוצה, והנכנס
+   מקבל .on מיד — כדי שכל drawX() שרץ אחרי go() ימצא DOM חי.
+   הכיוון נגזר מעומק המסך, כך שחזרה אחורה נראית כמו חזרה. */
+const SCR_DEPTH={
+  welcome:1,picker:2,describe:3,wait:3,journey:2,docs:2,privacy:2,signup:1,
+  lawLogin:1,lawList:2,lawInvite:3,lawClient:3,lawPlan:4,lawPath:4
+};
+let _scrPrev=null,_scrTimer=null;
+
+function go(id){
+  const next=$('#s-'+id);
+  if(!next)return;
+  const cur=document.querySelector('.screen.on');
+
+  if(cur&&cur!==next){
+    const back=(SCR_DEPTH[id]||0) < (SCR_DEPTH[_scrPrev]||0);
+    cur.classList.remove('on','back');
+    cur.classList.add('leaving');
+    clearTimeout(_scrTimer);
+    _scrTimer=setTimeout(()=>{
+      document.querySelectorAll('.screen.leaving').forEach(e=>e.classList.remove('leaving'));
+    },280);
+    next.classList.toggle('back',back);
+  }else{
+    next.classList.remove('back');
+  }
+
+  document.querySelectorAll('.screen').forEach(e=>{if(e!==next&&!e.classList.contains('leaving'))e.classList.remove('on')});
+  next.classList.remove('on');
+  void next.offsetWidth;          /* איפוס האנימציה גם כשחוזרים לאותו מסך */
+  next.classList.add('on');
+  try{const sc=next.querySelector('.scroll'); if(sc)sc.scrollTop=0}catch(e){}
+
+  _scrPrev=id;
   setWide(id.indexOf('law')===0);setBack(id);
   try{refreshBell()}catch(e){}}
 function goDescribe(){go('describe');requestAnimationFrame(drawLiab)}
@@ -2502,9 +2770,21 @@ function allToIcs(){
   toast(list.length+' תורים ירדו כקובץ יומן')}
 
 /* ═══ invite link + QR ═══ */
-function inviteURL(){return location.origin+location.pathname+'#join='+(DB.firmRow?DB.firmRow.slug:'')}
+/* ⚠ ב-file:// הערך של location.origin הוא המחרוזת "null",
+   והקישור שנוצר שבור לחלוטין. עדיף להגיד את זה מפורש
+   מאשר להנפיק QR שאי אפשר לסרוק. */
+function isLocalFile(){return location.protocol==='file:'||location.origin==='null'}
+function inviteURL(){
+  if(isLocalFile())return '';
+  return location.origin+location.pathname+'#join='+(DB.firmRow?DB.firmRow.slug:'')}
 function drawInvite(){
-  const url=inviteURL();$('#linkTxt').textContent=url;
+  const url=inviteURL();
+  if(!url){
+    $('#linkTxt').textContent='הקישור זמין רק כשהאפליקציה פתוחה מהכתובת באינטרנט, לא מקובץ מקומי.';
+    const b=$('#qr'); if(b)b.innerHTML='<div style="font-size:12.5px;color:var(--ink3);padding:26px;line-height:1.7">'+
+      'פתח את האפליקציה מהכתובת שלה כדי לקבל קוד סריקה</div>';
+    return}
+  $('#linkTxt').textContent=url;
   const box=$('#qr');box.innerHTML='';
   try{new QRCode(box,{text:url,width:180,height:180,colorDark:'#2E2A26',colorLight:'#ffffff'})}
   catch(e){box.innerHTML='<div style="font-size:12px;color:#A79FB3;padding:26px">הקוד ייווצר כשהעמוד מקוון</div>'}}
@@ -2983,6 +3263,11 @@ async function openScan(onDone){
     load.innerHTML='טוען את מנוע הסריקה…<br><span style="opacity:.6;font-size:13px">בפעם הראשונה זה לוקח כמה שניות</span>';
     await ensureCV();
     load.style.display='none';
+    /* ⚠ getUserMedia דורש הקשר מאובטח. file:// אינו כזה בספארי. */
+    if(!window.isSecureContext||location.protocol==='file:')
+      throw new Error('המצלמה חסומה כשהאפליקציה פתוחה מקובץ מקומי. יש לפתוח אותה מהכתובת באינטרנט.');
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)
+      throw new Error('הדפדפן הזה לא תומך בגישה למצלמה.');
     SCAN.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},
       width:{ideal:1920},height:{ideal:1080}},audio:false});
     const v=$('#scanVid');v.srcObject=SCAN.stream;
