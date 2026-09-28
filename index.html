@@ -550,6 +550,11 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
     <div id="lExtra" style="display:none">
       <input id="lName" placeholder="שם מלא">
       <input id="lFirm" placeholder="שם המשרד">
+      <div style="text-align:center;font-size:11.5px;color:var(--ink3);margin:2px 0 8px">
+        מצטרף למשרד קיים? <a href="#" onclick="toggleInvite();return false"
+        style="color:#14807A;font-weight:700">יש לי קוד הזמנה</a></div>
+      <input id="lInvite" placeholder="קוד הזמנה · 10 תווים" maxlength="10"
+        style="display:none;text-transform:uppercase;letter-spacing:2px;text-align:center;font-weight:700">
     </div>
     <div id="lMsg" style="display:none;background:#FDF0ED;border-radius:14px;padding:12px;font-size:13px;color:#C24A34;line-height:1.6"></div>
   </div>
@@ -587,6 +592,20 @@ input::placeholder,textarea::placeholder{color:#A5A3A0}
     <button class="btn2" onclick="copyLink()">העתקת הקישור</button>
     <div style="background:var(--soft);border-radius:16px;padding:13px;margin-top:14px;font-size:12.5px;color:var(--ink2);line-height:1.65">
       אחרי ההרשמה ומילוי הסימפטומים, הלקוח יופיע ברשימה שלך עם התוכנית מוכנה לאישור.</div>
+
+    <div style="height:1px;background:var(--line);margin:22px 0"></div>
+    <div style="font-size:14.5px;font-weight:700;margin-bottom:4px">צירוף עורך דין למשרד</div>
+    <div style="font-size:12.5px;color:var(--ink2);line-height:1.65;margin-bottom:12px">
+      קוד חד־פעמי, תקף שבעה ימים. מי שמקבל אותו רואה את כל תיקי המשרד —
+      <b>למסור רק למי שאמור לראות אותם.</b></div>
+    <button class="btn2" onclick="makeInvite()">הפקת קוד הזמנה</button>
+    <div id="invCode" style="display:none;margin-top:12px;background:var(--soft);border-radius:16px;
+      padding:16px;text-align:center">
+      <div style="font-size:26px;font-weight:800;letter-spacing:5px" id="invCodeTxt"></div>
+      <div style="font-size:11.5px;color:var(--ink3);margin-top:8px">
+        מוצג פעם אחת בלבד · פג תוקף בעוד 7 ימים</div>
+      <button class="btn2" style="margin-top:10px" onclick="copyInvite()">העתקה</button>
+    </div>
   </div>
   
 </section>
@@ -1053,9 +1072,9 @@ back:[{id:'a',d:D.head,cx:120,cy:47,tag:'ראש',parts:['head']},{id:'b',d:D.nec
 /* ═══ state ═══ */
 const MILE=[{id:'m1',l:'בדיקת שלמות התיק',c:'#8A8F98',i:'file',mile:true},
             {id:'m2',l:'בקשת מינוי מומחה',c:'#14807A',i:'gavel',mile:true}];
-const SB_URL='https://pikiskitndavseoqakmh.supabase.co';
-const SB_KEY='sb_publishable_zOy3TRLE2EHzNtfVICy8sA_bBqA__Nj';
-const BUILD='18.8.26 · 20';
+const SB_URL='https://uokbavvlmxkmxdnxpnek.supabase.co';
+const SB_KEY='sb_publishable_aSrvmwuDw_kcLnzPTjljcQ_tPQKTHoK';
+const BUILD='28.9.26 · 22';
 /* persistSession ו-autoRefreshToken הם ברירת המחדל, אבל הם
    לב הכניסה האוטומטית ולכן כתובים כאן במפורש.
    ⚠ אין לשנות storageKey — שינוי שלו מנתק את כל המשתמשים הקיימים. */
@@ -2489,6 +2508,24 @@ function drawInvite(){
   const box=$('#qr');box.innerHTML='';
   try{new QRCode(box,{text:url,width:180,height:180,colorDark:'#2E2A26',colorLight:'#ffffff'})}
   catch(e){box.innerHTML='<div style="font-size:12px;color:#A79FB3;padding:26px">הקוד ייווצר כשהעמוד מקוון</div>'}}
+function toggleInvite(){
+  const f=$('#lInvite'), firm=$('#lFirm');
+  const on=f.style.display==='none';
+  f.style.display=on?'':'none';
+  firm.style.display=on?'none':'';
+  if(on){firm.value='';f.focus()}else{f.value=''}}
+
+async function makeInvite(){
+  const r=await sb.rpc('create_firm_invite');
+  if(r.error)return toast('לא ניתן להפיק קוד: '+r.error.message);
+  $('#invCodeTxt').textContent=r.data;
+  $('#invCode').style.display='';}
+
+function copyInvite(){
+  const t=$('#invCodeTxt').textContent;
+  if(!t)return;
+  navigator.clipboard.writeText(t).then(()=>toast('הקוד הועתק'),()=>toast('ההעתקה נכשלה'));}
+
 function shareWA(){
   const fn=DB.firmRow?DB.firmRow.name:'המשרד';
   const t=encodeURIComponent('היי, זה '+fn+'. כדי שננהל את התיק שלך יחד ולא נפספס כלום — נרשמים כאן:\n'+inviteURL());
@@ -2515,9 +2552,11 @@ async function doSignup(){
     if(r.error)return toast('שגיאת כניסה: '+r.error.message);session=r.data.session}
   const m=location.hash.match(/join=([\w-]+)/);
   let firm=null;
-  if(m&&m[1]){const r=await sb.from('firms').select('*').eq('slug',m[1]).maybeSingle();firm=r.data}
-  if(!firm){const r=await sb.from('firms').select('*').limit(1);firm=r.data&&r.data[0]}
-  if(!firm)return toast('לא נמצא משרד — בקש קישור חדש מעורך הדין');
+  /* ⚠ בלי נפילה למשרד שרירותי. קודם lawyer().limit(1) החזיר משרד כלשהו,
+     ולקוח בלי קישור היה נוחת אצל עורך דין שאינו שלו. */
+  const slugC=(m&&m[1])||cacheGet('lz.firm');
+  if(slugC){const r=await sb.rpc('firm_public',{p_slug:slugC});firm=r.data&&r.data[0]}
+  if(!firm)return toast('צריך קישור אישי מעורך הדין שלך כדי לפתוח תיק');
   DB.firmRow=firm;applyBrand();
   const {data,error}=await sb.from('clients').insert({firm_id:firm.id,auth_uid:session.user.id,
     name:n,phone:p,email:em||null,notify_email:$('#sMailOk').checked,
@@ -2564,14 +2603,26 @@ async function lawSignup(){
       session=si.data.session;
     } else session=r.data.session;
   }
-  let {data:firm}=await sb.from('firms').select('*').eq('name',fm).maybeSingle();
+  /* ⚠ אין יותר חיפוש משרד לפי שם.
+     חיפוש לפי שם אפשר לכל מי שידע את השם להצטרף למשרד ולקרוא את תיקיו.
+     שני מסלולים בלבד: קוד הזמנה ממשרד קיים, או משרד חדש משלך. */
+  const inv=(($('#lInvite')&&$('#lInvite').value)||'').trim().toUpperCase();
+  let firm=null;
+  if(inv){
+    const j=await sb.rpc('join_firm',{p_code:inv});
+    if(j.error)return lawErr('שגיאה בהצטרפות: '+j.error.message);
+    if(!j.data)return lawErr('קוד ההזמנה שגוי, פג תוקף או כבר נוצל');
+    const fr=await sb.from('firms').select('*').eq('id',j.data).maybeSingle();
+    firm=fr.data;
+    await sb.from('lawyers').update({name:nm,email:e}).eq('id',session.user.id);
+  }
   if(!firm){
     const slug='f'+Date.now().toString(36);
     const r=await sb.from('firms').insert({name:fm,slug,initials:initialsOf(fm),brand:'#14807A'}).select().single();
     if(r.error)return lawErr('לא ניתן ליצור משרד: '+r.error.message);
     firm=r.data;
   }
-  const li=await sb.from('lawyers').insert({id:session.user.id,firm_id:firm.id,name:nm,email:e});
+  const li=inv?{error:null}:await sb.from('lawyers').insert({id:session.user.id,firm_id:firm.id,name:nm,email:e});
   if(li.error&&li.error.code!=='23505'){
     if(String(li.error.message).indexOf('_fkey')>-1)
       return lawErr('החיבור הקודם כבר לא תקף. לחץ "יציאה" למטה, רענן, ונסה שוב.');
@@ -3938,8 +3989,9 @@ async function bootInner(){
     return splashStuck('אין חיבור לאינטרנט כרגע.<br>התיק שלך שמור. ננסה שוב ברגע שתהיה רשת.');
 
   if(slug){
-    const r=await sb.from('firms').select('*').eq('slug',slug).maybeSingle();
-    if(r.data){DB.firmRow=r.data;applyBrand();cacheBrand(r.data)}}
+    const r=await sb.rpc('firm_public',{p_slug:slug});
+    const fp=r.data&&r.data[0];
+    if(fp){DB.firmRow=fp;applyBrand();cacheBrand(fp)}}
 
   if(joining&&!session){
     const r=await sb.auth.signInAnonymously();
